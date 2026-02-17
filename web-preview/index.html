@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DEEP Pulse – Démo complète</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@0.513.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+          colors: {
+            primary: '#FF9F66',
+            'primary-dark': '#e88b52',
+            background: '#0c0c0e',
+            'background-card': '#16161a',
+            'background-card-hover': '#1c1c21',
+            'background-secondary': '#222228',
+            text: '#fafafa',
+            'text-secondary': '#9898a0',
+            'text-muted': '#6b6b73',
+            border: '#2a2a30',
+            'border-soft': '#25252b',
+            success: '#22c55e',
+            error: '#ef4444',
+          },
+          borderRadius: { '2.5xl': '1.25rem', '3xl': '1.5rem' },
+          boxShadow: {
+            'card': '0 4px 24px -4px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.03)',
+            'card-hover': '0 8px 32px -4px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
+            'glow-primary': '0 0 40px -8px rgba(255,159,102,0.35)',
+            'btn-primary': '0 4px 20px -2px rgba(255,159,102,0.4)',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255,159,102,0.08) 0%, transparent 50%), linear-gradient(160deg, #0b0b0f 0%, #07070a 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; color: #fafafa; }
+    .phone { width: 100%; max-width: 390px; height: 844px; max-height: 95vh; background: linear-gradient(180deg, rgba(18,18,22,0.98) 0%, #0a0a0d 50%, #08080b 100%); border-radius: 44px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 120px -30px rgba(255,159,102,0.06); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; position: relative; }
+    .phone::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%); opacity: 0.5; }
+    [data-lucide] { stroke-width: 2; }
+    .icon-wrap { display: inline-flex; align-items: center; justify-content: center; }
+    .icon-circle [data-lucide], .icon-circle svg { width: 48px; height: 48px; color: inherit; }
+    .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .screen.active { display: flex; }
+    .scroll { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+    .dot { width: 6px; height: 6px; border-radius: 9999px; background: rgba(255,255,255,0.15); transition: all 0.3s ease; }
+    .dot.active { width: 24px; background: linear-gradient(90deg, #FF9F66, #ffb088); border-radius: 9999px; }
+    .ad-top { height: 80px; background: linear-gradient(135deg, #FF9F66 0%, #e88b52 50%, #d97a42 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 15px; letter-spacing: 0.02em; box-shadow: 0 4px 20px -2px rgba(255,159,102,0.3); text-decoration: none; transition: transform 0.15s ease, box-shadow 0.2s ease; }
+    .ad-bottom { height: 60px; background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; box-shadow: 0 4px 16px -2px rgba(168,85,247,0.25); text-decoration: none; transition: transform 0.15s ease, box-shadow 0.2s ease; }
+    .ad-clickable:hover { transform: scale(1.02); box-shadow: 0 6px 24px -2px rgba(255,159,102,0.35); }
+    .ad-bottom.ad-clickable:hover { box-shadow: 0 6px 20px -2px rgba(168,85,247,0.3); }
+    .ad-clickable { cursor: pointer; }
+    .ad-clickable .ad-label { font-size: 10px; opacity: 0.9; margin-left: 6px; display: inline-flex; align-items: center; gap: 4px; }
+    .slide { min-width: 100%; padding: 52px 28px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex-shrink: 0; }
+    .icon-circle { width: 120px; height: 120px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 44px; margin-bottom: 40px; box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 8px 32px -8px rgba(0,0,0,0.4); transition: transform 0.2s ease; }
+    .hub-icon { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(255,159,102,0.18) 0%, rgba(255,159,102,0.08) 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #FF9F66; font-size: 13px; border: 1px solid rgba(255,159,102,0.2); }
+    .tab-bar { height: 64px; background: rgba(10,10,13,0.95); border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-around; padding: 8px 6px; flex-shrink: 0; backdrop-filter: blur(12px); }
+    .tab { display: flex; flex-direction: column; align-items: center; color: #6b6b73; font-size: 10px; font-weight: 600; cursor: pointer; padding: 6px 4px; border-radius: 12px; flex: 1; transition: all 0.2s ease; letter-spacing: 0.01em; }
+    .tab:hover { color: #b8b8be; }
+    .tab.active { color: #FF9F66; background: rgba(255,159,102,0.1); }
+    .tab span.icon { font-size: 22px; margin-bottom: 2px; opacity: 0.9; }
+    .tab.active span.icon { opacity: 1; }
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+    .nav-tabs button { padding: 8px 14px; border-radius: 12px; background: #16161a; color: #9898a0; border: 1px solid #2a2a30; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; }
+    .nav-tabs button:hover { background: #1c1c21; color: #fafafa; border-color: #333; }
+    .nav-tabs button.active { background: linear-gradient(135deg, #FF9F66, #e88b52); color: #fff; border-color: transparent; box-shadow: 0 4px 16px -2px rgba(255,159,102,0.35); }
+    .tabs-inner { display: flex; border-bottom: 1px solid #2a2a30; margin-bottom: 16px; gap: 4px; }
+    .tabs-inner .tab-inner { flex: 1; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 13px; color: #6b6b73; cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s; }
+    .tabs-inner .tab-inner:hover { color: #9898a0; }
+    .tabs-inner .tab-inner.active { color: #FF9F66; background: rgba(255,159,102,0.08); }
+    .back-bar { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid #2a2a30; gap: 8px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+    .back-bar:hover { background: #16161a; }
+    .card { background: linear-gradient(180deg, #18181c 0%, #141418 100%); border-radius: 20px; border: 1px solid #2a2a30; box-shadow: 0 4px 24px -4px rgba(0,0,0,0.3); }
+    .btn-primary { background: linear-gradient(135deg, #FF9F66 0%, #e88b52 100%); color: #fff; font-weight: 700; border: none; border-radius: 16px; box-shadow: 0 4px 20px -2px rgba(255,159,102,0.4); transition: transform 0.05s ease, box-shadow 0.2s ease; }
+    .btn-primary:hover { box-shadow: 0 6px 28px -2px rgba(255,159,102,0.45); }
+    .btn-primary:active { transform: scale(0.98); }
+    .badge-new { background: linear-gradient(135deg, #FF9F66, #e88b52); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 9999px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b73; }
+    input::placeholder, textarea::placeholder { color: #5a5a62; }
+    input:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(255,159,102,0.35); }
+  </style>
+</head>
+<body>
+  <div class="p-4">
+    <p class="text-[#a0a0a0] text-sm text-center mb-2">DEEP Pulse – Démo complète (tous les écrans + navigation)</p>
+    <div class="nav-tabs" id="navTabs"></div>
+    <div class="phone">
+      <!-- ========== ONBOARDING ========== -->
+      <div id="screen-onboarding" class="screen active">
+        <div class="absolute top-4 right-6 z-10">
+          <span class="text-[#a0a0a0] text-base font-semibold cursor-pointer" id="btnSkip">Skip →</span>
+        </div>
+        <div class="flex overflow-x-auto snap-x snap-mandatory flex-1 w-full" id="onboardingSlider" style="scroll-snap-type: x mandatory;">
+          <div class="slide" style="min-width: 100%; scroll-snap-align: start;"><div class="icon-circle bg-[#FF9F66]/20 text-primary"><i data-lucide="bell-ring" class="w-12 h-12"></i></div><h1 class="text-white font-extrabold text-3xl text-center mb-4 leading-tight tracking-tight">Welcome to<br/>DEEP Pulse</h1><p class="text-text-secondary text-base text-center leading-relaxed max-w-[280px]">Your Web3 Notification Hub. Stay connected to your favorite Solana projects.</p></div>
+          <div class="slide" style="min-width: 100%; scroll-snap-align: start;"><div class="icon-circle bg-[#22c55e]/20 text-[#22c55e]"><i data-lucide="zap" class="w-12 h-12"></i></div><h1 class="text-white font-extrabold text-3xl text-center mb-4 leading-tight tracking-tight">Subscribe<br/>for FREE</h1><p class="text-text-secondary text-base text-center leading-relaxed max-w-[280px]">Never miss updates. Get instant notifications completely FREE.</p></div>
+          <div class="slide" style="min-width: 100%; scroll-snap-align: start;"><div class="icon-circle bg-[#3b82f6]/20 text-[#3b82f6]"><i data-lucide="gem" class="w-12 h-12"></i></div><h1 class="text-white font-extrabold text-3xl text-center mb-4 leading-tight tracking-tight">Engage<br/>& Earn</h1><p class="text-text-secondary text-base text-center leading-relaxed max-w-[280px]">Send feedback, propose ideas, earn $SKR.</p></div>
+          <div class="slide" style="min-width: 100%; scroll-snap-align: start;"><div class="icon-circle bg-[#a855f7]/20 text-[#a855f7]"><i data-lucide="users" class="w-12 h-12"></i></div><h1 class="text-white font-extrabold text-3xl text-center mb-4 leading-tight tracking-tight">DAO<br/>Governance</h1><p class="text-text-secondary text-base text-center leading-relaxed max-w-[280px]">Fund proposals. Only 5% platform fee.</p><button type="button" id="btnConnectWallet" class="mt-8 btn-primary px-8 py-3.5 text-base inline-flex items-center justify-center gap-2"><i data-lucide="wallet" class="w-5 h-5"></i>Connect Wallet</button><span class="mt-3 text-text-secondary text-sm cursor-pointer" id="btnGuest">Browse as Guest</span></div>
+        </div>
+        <div class="flex justify-center gap-1 py-4">
+          <span class="dot active" data-dot="0"></span><span class="dot" data-dot="1"></span><span class="dot" data-dot="2"></span><span class="dot" data-dot="3"></span>
+        </div>
+        <div class="px-6 pb-6" id="onboardingNextWrap">
+          <button type="button" id="btnNext" class="w-full btn-primary py-3.5 text-base">Next</button>
+        </div>
+      </div>
+
+      <!-- ========== MAIN (TABS) ========== -->
+      <div id="screen-main" class="screen">
+        <div id="main-content" class="scroll flex-1"></div>
+        <div class="tab-bar" id="mainTabBar">
+          <div class="tab active" data-tab="home"><span class="icon icon-wrap"><i data-lucide="home" class="w-5 h-5"></i></span>Home</div>
+          <div class="tab" data-tab="discover"><span class="icon icon-wrap"><i data-lucide="search" class="w-5 h-5"></i></span>Discover</div>
+          <div class="tab" data-tab="myhubs"><span class="icon icon-wrap"><i data-lucide="layout-grid" class="w-5 h-5"></i></span>My Hubs</div>
+          <div class="tab" data-tab="dao"><span class="icon icon-wrap"><i data-lucide="rocket" class="w-5 h-5"></i></span>DAO</div>
+          <div class="tab" data-tab="talent"><span class="icon icon-wrap"><i data-lucide="briefcase" class="w-5 h-5"></i></span>Talent</div>
+          <div class="tab" data-tab="profile"><span class="icon icon-wrap"><i data-lucide="user" class="w-5 h-5"></i></span>Profile</div>
+        </div>
+      </div>
+
+      <!-- ========== ADMIN (stack) ========== -->
+      <div id="screen-admin" class="screen">
+        <div class="back-bar text-primary font-semibold items-center gap-2" id="adminBack"><i data-lucide="chevron-left" class="w-5 h-5"></i>Back</div>
+        <div class="scroll p-4">
+          <h1 class="text-white font-black text-2xl mb-2">Admin Dashboard</h1>
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="card p-4"><div class="text-primary font-black text-xl">47,832</div><div class="text-text-secondary text-xs">Users</div></div>
+            <div class="card p-4"><div class="text-primary font-black text-xl">23</div><div class="text-text-secondary text-xs">Hubs</div></div>
+            <div class="card p-4"><div class="text-primary font-black text-xl">892K</div><div class="text-text-secondary text-xs">Revenue $SKR</div></div>
+            <div class="card p-4"><div class="text-success font-black text-xl">+34%</div><div class="text-text-secondary text-xs">Growth</div></div>
+          </div>
+          <h2 class="text-white font-bold mb-2">Pending Hubs</h2>
+          <div class="card p-4 mb-3"><div class="flex justify-between"><span class="text-text font-semibold">Crypto Traders</span><span class="text-primary text-xs font-bold">PENDING</span></div><div class="text-text-secondary text-sm">4mL...7Np · 0 subscribers</div><div class="flex gap-2 mt-2"><button class="flex-1 bg-primary rounded-lg py-2 text-white text-sm font-bold">Approve</button><button class="flex-1 bg-error/20 rounded-lg py-2 text-error text-sm font-bold">Suspend</button></div></div>
+          <h2 class="text-white font-bold mb-2 mt-4">Global Notification</h2>
+          <input type="text" placeholder="Title" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white mb-2 border border-border outline-none placeholder:text-[#666]" />
+          <input type="text" placeholder="Message" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white mb-3 border border-border outline-none placeholder:text-[#666]" />
+          <button class="w-full btn-primary py-3.5">Send (1,000 $SKR)</button>
+        </div>
+      </div>
+
+      <!-- ========== HUB DASHBOARD (stack) ========== -->
+      <div id="screen-hubdashboard" class="screen">
+        <div class="back-bar text-primary font-semibold items-center gap-2" id="hubDashboardBack"><i data-lucide="chevron-left" class="w-5 h-5"></i>Back</div>
+        <div class="scroll p-4">
+          <h1 class="text-white font-black text-2xl mb-1">Solana Gaming</h1>
+          <p class="text-text-secondary text-sm mb-4">12,542 subscribers</p>
+          <div class="flex gap-3 mb-6">
+            <div class="flex-1 card p-3 text-center"><div class="text-text font-black text-xl">342</div><div class="text-text-secondary text-xs">Sent</div></div>
+            <div class="flex-1 card p-3 text-center"><div class="text-text font-black text-xl">87%</div><div class="text-text-secondary text-xs">Open</div></div>
+            <div class="flex-1 card p-3 text-center"><div class="text-text font-black text-xl">62%</div><div class="text-text-secondary text-xs">Click</div></div>
+          </div>
+          <h2 class="text-white font-bold mb-2 flex items-center gap-2"><i data-lucide="send" class="w-5 h-5 text-primary"></i>Send Notification</h2>
+          <input type="text" placeholder="Title" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white mb-2 border border-border outline-none placeholder:text-[#666]" />
+          <textarea placeholder="Message" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white mb-3 border border-border outline-none placeholder:text-[#666] h-24 resize-none"></textarea>
+          <button class="w-full btn-primary py-3.5 mb-4">Send to 12,542</button>
+          <div class="card p-4 flex items-center justify-between mb-2"><span class="text-text font-semibold flex items-center gap-2"><i data-lucide="shield-check" class="w-5 h-5 text-primary"></i>Moderation</span><i data-lucide="chevron-right" class="w-5 h-5 text-text-muted"></i></div>
+          <div class="card p-4 flex items-center justify-between"><span class="text-text font-semibold flex items-center gap-2"><i data-lucide="megaphone" class="w-5 h-5 text-primary"></i>Ad Slots</span><i data-lucide="chevron-right" class="w-5 h-5 text-text-muted"></i></div>
+        </div>
+      </div>
+
+      <!-- ========== AD SLOTS (stack) ========== -->
+      <div id="screen-adslots" class="screen">
+        <div class="back-bar text-primary font-semibold items-center gap-2" id="adSlotsBack"><i data-lucide="chevron-left" class="w-5 h-5"></i>Back</div>
+        <div class="scroll p-4">
+          <h1 class="text-white font-black text-2xl mb-2">Ad Slots</h1>
+          <p class="text-text-secondary text-sm mb-4">Purchase top or bottom slot for your hub</p>
+          <div class="card p-5 mb-4">
+            <h3 class="text-primary font-bold mb-1">Top Ad Slot</h3>
+            <p class="text-text-secondary text-xs mb-2">2,000 $SKR/week · 8 max · 15s rotation</p>
+            <div class="text-text font-black text-lg">3/8 filled</div>
+            <button class="mt-3 w-full bg-primary rounded-xl py-2 text-white font-bold text-sm">Purchase</button>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-primary font-bold mb-1">Bottom Ad Slot</h3>
+            <p class="text-text-secondary text-xs mb-2">1,500 $SKR/week · 8 max · 15s rotation</p>
+            <div class="text-text font-black text-lg">1/8 filled</div>
+            <button class="mt-3 w-full bg-primary rounded-xl py-2 text-white font-bold text-sm">Purchase</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== MODERATION (stack) ========== -->
+      <div id="screen-moderation" class="screen">
+        <div class="back-bar text-primary font-semibold items-center gap-2" id="moderationBack"><i data-lucide="chevron-left" class="w-5 h-5"></i>Back</div>
+        <div class="scroll p-4">
+          <h1 class="text-white font-black text-2xl mb-4">Moderation</h1>
+          <div class="tabs-inner">
+            <div class="tab-inner active">Feedback</div>
+            <div class="tab-inner">Boost</div>
+            <div class="tab-inner">Talent</div>
+          </div>
+          <div class="card p-4 mb-3">
+            <div class="text-text-secondary text-xs mb-1">7xK...9Qz · 2 hours ago</div>
+            <div class="text-text font-semibold mb-1">Re: Game Launch</div>
+            <p class="text-text-secondary text-sm mb-3">Great timing! More details next time would help...</p>
+            <div class="flex gap-2"><button class="flex-1 bg-success/20 text-success rounded-lg py-2 text-sm font-bold">Approve & Refund</button><button class="flex-1 bg-error/20 text-error rounded-lg py-2 text-sm font-bold">Reject</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const screens = ['onboarding', 'main', 'admin', 'hubdashboard', 'adslots', 'moderation'];
+    let currentTab = 'home';
+    const tabScreens = ['home', 'discover', 'myhubs', 'dao', 'talent', 'profile'];
+
+    function showScreen(id) {
+      screens.forEach(s => {
+        const el = document.getElementById('screen-' + s);
+        if (el) el.classList.toggle('active', s === id);
+      });
+      const nav = document.getElementById('navTabs');
+      if (nav) {
+        nav.innerHTML = screens.map(s => '<button type="button" class="' + (s === id ? 'active' : '') + '" data-screen="' + s + '">' + s.replace(/([A-Z])/g, ' $1').trim() + '</button>').join('');
+        nav.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+      }
+      if (id === 'main') renderTab(currentTab);
+    }
+
+    function renderTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('#mainTabBar .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      const container = document.getElementById('main-content');
+      if (!container) return;
+      container.innerHTML = getTabHTML(tab);
+      container.querySelectorAll('[data-nav]').forEach(el => el.addEventListener('click', () => showScreen(el.dataset.nav)));
+      container.querySelectorAll('[data-tab-inner]').forEach(el => el.addEventListener('click', () => setInnerTab(el.closest('[data-inner-tabs]'), el.dataset.tabInner)));
+      setTimeout(function() { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 0);
+    }
+
+    function setInnerTab(wrap, name) {
+      if (!wrap) return;
+      wrap.querySelectorAll('.tab-inner').forEach(t => t.classList.toggle('active', t.dataset.tabInner === name));
+      const content = wrap.querySelector('[data-tab-content]');
+      if (content) content.dataset.active = name;
+    }
+
+    function getTabHTML(tab) {
+      const commonAdTop = '<div class="px-4 mb-4"><a href="https://jup.ag" target="_blank" rel="noopener noreferrer" class="ad-top ad-clickable flex items-center justify-center gap-2"><span>Jupiter Swap</span><span class="ad-label"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Tap to visit</span></a></div>';
+      const commonAdBottom = '<div class="px-4 mt-4 mb-4"><a href="https://tensor.trade" target="_blank" rel="noopener noreferrer" class="ad-bottom ad-clickable flex items-center justify-center gap-2"><span>Tensor</span><span class="ad-label"><i data-lucide="external-link" class="w-3 h-3"></i>Tap to visit</span></a></div>';
+      const tabBar = '';
+      if (tab === 'home') {
+        return '<div class="p-4 pb-4 flex justify-between items-center"><h1 class="text-text font-black text-2xl">DEEP Pulse</h1><div class="flex gap-3 items-center"><span class="icon-wrap text-primary"><i data-lucide="user" class="w-6 h-6"></i></span><span class="icon-wrap text-primary relative"><i data-lucide="bell" class="w-6 h-6"></i><span class="absolute -top-0.5 -right-0.5 bg-primary rounded-full w-4 h-4 flex items-center justify-center text-white text-[10px] font-bold">3</span></span></div></div>' + commonAdTop +
+          '<div class="px-4 mb-3"><p class="section-label mb-1">Latest</p><h2 class="text-text font-bold text-lg">Updates</h2></div>' +
+          '<div class="px-4 space-y-3">' +
+          '<div class="card p-5"><div class="flex items-center gap-2 mb-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="game-controller-2" class="w-5 h-5"></i></div><div><div class="flex items-center gap-2"><span class="text-text font-semibold text-sm">Solana Gaming</span><span class="badge-new">NEW</span></div><span class="text-text-secondary text-xs">2 hours ago</span></div></div><h3 class="text-text font-bold text-sm mb-1">New Game Launch</h3><p class="text-text-secondary text-xs mb-3">Check out the latest game on Solana!</p><button class="w-full bg-primary/20 rounded-xl py-2 border border-primary text-primary font-bold text-xs inline-flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i>Send Feedback (400 $SKR)</button></div>' +
+          '<div class="card p-5"><div class="flex items-center gap-2 mb-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="gem" class="w-5 h-5"></i></div><div><div class="flex items-center gap-2"><span class="text-text font-semibold text-sm">NFT Artists</span><span class="badge-new">NEW</span></div><span class="text-text-secondary text-xs">5 hours ago</span></div></div><h3 class="text-text font-bold text-sm mb-1">Artist Spotlight</h3><p class="text-text-secondary text-xs mb-3">@solartist drops exclusive collection tomorrow.</p><button class="w-full bg-primary/20 rounded-xl py-2 border border-primary text-primary font-bold text-xs inline-flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i>Send Feedback (400 $SKR)</button></div>' +
+          '</div>' + commonAdBottom;
+      }
+      if (tab === 'discover') {
+        return '<div class="p-4"><h1 class="text-text font-black text-2xl mb-1">Discover</h1><p class="text-text-secondary text-sm mb-4">Subscribe for FREE</p></div>' +
+          '<div class="px-4 mb-4"><div class="card px-4 py-3 flex items-center gap-2"><span class="text-text-muted icon-wrap"><i data-lucide="search" class="w-5 h-5"></i></span><input type="text" placeholder="Search hubs..." class="flex-1 bg-transparent text-text text-sm outline-none placeholder:text-[#666]" /></div></div>' + commonAdTop +
+          '<div class="px-4"><h2 class="text-text font-bold mb-3">Trending Hubs</h2>' +
+          '<div class="space-y-3">' +
+          '<div class="card p-5"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="game-controller-2" class="w-5 h-5"></i></div><div><h3 class="text-text font-bold text-sm">Solana Gaming</h3><p class="text-text-secondary text-xs">12,500 subscribers</p></div></div><button class="btn-primary px-4 py-2 text-sm">Subscribe FREE</button></div><p class="text-text-secondary text-xs">Latest gaming news</p></div>' +
+          '<div class="card p-5"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="gem" class="w-5 h-5"></i></div><div><h3 class="text-text font-bold text-sm">NFT Artists</h3><p class="text-text-secondary text-xs">8,200 subscribers</p></div></div><button class="btn-primary px-4 py-2 text-sm">Subscribe FREE</button></div><p class="text-text-secondary text-xs">NFT drops & spotlights</p></div>' +
+          '<div class="card p-5"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="trending-up" class="w-5 h-5"></i></div><div><h3 class="text-text font-bold text-sm">DeFi Alerts</h3><p class="text-text-secondary text-xs">15,700 subscribers</p></div></div><button class="btn-primary px-4 py-2 text-sm">Subscribe FREE</button></div><p class="text-text-secondary text-xs">DeFi protocol updates</p></div>' +
+          '</div></div>';
+      }
+      if (tab === 'myhubs') {
+        return '<div class="p-4"><h1 class="text-text font-black text-2xl mb-1">My Hubs</h1><p class="text-text-secondary text-sm mb-2">3 subscriptions</p></div>' + commonAdTop +
+          '<div class="px-4 space-y-3">' +
+          '<div class="card p-5"><div class="flex items-center gap-2 mb-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="game-controller-2" class="w-5 h-5"></i></div><div class="flex-1"><div class="flex items-center gap-2"><span class="text-text font-bold text-sm">Solana Gaming</span><span class="bg-primary rounded-full w-5 h-5 flex items-center justify-center text-white text-[10px] font-bold">3</span></div><span class="text-text-secondary text-xs">12,500 subscribers</span></div></div><div class="bg-background-secondary rounded-xl p-2 mb-2"><p class="text-text text-xs">New game launch tomorrow!</p><span class="text-text-secondary text-[10px]">2 hours ago</span></div><div class="flex gap-2"><button class="flex-1 bg-primary/20 rounded-lg py-2 text-primary font-semibold text-xs">View All</button><button class="flex-1 bg-error/20 rounded-lg py-2 text-error font-semibold text-xs">Unsubscribe</button></div></div>' +
+          '<div class="card p-5"><div class="flex items-center gap-2 mb-2"><div class="hub-icon w-10 h-10 flex items-center justify-center"><i data-lucide="gem" class="w-5 h-5"></i></div><div class="flex-1"><span class="text-text font-bold text-sm">NFT Artists</span><span class="bg-primary rounded-full w-5 h-5 ml-1 inline-flex items-center justify-center text-white text-[10px] font-bold">1</span><br/><span class="text-text-secondary text-xs">8,200 subscribers</span></div></div><div class="bg-background-secondary rounded-xl p-2 mb-2"><p class="text-text text-xs">Artist spotlight: @solartist</p><span class="text-text-secondary text-[10px]">5 hours ago</span></div><div class="flex gap-2"><button class="flex-1 bg-primary/20 rounded-lg py-2 text-primary font-semibold text-xs">View All</button><button class="flex-1 bg-error/20 rounded-lg py-2 text-error font-semibold text-xs">Unsubscribe</button></div></div>' +
+          '</div>' + commonAdBottom;
+      }
+      if (tab === 'dao') {
+        return '<div class="p-4"><h1 class="text-text font-black text-2xl mb-2">DAO Boost</h1><div class="card px-4 py-2 mb-2 flex justify-between items-center"><span class="text-text font-semibold text-sm">Solana Gaming</span><span class="text-primary">▼</span></div><p class="text-text-secondary text-sm mb-3">Propose / Votes / Vault</p></div>' +
+          '<div class="tabs-inner px-4" data-inner-tabs"><div class="tab-inner active" data-tab-inner="propose">Propose</div><div class="tab-inner" data-tab-inner="votes">Votes (2)</div><div class="tab-inner" data-tab-inner="vault">Vault (1)</div></div>' +
+          '<div class="px-4" data-tab-content data-active="propose">' +
+          '<div class="card p-4 mb-4"><p class="text-primary font-semibold text-sm mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i>How it works</p><p class="text-text-secondary text-xs leading-5">• Submit with 100 $SKR deposit<br/>• If approved: refund + vault<br/>• Brand 95%, platform 5%</p></div>' +
+          '<input type="text" placeholder="Proposal title..." class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white text-sm mb-3 border border-border outline-none placeholder:text-[#666]" />' +
+          '<input type="text" placeholder="Target amount ($SKR)" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white text-sm mb-4 border border-border outline-none placeholder:text-[#666]" />' +
+          '<button class="w-full btn-primary py-3.5 text-sm">Submit (100 $SKR)</button>' +
+          '</div>' +
+          '<div class="px-4 hidden" data-tab-content data-active="votes">' +
+          '<div class="card p-5 mb-3"><div class="flex justify-between mb-2"><span class="text-text-secondary text-xs">7xK...9Qz</span><span class="bg-success/20 text-success text-[10px] font-bold px-2 py-0.5 rounded-full">FUNDING</span></div><h3 class="text-text font-bold text-sm mb-1">Tournament System</h3><p class="text-text-secondary text-xs mb-2">Monthly tournaments with $SKR prizes</p><div class="bg-background-secondary rounded-full h-1.5 mb-2"><div class="bg-primary rounded-full h-1.5" style="width:32%"></div></div><div class="flex justify-between text-xs mb-2"><span>16,000 $SKR</span><span>24 backers</span><span>12 days left</span></div><button class="w-full bg-primary rounded-xl py-2 text-white font-bold text-xs">Fund (min 100 $SKR)</button></div>' +
+          '</div>' +
+          '<div class="px-4 hidden" data-tab-content data-active="vault">' +
+          '<div class="card p-4 mb-3"><div class="text-primary font-black text-lg">95,000 $SKR</div><div class="text-text-secondary text-xs">Total This Month</div></div><div class="card p-5"><span class="bg-success/20 text-success text-[10px] font-bold px-2 py-0.5 rounded-full">FUNDED</span><h3 class="text-text font-bold text-sm mt-2">Community Events</h3><p class="text-text-secondary text-xs">Brand 28,500 $SKR · Platform 1,500 $SKR</p></div>' +
+          '</div>';
+      }
+      if (tab === 'talent') {
+        return '<div class="p-4"><h1 class="text-text font-black text-2xl mb-2">Showcase Talent</h1><div class="card px-4 py-2 mb-2 flex justify-between items-center"><span class="text-text font-semibold text-sm">Solana Gaming</span><span class="text-primary">▼</span></div><p class="text-text-secondary text-sm mb-3">Submit / Browse / Mine</p></div>' +
+          '<div class="tabs-inner px-4" data-inner-tabs><div class="tab-inner active" data-tab-inner="submit">Submit</div><div class="tab-inner" data-tab-inner="browse">Browse (2)</div><div class="tab-inner" data-tab-inner="mine">Mine (1)</div></div>' +
+          '<div class="px-4" data-tab-content data-active="submit">' +
+          '<div class="card p-4 mb-4"><p class="text-primary font-semibold text-sm mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i>How it works</p><p class="text-text-secondary text-xs">• 50 $SKR deposit · Brand reviews · Refund if retained</p></div>' +
+          '<input type="text" placeholder="Experience & skills..." class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white text-sm mb-3 border border-border outline-none placeholder:text-[#666]" />' +
+          '<input type="text" placeholder="Portfolio URL" class="w-full bg-background-secondary rounded-xl px-4 py-3 text-white text-sm mb-4 border border-border outline-none placeholder:text-[#666]" />' +
+          '<button class="w-full btn-primary py-3.5 text-sm">Submit (50 $SKR)</button>' +
+          '</div>' +
+          '<div class="px-4 hidden" data-tab-content data-active="browse">' +
+          '<div class="card p-5 mb-3"><div class="flex justify-between items-center mb-2"><span class="text-text font-bold text-sm">UI/UX Designer</span><span class="text-amber-400 text-xs inline-flex items-center gap-0.5"><i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>4.9</span></div><div class="flex flex-wrap gap-1 mb-2"><span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">Figma</span><span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full">React</span></div><p class="text-text-secondary text-xs mb-2">5+ years · 2 weeks · 5,000 $SKR</p><button class="w-full bg-primary/20 rounded-xl py-2 border border-primary text-primary font-bold text-xs">View Contact</button></div>' +
+          '</div>' +
+          '<div class="px-4 hidden" data-tab-content data-active="mine">' +
+          '<div class="card p-5"><div class="flex justify-between mb-2"><span class="text-text font-bold text-sm">UI/UX Designer</span><span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">REVIEW</span></div><p class="text-text-secondary text-xs mb-2">Solana Gaming · Feb 07, 2026</p><button class="w-full bg-background-secondary rounded-xl py-2 text-primary text-sm font-semibold border border-border">Edit Submission</button></div>' +
+          '</div>';
+      }
+      if (tab === 'profile') {
+        return '<div class="p-4"><h1 class="text-text font-black text-2xl mb-4">Profile</h1></div>' +
+          '<div class="px-4 space-y-4">' +
+          '<div class="card p-5"><div class="flex justify-between items-center mb-3"><div><p class="text-text-secondary text-xs">Wallet</p><p class="text-text font-bold text-sm">7xKL...9Qz</p></div><span class="icon-wrap text-primary"><i data-lucide="copy" class="w-5 h-5"></i></span></div><div class="border-t border-border my-3"></div><p class="text-text-secondary text-xs">Balance</p><p class="text-primary font-black text-2xl">2,450 $SKR</p></div>' +
+          '<div class="card p-5"><div class="flex justify-between items-center mb-3"><div><p class="text-text-secondary text-xs">DEEP Score</p><p class="text-text font-black text-2xl inline mr-2">715</p><span class="icon-wrap text-primary inline-flex align-middle"><i data-lucide="award" class="w-6 h-6"></i></span></div><span class="bg-primary/20 text-primary font-bold text-sm px-3 py-1 rounded-full">Gold</span></div><button class="w-full bg-primary/20 rounded-xl py-2 border border-primary text-primary font-bold text-sm inline-flex items-center justify-center gap-2"><i data-lucide="trophy" class="w-4 h-4"></i>View Leaderboard</button></div>' +
+          '<div class="flex gap-2"><div class="flex-1 card p-3 text-center"><div class="text-text font-black text-xl">5</div><div class="text-text-secondary text-[10px]">Subscribed</div></div><div class="flex-1 card p-3 text-center"><div class="text-text font-black text-xl">127</div><div class="text-text-secondary text-[10px]">Notifications</div></div></div>' +
+          '<p class="text-text font-semibold text-sm mt-4 mb-2">Settings</p>' +
+          '<div class="card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="moon" class="w-4 h-4 text-primary"></i>Toggle Theme</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></div>' +
+          '<div class="card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="bell" class="w-4 h-4 text-primary"></i>Notification Settings</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></div>' +
+          '<div class="card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-primary"></i>Transaction History</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></div>' +
+          '<button data-nav="admin" class="w-full bg-primary/20 rounded-xl p-3 border border-primary flex justify-between items-center mb-2"><span class="text-primary font-bold text-sm flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4"></i>Admin Dashboard</span><i data-lucide="chevron-right" class="w-4 h-4 text-primary"></i></button>' +
+          '<button data-nav="hubdashboard" class="w-full card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4 text-primary"></i>Hub Dashboard</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></button>' +
+          '<button data-nav="adslots" class="w-full card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="megaphone" class="w-4 h-4 text-primary"></i>Ad Slots</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></button>' +
+          '<button data-nav="moderation" class="w-full card p-3 flex justify-between items-center mb-2"><span class="text-text font-semibold text-sm flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-primary"></i>Moderation</span><i data-lucide="chevron-right" class="w-4 h-4 text-text-muted"></i></button>' +
+          '<button class="w-full bg-error/20 rounded-xl p-3 border border-error text-error font-bold text-sm">Disconnect Wallet</button>' +
+          '</div>';
+      }
+      return '';
+    }
+
+    document.getElementById('btnSkip').addEventListener('click', () => { showScreen('main'); });
+    document.getElementById('btnConnectWallet').addEventListener('click', () => { showScreen('main'); });
+    document.getElementById('btnGuest').addEventListener('click', () => { showScreen('main'); });
+    document.getElementById('btnNext').addEventListener('click', () => {
+      const slider = document.getElementById('onboardingSlider');
+      const dots = document.querySelectorAll('#screen-onboarding .dot');
+      const slideIndex = Math.round(slider.scrollLeft / slider.offsetWidth);
+      if (slideIndex >= 3) showScreen('main');
+      else { slider.scrollLeft = (slideIndex + 1) * slider.offsetWidth; dots.forEach((d, i) => d.classList.toggle('active', i === slideIndex + 1)); }
+    });
+    document.getElementById('onboardingSlider').addEventListener('scroll', () => {
+      const slider = document.getElementById('onboardingSlider');
+      const slideIndex = Math.round(slider.scrollLeft / slider.offsetWidth);
+      document.querySelectorAll('#screen-onboarding .dot').forEach((d, i) => d.classList.toggle('active', i === slideIndex));
+    });
+    document.getElementById('mainTabBar').addEventListener('click', (e) => {
+      const t = e.target.closest('.tab[data-tab]');
+      if (t) { currentTab = t.dataset.tab; renderTab(currentTab); }
+    });
+    document.getElementById('adminBack').addEventListener('click', () => showScreen('main'));
+    document.getElementById('hubDashboardBack').addEventListener('click', () => showScreen('main'));
+    document.getElementById('adSlotsBack').addEventListener('click', () => showScreen('main'));
+    document.getElementById('moderationBack').addEventListener('click', () => showScreen('main'));
+
+    document.getElementById('main-content').addEventListener('click', (e) => {
+      const inner = e.target.closest('.tab-inner[data-tab-inner]');
+      if (inner) {
+        e.preventDefault();
+        const wrap = inner.closest('[data-inner-tabs]');
+        if (!wrap) return;
+        wrap.querySelectorAll('.tab-inner').forEach(t => t.classList.toggle('active', t === inner));
+        const name = inner.dataset.tabInner;
+        let next = wrap.nextElementSibling;
+        while (next && next.dataset.tabContent !== undefined) {
+          next.classList.toggle('hidden', next.dataset.active !== name);
+          next = next.nextElementSibling;
+        }
+      }
+    });
+
+    showScreen('onboarding');
+    document.querySelectorAll('#screen-onboarding .dot').forEach((d, i) => d.classList.toggle('active', i === 0));
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  </script>
+</body>
+</html>

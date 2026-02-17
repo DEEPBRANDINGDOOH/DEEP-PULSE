@@ -1,0 +1,96 @@
+// android/app/build.gradle
+// Configuration complète pour Solana Mobile Seeker
+
+plugins {
+    id "com.android.application"
+    id "com.facebook.react"
+}
+
+react {
+    /* Folders */
+    root = file("../../")
+    reactNativeDir = file("../../node_modules/react-native")
+    codegenDir = file("../../node_modules/@react-native/codegen")
+}
+
+android {
+    namespace "com.deeppulse"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.deeppulse"
+        minSdk 26  // CRITIQUE: Solana Mobile minimum requirement
+        targetSdk 34
+        versionCode 1
+        versionName "2.0.0"
+        
+        // Solana Mobile Wallet Adapter
+        manifestPlaceholders = [
+            'walletAuthenticationUrl': 'https://deeppulse.app/auth'
+        ]
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        // Pour release builds:
+        // Décommentez et configurez avec vos vraies credentials
+        // release {
+        //     storeFile file('deep-pulse-release.keystore')
+        //     storePassword System.getenv("KEYSTORE_PASSWORD") ?: 'YOUR_PASSWORD'
+        //     keyAlias 'deep-pulse'
+        //     keyPassword System.getenv("KEY_PASSWORD") ?: 'YOUR_PASSWORD'
+        // }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // signingConfig signingConfigs.release
+        }
+    }
+
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+    }
+}
+
+dependencies {
+    // React Native
+    implementation("com.facebook.react:react-android")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    
+    // CRITIQUE: Solana Mobile Wallet Adapter
+    // Sans cette dépendance, MWA ne fonctionnera pas!
+    implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.1.0'
+    
+    // Debug tools
+    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
+    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.squareup.okhttp3', module:'okhttp'
+    }
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
+    
+    // Hermes
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+}
+
+// Apply native modules
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesAppBuildGradle(project)

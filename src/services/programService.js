@@ -1,0 +1,867 @@
+/**
+ * DEEP Pulse Program Service
+ *
+ * Client SDK bridging the Anchor smart contract with the React Native frontend.
+ * All on-chain interactions go through this service.
+ *
+ * Uses Solana Mobile Wallet Adapter (MWA) for transaction signing.
+ * The $SKR token mint is: SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
+ */
+
+import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+} from '@solana/web3.js';
+import { Program, AnchorProvider, BN, web3 } from '@coral-xyz/anchor';
+import {
+  TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+} from '@solana/spl-token';
+import { Linking } from 'react-native';
+import { APP_IDENTITY, getRpcEndpoint, getCluster } from '../config/constants';
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+// Program ID (replace after deployment)
+const PROGRAM_ID = new PublicKey('33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4');
+
+// $SKR Token Mint — EXISTING on Solana
+const SKR_MINT = new PublicKey('SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3');
+
+// PDA Seeds
+const PLATFORM_CONFIG_SEED = 'platform_config';
+const TREASURY_SEED = 'treasury';
+const HUB_SEED = 'hub';
+const SUBSCRIPTION_SEED = 'subscription';
+const DEPOSIT_SEED = 'deposit';
+const ESCROW_SEED = 'escrow';
+const VAULT_SEED = 'vault';
+const VAULT_TOKEN_SEED = 'vault_token';
+const CONTRIBUTION_SEED = 'contribution';
+const AD_SLOT_SEED = 'ad_slot';
+const USER_SCORE_SEED = 'user_score';
+
+const onWalletNotFound = () => {
+  Linking.openURL(
+    'https://play.google.com/store/search?q=solana+wallet&c=apps'
+  );
+};
+
+// ============================================
+// PDA DERIVATION HELPERS
+// ============================================
+
+function getPlatformConfigPda() {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(PLATFORM_CONFIG_SEED)],
+    PROGRAM_ID
+  );
+}
+
+function getTreasuryPda() {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(TREASURY_SEED)],
+    PROGRAM_ID
+  );
+}
+
+function getHubPda(creator, hubIndex) {
+  const indexBuffer = Buffer.alloc(4);
+  indexBuffer.writeUInt32LE(hubIndex);
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(HUB_SEED), creator.toBuffer(), indexBuffer],
+    PROGRAM_ID
+  );
+}
+
+function getSubscriptionPda(user, hubPda) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(SUBSCRIPTION_SEED), user.toBuffer(), hubPda.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
+function getDepositPda(depositor, depositIndex) {
+  const indexBuffer = Buffer.alloc(4);
+  indexBuffer.writeUInt32LE(depositIndex);
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(DEPOSIT_SEED), depositor.toBuffer(), indexBuffer],
+    PROGRAM_ID
+  );
+}
+
+function getEscrowPda(depositPda) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(ESCROW_SEED), depositPda.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
+function getVaultPda(hubPda, vaultIndex) {
+  const indexBuffer = Buffer.alloc(4);
+  indexBuffer.writeUInt32LE(vaultIndex);
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(VAULT_SEED), hubPda.toBuffer(), indexBuffer],
+    PROGRAM_ID
+  );
+}
+
+function getVaultTokenPda(vaultPda) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(VAULT_TOKEN_SEED), vaultPda.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
+function getContributionPda(vaultPda, contributor) {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(CONTRIBUTION_SEED),
+      vaultPda.toBuffer(),
+      contributor.toBuffer(),
+    ],
+    PROGRAM_ID
+  );
+}
+
+function getAdSlotPda(hubPda, slotType, slotIndex) {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(AD_SLOT_SEED),
+      hubPda.toBuffer(),
+      Buffer.from([slotType]),
+      Buffer.from([slotIndex]),
+    ],
+    PROGRAM_ID
+  );
+}
+
+function getUserScorePda(user) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(USER_SCORE_SEED), user.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
+// ============================================
+// PROGRAM SERVICE CLASS
+// ============================================
+
+class ProgramService {
+  constructor() {
+    this._connection = null;
+    this._currentEndpoint = null;
+    this._idl = null;
+  }
+
+  get connection() {
+    const endpoint = getRpcEndpoint();
+    if (!this._connection || this._currentEndpoint !== endpoint) {
+      this._connection = new Connection(endpoint, 'confirmed');
+      this._currentEndpoint = endpoint;
+    }
+    return this._connection;
+  }
+
+  /**
+   * Load IDL (call after program deployment)
+   * In production, import the IDL JSON directly:
+   * import IDL from '../config/deep_pulse.json';
+   */
+  async getIdl() {
+    if (!this._idl) {
+      // For now, use Anchor's fetch. In production, import the JSON file.
+      try {
+        this._idl = await Program.fetchIdl(PROGRAM_ID, {
+          connection: this.connection,
+        });
+      } catch {
+        // Fallback: import IDL from file
+        // this._idl = require('../config/deep_pulse.json');
+        console.warn('Could not fetch IDL from chain. Import IDL JSON manually.');
+      }
+    }
+    return this._idl;
+  }
+
+  // ============================================
+  // HELPER: Execute transaction via MWA
+  // ============================================
+
+  async _executeMwaTransaction(buildTxFn) {
+    return transact(async (wallet) => {
+      const authResult = await wallet.authorize({
+        chain: getCluster(),
+        identity: APP_IDENTITY,
+      });
+
+      const userPubkey = new PublicKey(authResult.accounts[0].address);
+      const { blockhash, lastValidBlockHeight } =
+        await this.connection.getLatestBlockhash();
+
+      const transaction = new Transaction({
+        feePayer: userPubkey,
+        blockhash,
+        lastValidBlockHeight,
+      });
+
+      // Let caller add instructions
+      await buildTxFn(transaction, userPubkey, authResult);
+
+      // Sign and send via MWA
+      const [signature] = await wallet.signAndSendTransactions({
+        transactions: [transaction],
+      });
+
+      return { signature, userPubkey };
+    }, { onWalletNotFound });
+  }
+
+  // ============================================
+  // HELPER: Get or create ATA
+  // ============================================
+
+  async _getOrCreateAta(transaction, payer, mint, owner) {
+    const ata = await getAssociatedTokenAddress(mint, owner, true);
+
+    const accountInfo = await this.connection.getAccountInfo(ata);
+    if (!accountInfo) {
+      transaction.add(
+        createAssociatedTokenAccountInstruction(payer, ata, owner, mint)
+      );
+    }
+
+    return ata;
+  }
+
+  // ============================================
+  // READ OPERATIONS (No wallet needed)
+  // ============================================
+
+  async fetchPlatformConfig() {
+    const [pda] = getPlatformConfigPda();
+    const idl = await this.getIdl();
+    if (!idl) return null;
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.platformConfig.fetch(pda);
+  }
+
+  async fetchHub(hubPda) {
+    const idl = await this.getIdl();
+    if (!idl) return null;
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.hub.fetch(hubPda);
+  }
+
+  async fetchAllHubs() {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.hub.all();
+  }
+
+  async fetchActiveHubs() {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    // Filter by is_active = true using memcmp
+    return program.account.hub.all([
+      {
+        memcmp: {
+          // Offset for is_active field (after discriminator + creator + name + desc + category + sub_count)
+          // This offset would need to be calculated exactly based on the struct layout
+          offset: 8 + 32 + (4 + 64) + (4 + 256) + 1 + 4 + 1, // is_verified offset
+          bytes: '', // We'd need the correct filter for is_active
+        },
+      },
+    ]);
+  }
+
+  async fetchUserSubscriptions(userPubkey) {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.hubSubscription.all([
+      {
+        memcmp: {
+          offset: 8, // after discriminator
+          bytes: userPubkey.toBase58(),
+        },
+      },
+    ]);
+  }
+
+  async fetchUserScore(userPubkey) {
+    const [pda] = getUserScorePda(userPubkey);
+    const idl = await this.getIdl();
+    if (!idl) return null;
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    try {
+      return await program.account.userScore.fetch(pda);
+    } catch {
+      return null; // Score not initialized yet
+    }
+  }
+
+  async fetchDaoVault(vaultPda) {
+    const idl = await this.getIdl();
+    if (!idl) return null;
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.daoVault.fetch(vaultPda);
+  }
+
+  async fetchOpenVaultsForHub(hubPda) {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.daoVault.all([
+      {
+        memcmp: {
+          offset: 8 + 32, // after discriminator + proposal_deposit
+          bytes: hubPda.toBase58(),
+        },
+      },
+    ]);
+  }
+
+  async fetchActiveAdsForHub(hubPda) {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.adSlot.all([
+      {
+        memcmp: {
+          offset: 8 + 32, // after discriminator + advertiser
+          bytes: hubPda.toBase58(),
+        },
+      },
+    ]);
+  }
+
+  async fetchPendingDepositsForHub(hubPda) {
+    const idl = await this.getIdl();
+    if (!idl) return [];
+    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+    return program.account.deposit.all([
+      {
+        memcmp: {
+          offset: 8 + 32, // after discriminator + depositor = hub field
+          bytes: hubPda.toBase58(),
+        },
+      },
+    ]);
+  }
+
+  // ============================================
+  // WRITE OPERATIONS (MWA transaction signing)
+  // ============================================
+
+  /**
+   * Initialize user score (call once per user, before scoring works)
+   */
+  async initUserScore() {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [userScorePda] = getUserScorePda(userPubkey);
+      const [platformConfigPda] = getPlatformConfigPda();
+
+      // Build instruction manually (without full Anchor program on mobile)
+      // In practice, you'd use the IDL to build this instruction
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .initUserScore()
+        .accounts({
+          user: userPubkey,
+          userScore: userScorePda,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Create a new hub (brand pays $SKR subscription)
+   */
+  async createHub(name, description, category, hubIndex) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [hubPda] = getHubPda(userPubkey, hubIndex);
+      const [platformConfigPda] = getPlatformConfigPda();
+      const [treasuryPda] = getTreasuryPda();
+
+      const creatorAta = await getAssociatedTokenAddress(SKR_MINT, userPubkey);
+      const treasuryAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        treasuryPda,
+        true
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .createHub(name, description, { [category]: {} }, hubIndex)
+        .accounts({
+          creator: userPubkey,
+          hub: hubPda,
+          platformConfig: platformConfigPda,
+          creatorTokenAccount: creatorAta,
+          treasuryTokenAccount: treasuryAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Subscribe to a hub (free in $SKR, rent only)
+   */
+  async subscribeToHub(hubPda) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [subscriptionPda] = getSubscriptionPda(userPubkey, hubPda);
+      const [userScorePda] = getUserScorePda(userPubkey);
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      // Check if user score exists
+      let userScore = null;
+      try {
+        await this.connection.getAccountInfo(userScorePda);
+        userScore = userScorePda;
+      } catch {
+        userScore = null;
+      }
+
+      const ix = await program.methods
+        .subscribeToHub()
+        .accounts({
+          user: userPubkey,
+          hub: hubPda,
+          subscription: subscriptionPda,
+          userScore: userScore,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Unsubscribe from a hub (rent returned)
+   */
+  async unsubscribeFromHub(hubPda) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [subscriptionPda] = getSubscriptionPda(userPubkey, hubPda);
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .unsubscribeFromHub()
+        .accounts({
+          user: userPubkey,
+          hub: hubPda,
+          subscription: subscriptionPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Create a deposit (feedback/talent/dao_proposal)
+   * depositType: 'feedback' | 'daoProposal' | 'talent'
+   */
+  async createDeposit(hubPda, depositType, contentHash, depositIndex) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [depositPda] = getDepositPda(userPubkey, depositIndex);
+      const [escrowPda] = getEscrowPda(depositPda);
+      const [platformConfigPda] = getPlatformConfigPda();
+      const [userScorePda] = getUserScorePda(userPubkey);
+
+      const depositorAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        userPubkey
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      // Map string type to enum
+      const typeEnum = { [depositType]: {} };
+
+      // Check if user score exists
+      let userScore = null;
+      try {
+        await this.connection.getAccountInfo(userScorePda);
+        userScore = userScorePda;
+      } catch {
+        userScore = null;
+      }
+
+      const ix = await program.methods
+        .createDeposit(typeEnum, contentHash, depositIndex)
+        .accounts({
+          depositor: userPubkey,
+          hub: hubPda,
+          deposit: depositPda,
+          escrowTokenAccount: escrowPda, // The token account at escrow PDA
+          escrowAuthority: escrowPda,
+          platformConfig: platformConfigPda,
+          depositorTokenAccount: depositorAta,
+          skrMint: SKR_MINT,
+          userScore: userScore,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Approve feedback (brand moderates — refund to user)
+   */
+  async approveFeedback(depositPda, hubPda, depositorPubkey) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [escrowPda] = getEscrowPda(depositPda);
+      const depositorAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        depositorPubkey
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .approveFeedback()
+        .accounts({
+          resolver: userPubkey,
+          deposit: depositPda,
+          hub: hubPda,
+          escrowTokenAccount: escrowPda,
+          escrowAuthority: escrowPda,
+          depositorTokenAccount: depositorAta,
+          depositor: depositorPubkey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Approve talent submission (brand moderates — refund to user)
+   */
+  async approveTalent(depositPda, hubPda, depositorPubkey) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [escrowPda] = getEscrowPda(depositPda);
+      const depositorAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        depositorPubkey
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .approveTalent()
+        .accounts({
+          resolver: userPubkey,
+          deposit: depositPda,
+          hub: hubPda,
+          escrowTokenAccount: escrowPda,
+          escrowAuthority: escrowPda,
+          depositorTokenAccount: depositorAta,
+          depositor: depositorPubkey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Reject a deposit (tokens go to treasury)
+   */
+  async rejectDeposit(depositPda, hubPda, depositorPubkey) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [escrowPda] = getEscrowPda(depositPda);
+      const [platformConfigPda] = getPlatformConfigPda();
+      const [treasuryPda] = getTreasuryPda();
+      const treasuryAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        treasuryPda,
+        true
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .rejectDeposit()
+        .accounts({
+          resolver: userPubkey,
+          deposit: depositPda,
+          hub: hubPda,
+          escrowTokenAccount: escrowPda,
+          escrowAuthority: escrowPda,
+          treasuryTokenAccount: treasuryAta,
+          depositor: depositorPubkey,
+          platformConfig: platformConfigPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Approve DAO proposal (refund + create vault)
+   */
+  async approveDaoProposal(
+    depositPda,
+    hubPda,
+    depositorPubkey,
+    vaultIndex,
+    title,
+    description,
+    targetAmount,
+    expiresAt
+  ) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [escrowPda] = getEscrowPda(depositPda);
+      const [vaultPda] = getVaultPda(hubPda, vaultIndex);
+      const [vaultTokenPda] = getVaultTokenPda(vaultPda);
+      const [platformConfigPda] = getPlatformConfigPda();
+
+      const depositorAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        depositorPubkey
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .approveDaoProposal(
+          vaultIndex,
+          title,
+          description,
+          new BN(targetAmount),
+          new BN(expiresAt)
+        )
+        .accounts({
+          resolver: userPubkey,
+          deposit: depositPda,
+          hub: hubPda,
+          escrowTokenAccount: escrowPda,
+          escrowAuthority: escrowPda,
+          depositorTokenAccount: depositorAta,
+          depositor: depositorPubkey,
+          daoVault: vaultPda,
+          vaultTokenAccount: vaultTokenPda,
+          vaultTokenAuthority: vaultTokenPda,
+          platformConfig: platformConfigPda,
+          skrMint: SKR_MINT,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Contribute to a DAO vault
+   */
+  async contributeToVault(vaultPda, amount) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [vaultTokenPda] = getVaultTokenPda(vaultPda);
+      const [contributionPda] = getContributionPda(vaultPda, userPubkey);
+      const [platformConfigPda] = getPlatformConfigPda();
+      const [userScorePda] = getUserScorePda(userPubkey);
+
+      const contributorAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        userPubkey
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      // Check if user score exists
+      let userScore = null;
+      try {
+        await this.connection.getAccountInfo(userScorePda);
+        userScore = userScorePda;
+      } catch {
+        userScore = null;
+      }
+
+      const ix = await program.methods
+        .contributeToVault(new BN(amount))
+        .accounts({
+          contributor: userPubkey,
+          daoVault: vaultPda,
+          contribution: contributionPda,
+          vaultTokenAccount: vaultTokenPda,
+          contributorTokenAccount: contributorAta,
+          platformConfig: platformConfigPda,
+          userScore: userScore,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  /**
+   * Purchase an ad slot
+   */
+  async purchaseAdSlot(
+    hubPda,
+    slotType,
+    slotIndex,
+    imageUrlHash,
+    landingUrlHash,
+    durationWeeks
+  ) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const slotTypeNum = slotType === 'top' ? 0 : 1;
+      const [adSlotPda] = getAdSlotPda(hubPda, slotTypeNum, slotIndex);
+      const [platformConfigPda] = getPlatformConfigPda();
+      const [treasuryPda] = getTreasuryPda();
+
+      const advertiserAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        userPubkey
+      );
+      const treasuryAta = await getAssociatedTokenAddress(
+        SKR_MINT,
+        treasuryPda,
+        true
+      );
+
+      const idl = await this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const typeEnum = slotType === 'top' ? { top: {} } : { bottom: {} };
+
+      const ix = await program.methods
+        .purchaseAdSlot(
+          typeEnum,
+          slotIndex,
+          imageUrlHash,
+          landingUrlHash,
+          durationWeeks
+        )
+        .accounts({
+          advertiser: userPubkey,
+          hub: hubPda,
+          adSlot: adSlotPda,
+          platformConfig: platformConfigPda,
+          advertiserTokenAccount: advertiserAta,
+          treasuryTokenAccount: treasuryAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
+
+  // ============================================
+  // UTILITY: Content hash helper
+  // ============================================
+
+  /**
+   * Create a SHA-256 hash for content (feedback text, proposal, etc.)
+   * Used as content_hash parameter for deposits
+   */
+  async hashContent(content) {
+    // React Native compatible SHA-256 using js-sha256 (no crypto.subtle)
+    // Falls back to a simple hash if js-sha256 is not available
+    try {
+      const { sha256 } = require('js-sha256');
+      const hash = sha256.array(content);
+      return hash.slice(0, 32);
+    } catch {
+      // Fallback: simple hash using Buffer
+      const data = Buffer.from(content, 'utf-8');
+      const hash = new Uint8Array(32);
+      for (let i = 0; i < data.length; i++) {
+        hash[i % 32] ^= data[i];
+        hash[(i + 1) % 32] = (hash[(i + 1) % 32] + data[i]) & 0xff;
+      }
+      return Array.from(hash);
+    }
+  }
+}
+
+// Export singleton
+export const programService = new ProgramService();
+
+// Export PDA helpers for direct use
+export {
+  PROGRAM_ID,
+  SKR_MINT,
+  getPlatformConfigPda,
+  getTreasuryPda,
+  getHubPda,
+  getSubscriptionPda,
+  getDepositPda,
+  getEscrowPda,
+  getVaultPda,
+  getVaultTokenPda,
+  getContributionPda,
+  getAdSlotPda,
+  getUserScorePda,
+};

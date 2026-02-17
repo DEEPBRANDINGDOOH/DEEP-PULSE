@@ -1,0 +1,19 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+
+[programs.devnet]
+deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

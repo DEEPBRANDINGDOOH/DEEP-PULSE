@@ -1,0 +1,79 @@
+# === Dependencies ===
+node_modules/
+.yarn/
+.pnp.*
+
+# === Build outputs ===
+target/
+*.so
+*.dylib
+
+# === Anchor / Solana ===
+.anchor/
+test-ledger/
+
+# === React Native / Metro ===
+*.jsbundle
+*.hbc
+
+# === Android ===
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# === iOS (if ever needed) ===
+ios/Pods/
+ios/build/
+
+# === Expo ===
+.expo/
+dist/
+web-build/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# === Environment & Secrets ===
+.env
+.env.local
+.env.production
+*.pem
+credentials.json
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+
+# === Test artifacts ===
+coverage/
+.nyc_output/
+
+# === Large archives (not for git) ===
+node_modules.zip
+*.zip
+
+# === Android SDK tools (local) ===
+cmdline-tools/
+
+# === Claude metadata ===
+.claude/
+
+# === Temporary ===
+*.tmp
+*.temp

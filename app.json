@@ -1,0 +1,35 @@
+{
+  "name": "DeepPulse",
+  "displayName": "DEEP Pulse",
+  "expo": {
+    "name": "DEEP Pulse",
+    "slug": "deep-pulse",
+    "version": "2.0.0",
+    "sdkVersion": "52.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "plugins": [],
+    "android": {
+      "package": "com.deeppulse",
+      "versionCode": 2,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0a0a"
+      },
+      "permissions": [
+        "INTERNET",
+        "VIBRATE",
+        "USE_BIOMETRIC"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
