@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -24,43 +25,81 @@ import AdminScreen from './src/screens/AdminScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Custom Tab Icon with glow dot for active state
+function TabIcon({ focused, iconName, iconNameOutline, color }) {
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 4 }}>
+      <Ionicons
+        name={focused ? iconName : iconNameOutline}
+        size={focused ? 24 : 22}
+        color={color}
+      />
+      {/* Glow dot indicator */}
+      {focused && (
+        <View
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: '#FF9F66',
+            marginTop: 4,
+            shadowColor: '#FF9F66',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.8,
+            shadowRadius: 6,
+            elevation: 5,
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
 // Bottom Tab Navigator (Main App)
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Discover') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'MyHubs') {
-            iconName = focused ? 'apps' : 'apps-outline';
-          } else if (route.name === 'DAO') {
-            iconName = focused ? 'rocket' : 'rocket-outline';
-          } else if (route.name === 'Talent') {
-            iconName = focused ? 'briefcase' : 'briefcase-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+        tabBarIcon: ({ focused, color }) => {
+          const icons = {
+            Home: { active: 'home', inactive: 'home-outline' },
+            Discover: { active: 'search', inactive: 'search-outline' },
+            MyHubs: { active: 'apps', inactive: 'apps-outline' },
+            DAO: { active: 'rocket', inactive: 'rocket-outline' },
+            Talent: { active: 'briefcase', inactive: 'briefcase-outline' },
+            Profile: { active: 'person', inactive: 'person-outline' },
+          };
+          const icon = icons[route.name] || icons.Home;
+          return (
+            <TabIcon
+              focused={focused}
+              iconName={icon.active}
+              iconNameOutline={icon.inactive}
+              color={color}
+            />
+          );
         },
         tabBarActiveTintColor: '#FF9F66',
-        tabBarInactiveTintColor: '#666',
+        tabBarInactiveTintColor: '#555',
         tabBarStyle: {
-          backgroundColor: '#0a0a0a',
-          borderTopColor: '#333',
+          backgroundColor: '#0c0c0e',
+          borderTopColor: '#1a1a1f',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 65,
+          paddingBottom: 10,
+          paddingTop: 6,
+          // Subtle top shadow
+          shadowColor: '#FF9F66',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 12,
+          elevation: 10,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 0.3,
+          marginTop: -2,
         },
         headerShown: false,
       })}
@@ -79,13 +118,13 @@ function MainTabs() {
 const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle="light-content" backgroundColor="#0c0c0e" />
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Onboarding"
           screenOptions={{
             headerStyle: {
-              backgroundColor: '#0a0a0a',
+              backgroundColor: '#0c0c0e',
               elevation: 0,
               shadowOpacity: 0,
               borderBottomWidth: 0,
@@ -95,31 +134,31 @@ const App = () => {
               fontWeight: '800',
               fontSize: 20,
             },
-            cardStyle: { backgroundColor: '#0a0a0a' },
+            cardStyle: { backgroundColor: '#0c0c0e' },
           }}
         >
-          <Stack.Screen 
-            name="Onboarding" 
+          <Stack.Screen
+            name="Onboarding"
             component={OnboardingScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="MainApp" 
+          <Stack.Screen
+            name="MainApp"
             component={MainTabs}
             options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="AdSlots" 
+          <Stack.Screen
+            name="AdSlots"
             component={AdSlotsScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="HubDashboard" 
+          <Stack.Screen
+            name="HubDashboard"
             component={HubDashboardScreen}
             options={{ title: 'Hub Dashboard' }}
           />
-          <Stack.Screen 
-            name="BrandModeration" 
+          <Stack.Screen
+            name="BrandModeration"
             component={BrandModerationScreen}
             options={{ title: 'Moderation' }}
           />

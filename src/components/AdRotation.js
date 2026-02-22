@@ -53,8 +53,8 @@ export default function AdRotation({
   // Get current ad
   const currentAd = activeAds[currentIndex];
 
-  // Slot dimensions
-  const slotHeight = slotType === 'top' ? 80 : 60;
+  // Slot dimensions — larger for better visibility
+  const slotHeight = slotType === 'top' ? 120 : 100;
 
   // Track impression when ad changes
   useEffect(() => {

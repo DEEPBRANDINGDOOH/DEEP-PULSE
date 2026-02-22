@@ -195,8 +195,8 @@ export const PRICING = {
 export const AD_SLOTS = {
   MAX_ADVERTISERS: 8,     // Max per slot
   ROTATION_INTERVAL: 15,  // Seconds
-  TOP_SLOT_HEIGHT: 80,    // Pixels
-  BOTTOM_SLOT_HEIGHT: 60, // Pixels
+  TOP_SLOT_HEIGHT: 120,   // Pixels
+  BOTTOM_SLOT_HEIGHT: 100, // Pixels
 };
 
 // ========================================
@@ -300,14 +300,14 @@ export const MOCK_ADS = {
     {
       id: 'ad_top_1',
       advertiserId: '7xK...9Qz',
-      imageUrl: 'https://via.placeholder.com/390x80/FF9F66/FFFFFF?text=Jupiter+Swap',
+      imageUrl: 'https://via.placeholder.com/390x120/FF9F66/FFFFFF?text=Jupiter+Swap',
       landingUrl: 'https://jup.ag',
       active: true,
     },
     {
       id: 'ad_top_2',
       advertiserId: '2pQ...mNp',
-      imageUrl: 'https://via.placeholder.com/390x80/4CAF50/FFFFFF?text=Marinade',
+      imageUrl: 'https://via.placeholder.com/390x120/4CAF50/FFFFFF?text=Marinade',
       landingUrl: 'https://marinade.finance',
       active: true,
     },
@@ -316,7 +316,7 @@ export const MOCK_ADS = {
     {
       id: 'ad_bottom_1',
       advertiserId: '8vN...4Wp',
-      imageUrl: 'https://via.placeholder.com/390x60/9C27B0/FFFFFF?text=Tensor',
+      imageUrl: 'https://via.placeholder.com/390x100/9C27B0/FFFFFF?text=Tensor',
       landingUrl: 'https://tensor.trade',
       active: true,
     },

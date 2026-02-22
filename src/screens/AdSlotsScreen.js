@@ -37,22 +37,26 @@ const AD_CONFIG = {
     maxSlots: 8,
     rotationInterval: 15, // seconds
     width: 390,
-    height: 80,
+    height: 120,
     position: 'top',
     name: 'Top Ad Slot',
     description: 'Premium placement above content feed',
     avgViews: 3125, // per week per slot
+    acceptedFormats: 'PNG, JPG, GIF (animated supported)',
+    recommendedSize: '390 x 120 px',
   },
   BOTTOM_SLOT: {
     price: 1500, // $SKR per week
     maxSlots: 8,
     rotationInterval: 15, // seconds
     width: 390,
-    height: 60,
+    height: 100,
     position: 'bottom',
     name: 'Bottom Ad Slot',
     description: 'Standard placement below content feed',
     avgViews: 2500, // per week per slot
+    acceptedFormats: 'PNG, JPG, GIF (animated supported)',
+    recommendedSize: '390 x 100 px',
   },
 };
 
@@ -213,9 +217,17 @@ export default function AdSlotsScreen({ route, navigation }) {
               {activeSlots}/{config.maxSlots} occupied
             </Text>
           </View>
-          <View className="flex-row justify-between">
+          <View className="flex-row justify-between mb-2">
             <Text className="text-text-secondary text-sm">Avg Views/Week</Text>
             <Text className="text-text font-semibold text-sm">~{config.avgViews.toLocaleString()}</Text>
+          </View>
+          <View className="flex-row justify-between mb-2">
+            <Text className="text-text-secondary text-sm">Image Size</Text>
+            <Text className="text-primary font-semibold text-sm">{config.recommendedSize}</Text>
+          </View>
+          <View className="flex-row justify-between">
+            <Text className="text-text-secondary text-sm">Formats</Text>
+            <Text className="text-text font-semibold text-sm">{config.acceptedFormats}</Text>
           </View>
         </View>
 
@@ -372,14 +384,26 @@ export default function AdSlotsScreen({ route, navigation }) {
                   <TextInput
                     value={imageUrl}
                     onChangeText={setImageUrl}
-                    placeholder={`https://example.com/ad-${selectedSlot === 'top' ? '390x80' : '390x60'}.png`}
+                    placeholder={`https://example.com/ad-${selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
                     placeholderTextColor="#666"
                     className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                     autoCapitalize="none"
                   />
-                  <Text className="text-text-secondary text-xs mt-1">
-                    Size: {selectedSlot === 'top' ? '390×80px' : '390×60px'} (PNG, JPG, or GIF)
-                  </Text>
+                  <View className="bg-primary/10 rounded-lg p-3 mt-2 border border-primary/20">
+                    <View className="flex-row items-center mb-1">
+                      <Ionicons name="image" size={14} color="#FF9F66" />
+                      <Text className="text-primary font-semibold text-xs ml-1">Image Specifications</Text>
+                    </View>
+                    <Text className="text-text-secondary text-xs">
+                      Dimensions: {selectedSlot === 'top' ? '390 x 120 px' : '390 x 100 px'}
+                    </Text>
+                    <Text className="text-text-secondary text-xs">
+                      Formats: PNG, JPG, or GIF (animated supported)
+                    </Text>
+                    <Text className="text-text-secondary text-xs">
+                      Max file size: 2 MB
+                    </Text>
+                  </View>
                 </View>
 
                 <View>
