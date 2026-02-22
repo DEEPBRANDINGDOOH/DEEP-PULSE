@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../store/appStore';
 
 const MOCK_PROPOSALS = [
   {
@@ -46,6 +47,7 @@ const MOCK_HUBS = [
 ];
 
 export default function DAOBoostScreen({ navigation }) {
+  const { wallet } = useAppStore();
   const [activeTab, setActiveTab] = useState('propose');
   const [selectedHub, setSelectedHub] = useState(MOCK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
@@ -106,6 +108,10 @@ export default function DAOBoostScreen({ navigation }) {
 
       <TouchableOpacity
         onPress={() => {
+          if (!wallet.connected) {
+            Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
+            return;
+          }
           if (!title.trim()) {
             Alert.alert('Missing title', 'Enter a proposal title.');
             return;
@@ -136,6 +142,10 @@ export default function DAOBoostScreen({ navigation }) {
   );
 
   const openFundModal = (proposal) => {
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your wallet to fund a DAO proposal.');
+      return;
+    }
     setFundProposal(proposal);
     setFundAmount('100');
     setFundModalVisible(true);

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getTierFromScore, PRICING } from '../config/constants';
+import { useAppStore } from '../store/appStore';
 
 const MOCK_TOP_100 = [
   { rank: 1, wallet: '7xK...9Qz', score: 945, boost: 12, talent: 5, feedback: 8 },
@@ -39,11 +40,16 @@ const MOCK_PENDING_HUBS = [
 ];
 
 export default function AdminScreen({ navigation }) {
+  const { wallet } = useAppStore();
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
 
   const handleApproveHub = (hubId, hubName) => {
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your admin wallet to approve hubs.');
+      return;
+    }
     Alert.alert(
       'Approve Hub',
       `Approve "${hubName}"?`,
@@ -61,6 +67,10 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSuspendHub = (hubId, hubName) => {
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your admin wallet to manage hubs.');
+      return;
+    }
     Alert.alert(
       'Suspend Hub',
       `Suspend "${hubName}" for non-payment?`,
@@ -79,6 +89,10 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendGlobalNotification = () => {
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', `Please connect your admin wallet to send global notifications.\n\nCost: ${PRICING.GLOBAL_NOTIFICATION} $SKR.`);
+      return;
+    }
     Alert.alert(
       'Send Global Notification',
       `This will send to ALL users. Cost: ${PRICING.GLOBAL_NOTIFICATION} $SKR. Continue?`,

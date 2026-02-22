@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import { MOCK_ADS } from '../config/constants';
+import { useAppStore } from '../store/appStore';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -42,6 +43,7 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
+  const { wallet } = useAppStore();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -56,6 +58,10 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleSendFeedback = (notification) => {
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 400 $SKR deposit is required.');
+      return;
+    }
     setSelectedNotification(notification);
     setFeedbackModalVisible(true);
   };

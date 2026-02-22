@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../store/appStore';
 
 const MOCK_TALENTS = [
   {
@@ -53,6 +54,7 @@ const ROLE_OPTIONS = [
 ];
 
 export default function TalentScreen({ navigation }) {
+  const { wallet } = useAppStore();
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedHub, setSelectedHub] = useState(MOCK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
@@ -140,6 +142,10 @@ export default function TalentScreen({ navigation }) {
       <TouchableOpacity
         className="bg-primary rounded-xl py-4"
         onPress={() => {
+          if (!wallet.connected) {
+            Alert.alert('Wallet Required', 'Please connect your wallet to submit a talent profile.\n\nA 50 $SKR deposit is required.');
+            return;
+          }
           if (!experience.trim()) {
             Alert.alert('Error', 'Please fill in your experience & skills.');
             return;

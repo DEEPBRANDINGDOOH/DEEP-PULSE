@@ -133,33 +133,45 @@ export default function OnboardingScreen({ navigation }) {
               {slide.description}
             </Text>
 
-            {/* Connect Wallet (last slide) */}
+            {/* Action Buttons (last slide) */}
             {index === SLIDES.length - 1 && (
-              <TouchableOpacity
-                onPress={handleConnectWallet}
-                disabled={isConnecting}
-                className={`mt-12 rounded-xl px-8 py-4 ${isConnecting ? 'bg-primary/50' : 'bg-primary'}`}
-              >
-                <View className="flex-row items-center">
-                  {isConnecting ? (
-                    <>
-                      <ActivityIndicator size="small" color="#fff" />
-                      <Text className="text-white font-bold text-lg ml-2">Connecting...</Text>
-                    </>
-                  ) : (
-                    <>
-                      <Ionicons name="wallet" size={24} color="#fff" />
-                      <Text className="text-white font-bold text-lg ml-2">Connect Wallet</Text>
-                    </>
-                  )}
-                </View>
-              </TouchableOpacity>
-            )}
+              <View className="mt-12 w-full px-4">
+                {/* Primary: Get Started (no wallet needed) */}
+                <TouchableOpacity
+                  onPress={() => navigation.replace('MainApp')}
+                  className="bg-primary rounded-xl py-4 mb-3"
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="arrow-forward-circle" size={24} color="#fff" />
+                    <Text className="text-white font-bold text-lg ml-2">Get Started</Text>
+                  </View>
+                </TouchableOpacity>
 
-            {index === SLIDES.length - 1 && (
-              <TouchableOpacity onPress={() => navigation.replace('MainApp')} className="mt-4">
-                <Text className="text-text-secondary text-sm">Browse as Guest</Text>
-              </TouchableOpacity>
+                {/* Secondary: Connect Wallet (optional) */}
+                <TouchableOpacity
+                  onPress={handleConnectWallet}
+                  disabled={isConnecting}
+                  className="bg-background-card rounded-xl py-4 border border-primary"
+                >
+                  <View className="flex-row items-center justify-center">
+                    {isConnecting ? (
+                      <>
+                        <ActivityIndicator size="small" color="#FF9F66" />
+                        <Text className="text-primary font-bold text-base ml-2">Connecting...</Text>
+                      </>
+                    ) : (
+                      <>
+                        <Ionicons name="wallet" size={20} color="#FF9F66" />
+                        <Text className="text-primary font-bold text-base ml-2">Connect Wallet</Text>
+                      </>
+                    )}
+                  </View>
+                </TouchableOpacity>
+
+                <Text className="text-text-secondary text-xs text-center mt-3">
+                  Wallet only needed for $SKR transactions
+                </Text>
+              </View>
             )}
           </View>
         ))}

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../store/appStore';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
+  const { wallet } = useAppStore();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
 
@@ -80,6 +82,10 @@ export default function HubDashboardScreen({ navigation, route }) {
             <TouchableOpacity
               className="bg-primary rounded-xl py-4"
               onPress={() => {
+                if (!wallet.connected) {
+                  Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
+                  return;
+                }
                 if (!title.trim() || !message.trim()) {
                   Alert.alert('Error', 'Please fill in both title and message.');
                   return;
