@@ -32,7 +32,7 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
       });
 
       Alert.alert(
-        '✅ Wallet Connected',
+        'Wallet Connected',
         `Connected to ${result.label || 'wallet'}\n\n${result.publicKey.toString()}`,
         [{ text: 'OK' }]
       );

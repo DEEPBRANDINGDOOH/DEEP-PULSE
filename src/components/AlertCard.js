@@ -37,7 +37,9 @@ export const AlertCard = ({ alert, onPress, onMarkAsRead }) => {
       {/* Header: Project info + timestamp */}
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center flex-1">
-          <Text className="text-3xl mr-2">{alert.projectIcon}</Text>
+          <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-2">
+            <Ionicons name={alert.projectIcon} size={20} color="#FF9F66" />
+          </View>
           <View className="flex-1">
             <Text className="text-text font-semibold text-base">
               {alert.projectName}

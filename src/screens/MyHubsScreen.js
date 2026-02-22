@@ -9,7 +9,7 @@ const MOCK_MY_HUBS = [
   {
     id: '1',
     name: 'Solana Gaming',
-    icon: '🎮',
+    icon: 'game-controller',
     subscribers: 12500,
     unreadCount: 3,
     lastNotification: 'New game launch tomorrow!',
@@ -18,7 +18,7 @@ const MOCK_MY_HUBS = [
   {
     id: '2',
     name: 'NFT Artists',
-    icon: '💎',
+    icon: 'color-palette',
     subscribers: 8200,
     unreadCount: 1,
     lastNotification: 'Artist spotlight: @solartist',
@@ -27,7 +27,7 @@ const MOCK_MY_HUBS = [
   {
     id: '3',
     name: 'DeFi Alerts',
-    icon: '💰',
+    icon: 'trending-up',
     subscribers: 15700,
     unreadCount: 0,
     lastNotification: 'New yield farm launched',
@@ -47,8 +47,7 @@ export default function MyHubsScreen({ navigation }) {
   };
 
   const handleHubClick = (hub) => {
-    console.log('Open hub:', hub.id);
-    // TODO: Navigate to hub notifications
+    navigation.navigate('HubDashboard', { hubName: hub.name });
   };
 
   const handleUnsubscribe = (hubId, hubName) => {
@@ -116,7 +115,7 @@ export default function MyHubsScreen({ navigation }) {
                 {/* Hub Header */}
                 <View className="flex-row items-center mb-3">
                   <View className="w-12 h-12 bg-primary/20 rounded-full items-center justify-center">
-                    <Text className="text-3xl">{hub.icon}</Text>
+                    <Ionicons name={hub.icon} size={24} color="#FF9F66" />
                   </View>
                   <View className="flex-1 ml-3">
                     <View className="flex-row items-center">

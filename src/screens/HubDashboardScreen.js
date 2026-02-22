@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function HubDashboardScreen({ navigation }) {
+export default function HubDashboardScreen({ navigation, route }) {
+  const hubName = route.params?.hubName || 'My Hub';
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
 
@@ -19,7 +20,7 @@ export default function HubDashboardScreen({ navigation }) {
       <ScrollView>
         {/* Header */}
         <View className="p-6 pb-4">
-          <Text className="text-text font-black text-3xl mb-2">Solana Gaming</Text>
+          <Text className="text-text font-black text-3xl mb-2">{hubName}</Text>
           <Text className="text-text-secondary text-base">
             {stats.subscribers.toLocaleString()} subscribers
           </Text>
@@ -49,7 +50,10 @@ export default function HubDashboardScreen({ navigation }) {
 
         {/* Send Notification Form */}
         <View className="px-6">
-          <Text className="text-text font-bold text-xl mb-4">📤 Send Notification</Text>
+          <View className="flex-row items-center mb-4">
+            <Ionicons name="send" size={20} color="#FF9F66" />
+            <Text className="text-text font-bold text-xl ml-2">Send Notification</Text>
+          </View>
 
           <View className="bg-background-card rounded-2xl p-5 mb-6 border border-border">
             <Text className="text-text font-semibold mb-2">Title</Text>
@@ -76,7 +80,7 @@ export default function HubDashboardScreen({ navigation }) {
             <TouchableOpacity
               className="bg-primary rounded-xl py-4"
               onPress={() => {
-                if (!title.trim() || !body.trim()) {
+                if (!title.trim() || !message.trim()) {
                   Alert.alert('Error', 'Please fill in both title and message.');
                   return;
                 }
@@ -85,7 +89,7 @@ export default function HubDashboardScreen({ navigation }) {
                   { text: 'Send', onPress: () => {
                     Alert.alert('Sent!', 'Notification sent to all subscribers.');
                     setTitle('');
-                    setBody('');
+                    setMessage('');
                   }},
                 ]);
               }}
@@ -124,7 +128,12 @@ export default function HubDashboardScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border">
+          <TouchableOpacity
+            onPress={() => Alert.alert('Billing', `Current subscription: 2,000 $SKR/month\nNext renewal in 23 days`, [
+              { text: 'OK' },
+            ])}
+            className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"
+          >
             <View className="flex-row items-center">
               <Ionicons name="card" size={24} color="#FF9F66" />
               <Text className="text-text font-semibold text-base ml-3">Billing</Text>

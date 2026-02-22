@@ -166,7 +166,7 @@ class NotificationService {
    */
   async sendTestNotification() {
     await this.scheduleLocalNotification({
-      title: '🔔 DEEP Pulse Test',
+      title: 'DEEP Pulse Test',
       body: 'Push notifications are working correctly!',
       data: {
         type: 'test',

@@ -123,7 +123,7 @@ export default function AdSlotsScreen({ route, navigation }) {
     try {
       // In production: Create transaction to pay for ad slot
       Alert.alert(
-        '💰 Confirm Purchase',
+        'Confirm Purchase',
         `Purchase ${config.name}?\n\nCost: ${totalCost} $SKR (${duration} week${duration > 1 ? 's' : ''})\nRotation: Every ${config.rotationInterval}s with up to ${config.maxSlots} ads\n\nThis demo uses a simulated transaction.`,
         [
           { text: 'Cancel', style: 'cancel', onPress: () => setIsPurchasing(false) },
@@ -135,7 +135,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
                 Alert.alert(
-                  '✅ Ad Slot Purchased!',
+                  'Ad Slot Purchased!',
                   `Your ${config.name} is now active!\n\n• Rotation: Every ${config.rotationInterval} seconds\n• Position: ${config.maxSlots} slots max\n• Duration: ${duration} week${duration > 1 ? 's' : ''}\n• Expected views: ~${config.avgViews * duration}\n\nYour ad will start showing immediately.`,
                   [{
                     text: 'OK',

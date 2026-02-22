@@ -23,23 +23,34 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
 
-export default function BrandBoostScreen() {
+export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hubName, setHubName] = useState('');
   const [hubDescription, setHubDescription] = useState('');
   const [hubCategory, setHubCategory] = useState('DeFi');
-  const [hubIcon, setHubIcon] = useState('🚀');
+  const [hubIcon, setHubIcon] = useState('rocket');
   const [isCreating, setIsCreating] = useState(false);
 
   const CATEGORIES = ['DeFi', 'NFT', 'Gaming', 'Wallet', 'Infrastructure', 'DAO', 'Metaverse'];
-  const ICONS = ['🚀', '⚡', '🔥', '💎', '🌟', '🎯', '💰', '🎨', '🎮', '🏆', '🌐', '🔮'];
+  const ICON_OPTIONS = [
+    { name: 'rocket', label: 'Rocket' },
+    { name: 'flash', label: 'Flash' },
+    { name: 'flame', label: 'Flame' },
+    { name: 'diamond', label: 'Diamond' },
+    { name: 'star', label: 'Star' },
+    { name: 'navigate', label: 'Target' },
+    { name: 'cash', label: 'Cash' },
+    { name: 'color-palette', label: 'Art' },
+    { name: 'game-controller', label: 'Gaming' },
+    { name: 'trophy', label: 'Trophy' },
+    { name: 'globe', label: 'Globe' },
+    { name: 'sparkles', label: 'Sparkles' },
+  ];
 
   const handleCreateHub = async () => {
-    if (!wallet.connected) {
-      Alert.alert('Connect Wallet', 'Please connect your wallet to create a hub');
-      return;
-    }
+    // Dev mode: allow hub creation without wallet for testing
+    const __DEV_MODE__ = !wallet.connected;
 
     if (!hubName.trim() || !hubDescription.trim()) {
       Alert.alert('Missing Information', 'Please fill in all fields');
@@ -49,10 +60,10 @@ export default function BrandBoostScreen() {
     setIsCreating(true);
 
     try {
-      // In production: Create transaction to pay 2000 $SKR and create hub on-chain
+      const createdHubName = hubName;
       Alert.alert(
-        '💰 Payment Required',
-        `To create "${hubName}" hub, you need to pay 2000 $SKR per month.\n\nThis demo uses a simulated transaction.`,
+        'Payment Required',
+        `To create "${hubName}" hub, you need to pay 2000 $SKR per month.${__DEV_MODE__ ? '\n\n(Dev mode: wallet not connected, simulated transaction)' : '\n\nThis will create an on-chain transaction.'}`,
         [
           { text: 'Cancel', style: 'cancel', onPress: () => setIsCreating(false) },
           {
@@ -62,21 +73,24 @@ export default function BrandBoostScreen() {
                 // Simulate transaction
                 await new Promise(resolve => setTimeout(resolve, 2000));
 
-                Alert.alert(
-                  '✅ Hub Created!',
-                  `Your hub "${hubName}" has been created successfully!\n\n• Start sending notifications to your subscribers\n• Manage your hub in the dashboard\n• Monthly fee: 2000 $SKR`,
-                  [{ text: 'OK' }]
-                );
-
                 // Reset form
                 setHubName('');
                 setHubDescription('');
                 setHubCategory('DeFi');
-                setHubIcon('🚀');
+                setHubIcon('rocket');
                 setShowCreateModal(false);
+                setIsCreating(false);
+
+                Alert.alert(
+                  'Hub Created!',
+                  `Your hub "${createdHubName}" has been created successfully!\n\nYou can now send notifications to your subscribers.`,
+                  [{
+                    text: 'Go to Dashboard',
+                    onPress: () => navigation.navigate('HubDashboard', { hubName: createdHubName }),
+                  }]
+                );
               } catch (error) {
                 Alert.alert('Error', 'Failed to create hub. Please try again.');
-              } finally {
                 setIsCreating(false);
               }
             },
@@ -94,7 +108,7 @@ export default function BrandBoostScreen() {
     <View className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
       <View className="flex-row items-start">
         <View className="w-12 h-12 rounded-xl bg-primary/10 items-center justify-center mr-4">
-          <Text className="text-2xl">{icon}</Text>
+          <Ionicons name={icon} size={24} color="#FF9F66" />
         </View>
         <View className="flex-1">
           <Text className="text-text font-bold text-lg mb-2">{title}</Text>
@@ -176,9 +190,10 @@ export default function BrandBoostScreen() {
         {/* Hero Section */}
         <View className="px-5 mb-8">
           <View className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl p-6 border border-primary/30">
-            <Text className="text-text text-2xl font-bold mb-3">
-              🚀 Reach Your Community Instantly
-            </Text>
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="rocket" size={24} color="#FF9F66" />
+              <Text className="text-text text-2xl font-bold ml-2">Reach Your Community Instantly</Text>
+            </View>
             <Text className="text-text-secondary text-base leading-6 mb-4">
               Send real-time notifications about drops, updates, and announcements directly to your subscribers' mobile devices.
             </Text>
@@ -200,25 +215,25 @@ export default function BrandBoostScreen() {
           <Text className="text-text text-2xl font-bold mb-4">Why Brand Boost?</Text>
           
           <FeatureCard
-            icon="🔔"
+            icon="notifications"
             title="Instant Notifications"
             description="Send push notifications that reach your subscribers within seconds, even when the app is closed."
           />
-          
+
           <FeatureCard
-            icon="🎯"
+            icon="navigate"
             title="Direct Communication"
             description="No algorithms, no middlemen. Your message reaches 100% of your subscribers."
           />
-          
+
           <FeatureCard
-            icon="💬"
+            icon="chatbubbles"
             title="Valuable Feedback"
             description="Receive direct feedback from your community. Users pay 500 $SKR per feedback, ensuring quality insights."
           />
-          
+
           <FeatureCard
-            icon="📊"
+            icon="bar-chart"
             title="Analytics Dashboard"
             description="Track opens, engagement, and subscriber growth with detailed analytics."
           />
@@ -278,9 +293,10 @@ export default function BrandBoostScreen() {
             className="bg-primary py-6 rounded-2xl"
             activeOpacity={0.7}
           >
-            <Text className="text-white text-center font-bold text-lg">
-              🚀 Create Your Hub Now
-            </Text>
+            <View className="flex-row items-center justify-center">
+              <Ionicons name="rocket" size={20} color="#fff" />
+              <Text className="text-white font-bold text-lg ml-2">Create Your Hub Now</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -313,15 +329,15 @@ export default function BrandBoostScreen() {
                 {/* Icon Selector */}
                 <Text className="text-text font-semibold mb-3">Hub Icon</Text>
                 <View className="flex-row flex-wrap mb-6">
-                  {ICONS.map((icon) => (
+                  {ICON_OPTIONS.map((iconOpt) => (
                     <TouchableOpacity
-                      key={icon}
-                      onPress={() => setHubIcon(icon)}
+                      key={iconOpt.name}
+                      onPress={() => setHubIcon(iconOpt.name)}
                       className={`w-14 h-14 rounded-xl items-center justify-center m-1 ${
-                        hubIcon === icon ? 'bg-primary' : 'bg-background-card border border-border'
+                        hubIcon === iconOpt.name ? 'bg-primary' : 'bg-background-card border border-border'
                       }`}
                     >
-                      <Text className="text-2xl">{icon}</Text>
+                      <Ionicons name={iconOpt.name} size={24} color={hubIcon === iconOpt.name ? '#fff' : '#FF9F66'} />
                     </TouchableOpacity>
                   ))}
                 </View>

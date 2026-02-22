@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '../store/appStore';
+import { walletAdapter } from '../services/walletAdapter';
 
 const { width } = Dimensions.get('window');
 
@@ -38,7 +40,41 @@ const SLIDES = [
 
 export default function OnboardingScreen({ navigation }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isConnecting, setIsConnecting] = useState(false);
   const scrollViewRef = useRef(null);
+  const { setWallet } = useAppStore();
+
+  const handleConnectWallet = async () => {
+    setIsConnecting(true);
+    try {
+      const result = await walletAdapter.connect();
+      setWallet({
+        connected: true,
+        publicKey: result.publicKey,
+        authToken: result.authToken,
+      });
+      Alert.alert(
+        'Wallet Connected',
+        `Connected to ${result.label || 'wallet'}`,
+        [{ text: 'OK', onPress: () => navigation.replace('MainApp') }]
+      );
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      let errorMessage = 'Failed to connect wallet. Please try again.';
+      if (error.message?.includes('declined')) {
+        errorMessage = 'You declined the wallet connection.';
+      } else if (error.message?.includes('No wallet')) {
+        errorMessage = 'No compatible wallet app found. Please install Phantom or Solflare.';
+      }
+      // In dev mode, offer to continue without wallet
+      Alert.alert('Connection Failed', errorMessage, [
+        { text: 'Try Again', style: 'cancel' },
+        { text: 'Continue as Guest', onPress: () => navigation.replace('MainApp') },
+      ]);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   const handleNext = () => {
     if (currentSlide < SLIDES.length - 1) {
@@ -100,18 +136,28 @@ export default function OnboardingScreen({ navigation }) {
             {/* Connect Wallet (last slide) */}
             {index === SLIDES.length - 1 && (
               <TouchableOpacity
-                onPress={handleNext}
-                className="mt-12 bg-primary rounded-xl px-8 py-4"
+                onPress={handleConnectWallet}
+                disabled={isConnecting}
+                className={`mt-12 rounded-xl px-8 py-4 ${isConnecting ? 'bg-primary/50' : 'bg-primary'}`}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="wallet" size={24} color="#fff" />
-                  <Text className="text-white font-bold text-lg ml-2">Connect Wallet</Text>
+                  {isConnecting ? (
+                    <>
+                      <ActivityIndicator size="small" color="#fff" />
+                      <Text className="text-white font-bold text-lg ml-2">Connecting...</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="wallet" size={24} color="#fff" />
+                      <Text className="text-white font-bold text-lg ml-2">Connect Wallet</Text>
+                    </>
+                  )}
                 </View>
               </TouchableOpacity>
             )}
 
             {index === SLIDES.length - 1 && (
-              <TouchableOpacity onPress={handleNext} className="mt-4">
+              <TouchableOpacity onPress={() => navigation.replace('MainApp')} className="mt-4">
                 <Text className="text-text-secondary text-sm">Browse as Guest</Text>
               </TouchableOpacity>
             )}

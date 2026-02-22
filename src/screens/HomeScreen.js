@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -9,7 +9,7 @@ const MOCK_NOTIFICATIONS = [
   {
     id: '1',
     hubName: 'Solana Gaming',
-    hubIcon: '🎮',
+    hubIcon: 'game-controller',
     title: 'New Game Launch',
     message: 'Check out the latest game on Solana! Epic gameplay awaits...',
     timestamp: '2 hours ago',
@@ -20,7 +20,7 @@ const MOCK_NOTIFICATIONS = [
   {
     id: '2',
     hubName: 'NFT Artists',
-    hubIcon: '💎',
+    hubIcon: 'color-palette',
     title: 'Artist Spotlight',
     message: '@solartist drops exclusive collection tomorrow at 12PM UTC',
     timestamp: '5 hours ago',
@@ -31,7 +31,7 @@ const MOCK_NOTIFICATIONS = [
   {
     id: '3',
     hubName: 'DeFi Alerts',
-    hubIcon: '💰',
+    hubIcon: 'trending-up',
     title: 'New Yield Farm',
     message: 'Jupiter launches new LP rewards program with 50% APY',
     timestamp: '1 day ago',
@@ -45,6 +45,7 @@ export default function HomeScreen({ navigation }) {
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [feedbackText, setFeedbackText] = useState('');
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -60,9 +61,13 @@ export default function HomeScreen({ navigation }) {
   };
 
   const submitFeedback = () => {
-    console.log('Submit feedback for:', selectedNotification.id);
+    if (!feedbackText.trim()) {
+      Alert.alert('Error', 'Please write your feedback before submitting.');
+      return;
+    }
+    Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n400 $SKR deposited in escrow.`);
+    setFeedbackText('');
     setFeedbackModalVisible(false);
-    // TODO: Call API
   };
 
   return (
@@ -77,7 +82,7 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity className="mr-4" onPress={() => navigation.navigate('Profile')}>
               <Ionicons name="person-circle" size={32} color="#FF9F66" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
               <Ionicons name="notifications" size={28} color="#FF9F66" />
               <View className="absolute -top-1 -right-1 bg-primary rounded-full w-5 h-5 items-center justify-center">
                 <Text className="text-white text-xs font-bold">3</Text>
@@ -111,7 +116,7 @@ export default function HomeScreen({ navigation }) {
               {/* Header */}
               <View className="flex-row items-center mb-3">
                 <View className="w-10 h-10 bg-primary/20 rounded-full items-center justify-center">
-                  <Text className="text-2xl">{notif.hubIcon}</Text>
+                  <Ionicons name={notif.hubIcon} size={20} color="#FF9F66" />
                 </View>
                 <View className="flex-1 ml-3">
                   <View className="flex-row items-center">
@@ -194,9 +199,16 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <Text className="text-text font-semibold mb-2">Your Feedback</Text>
-            <View className="bg-background-secondary rounded-xl p-4 mb-6 h-32 border border-border">
-              <Text className="text-text-secondary">Write your feedback here...</Text>
-            </View>
+            <TextInput
+              value={feedbackText}
+              onChangeText={setFeedbackText}
+              placeholder="Write your feedback here..."
+              placeholderTextColor="#666"
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+              className="bg-background-secondary rounded-xl p-4 mb-6 h-32 border border-border text-text"
+            />
 
             <TouchableOpacity
               onPress={submitFeedback}

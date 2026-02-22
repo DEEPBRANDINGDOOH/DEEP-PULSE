@@ -221,8 +221,8 @@ export default function AdminScreen({ navigation }) {
                 <View className="ml-3">
                   <Text className="text-text font-bold">{entry.wallet}</Text>
                   <View className="flex-row items-center mt-1">
-                    <Text className="text-xl mr-1">{tier.icon}</Text>
-                    <Text className="text-text-secondary text-xs">{tier.name}</Text>
+                    <Ionicons name={tier.icon} size={16} color={tier.color} />
+                    <Text className="text-text-secondary text-xs ml-1">{tier.name}</Text>
                   </View>
                 </View>
               </View>

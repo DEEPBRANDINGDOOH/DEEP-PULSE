@@ -42,7 +42,7 @@ export const ProjectCard = ({ project, onPress }) => {
         <View className="flex-row items-start flex-1">
           {/* Project icon */}
           <View className="w-14 h-14 rounded-xl bg-background-surface items-center justify-center mr-3">
-            <Text className="text-4xl">{project.icon}</Text>
+            <Ionicons name={project.icon} size={28} color="#FF9F66" />
           </View>
 
           {/* Project info */}

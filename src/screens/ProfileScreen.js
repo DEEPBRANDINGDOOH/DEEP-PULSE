@@ -17,6 +17,10 @@ export default function ProfileScreen({ navigation }) {
   const user = MOCK_USER;
   const tier = getTierFromScore(user.score);
 
+  const handleCopyWallet = () => {
+    Alert.alert('Copied!', `Wallet address ${user.wallet} copied to clipboard.`);
+  };
+
   const renderProfileView = () => (
     <ScrollView className="px-6 py-4">
       {/* Wallet Card */}
@@ -26,7 +30,7 @@ export default function ProfileScreen({ navigation }) {
             <Text className="text-text-secondary text-sm mb-1">Wallet</Text>
             <Text className="text-text font-bold text-lg">{user.wallet}</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleCopyWallet}>
             <Ionicons name="copy-outline" size={24} color="#FF9F66" />
           </TouchableOpacity>
         </View>
@@ -48,7 +52,7 @@ export default function ProfileScreen({ navigation }) {
             <Text className="text-text-secondary text-sm mb-1">DEEP Score</Text>
             <View className="flex-row items-center">
               <Text className="text-text font-black text-3xl mr-2">{user.score}</Text>
-              <Text className="text-2xl">{tier.icon}</Text>
+              <Ionicons name={tier.icon} size={24} color={tier.color} />
             </View>
           </View>
           <View className="bg-primary/20 rounded-full px-4 py-2">
@@ -82,7 +86,10 @@ export default function ProfileScreen({ navigation }) {
       {/* Settings */}
       <Text className="text-text font-semibold text-lg mb-3">Settings</Text>
 
-      <TouchableOpacity className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border">
+      <TouchableOpacity
+        onPress={() => Alert.alert('Theme', 'Dark mode is enabled by default. Light mode coming soon!')}
+        className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+      >
         <View className="flex-row items-center">
           <Ionicons name="moon" size={20} color="#FF9F66" />
           <Text className="text-text font-semibold ml-3">Toggle Theme</Text>
@@ -90,7 +97,10 @@ export default function ProfileScreen({ navigation }) {
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </TouchableOpacity>
 
-      <TouchableOpacity className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border">
+      <TouchableOpacity
+        onPress={() => Alert.alert('Notifications', 'Push notifications are enabled.\nManage notification preferences for each hub in My Hubs.')}
+        className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+      >
         <View className="flex-row items-center">
           <Ionicons name="notifications" size={20} color="#FF9F66" />
           <Text className="text-text font-semibold ml-3">Notification Settings</Text>
@@ -98,10 +108,25 @@ export default function ProfileScreen({ navigation }) {
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </TouchableOpacity>
 
-      <TouchableOpacity className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border">
+      <TouchableOpacity
+        onPress={() => Alert.alert('Transaction History', 'Recent transactions:\n\n- Subscribe to Solana Gaming: FREE\n- Feedback deposit: 400 $SKR\n- DAO contribution: 500 $SKR\n\nFull on-chain history available on Solscan.')}
+        className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+      >
         <View className="flex-row items-center">
           <Ionicons name="receipt" size={20} color="#FF9F66" />
           <Text className="text-text font-semibold ml-3">Transaction History</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#666" />
+      </TouchableOpacity>
+
+      {/* Brand Hub Access */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('BrandBoost')}
+        className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+      >
+        <View className="flex-row items-center">
+          <Ionicons name="storefront" size={20} color="#FF9F66" />
+          <Text className="text-text font-semibold ml-3">Create a Hub (Brands)</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </TouchableOpacity>
@@ -180,8 +205,8 @@ export default function ProfileScreen({ navigation }) {
                 <View className="ml-3">
                   <Text className="text-text font-bold">{entry.wallet}</Text>
                   <View className="flex-row items-center mt-1">
-                    <Text className="text-2xl mr-1">{entryTier.icon}</Text>
-                    <Text className="text-text-secondary text-xs">{entryTier.name}</Text>
+                    <Ionicons name={entryTier.icon} size={16} color={entryTier.color} />
+                    <Text className="text-text-secondary text-xs ml-1">{entryTier.name}</Text>
                   </View>
                 </View>
               </View>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -7,7 +7,7 @@ import { MOCK_HUBS, MOCK_ADS } from '../config/constants';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [hubs, setHubs] = useState(MOCK_HUBS);
+  const [hubs, setHubs] = useState(MOCK_HUBS.map(h => ({ ...h, subscribed: false })));
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -18,11 +18,16 @@ export default function DiscoverScreen({ navigation }) {
   };
 
   const handleSubscribe = (hubId) => {
-    console.log('Subscribe to hub:', hubId);
-    // TODO: Call API to subscribe
+    setHubs(hubs.map(h =>
+      h.id === hubId ? { ...h, subscribed: !h.subscribed } : h
+    ));
+    const hub = hubs.find(h => h.id === hubId);
+    if (hub && !hub.subscribed) {
+      Alert.alert('Subscribed!', `You are now subscribed to ${hub.name}. Check My Hubs for updates.`);
+    }
   };
 
-  const filteredHubs = hubs.filter(hub => 
+  const filteredHubs = hubs.filter(hub =>
     hub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     hub.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -63,16 +68,16 @@ export default function DiscoverScreen({ navigation }) {
         {/* Hubs List */}
         <View className="px-6">
           <Text className="text-text font-bold text-xl mb-4">Trending Hubs</Text>
-          
+
           {filteredHubs.map((hub) => (
-            <View 
+            <View
               key={hub.id}
               className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
             >
               {/* Hub Header */}
               <View className="flex-row items-center mb-3">
                 <View className="w-12 h-12 bg-primary/20 rounded-full items-center justify-center">
-                  <Text className="text-3xl">{hub.icon}</Text>
+                  <Ionicons name={hub.icon} size={24} color="#FF9F66" />
                 </View>
                 <View className="flex-1 ml-3">
                   <Text className="text-text font-bold text-lg">{hub.name}</Text>
@@ -97,12 +102,16 @@ export default function DiscoverScreen({ navigation }) {
               {/* Subscribe Button */}
               <TouchableOpacity
                 onPress={() => handleSubscribe(hub.id)}
-                className="bg-primary rounded-xl py-3"
+                className={`rounded-xl py-3 ${hub.subscribed ? 'bg-background-secondary border border-border' : 'bg-primary'}`}
               >
                 <View className="flex-row items-center justify-center">
-                  <Ionicons name="notifications" size={18} color="#fff" />
-                  <Text className="text-white font-bold text-base ml-2">
-                    Subscribe (FREE)
+                  <Ionicons
+                    name={hub.subscribed ? 'checkmark-circle' : 'notifications'}
+                    size={18}
+                    color={hub.subscribed ? '#4CAF50' : '#fff'}
+                  />
+                  <Text className={`font-bold text-base ml-2 ${hub.subscribed ? 'text-text-secondary' : 'text-white'}`}>
+                    {hub.subscribed ? 'Subscribed' : 'Subscribe (FREE)'}
                   </Text>
                 </View>
               </TouchableOpacity>

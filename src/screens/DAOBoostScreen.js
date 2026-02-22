@@ -61,7 +61,10 @@ export default function DAOBoostScreen({ navigation }) {
   const renderProposeTab = () => (
     <View className="px-6 py-4">
       <View className="bg-background-card rounded-xl p-4 mb-6 border border-border">
-        <Text className="text-primary font-semibold mb-2">ℹ️ How it works</Text>
+        <View className="flex-row items-center mb-2">
+          <Ionicons name="information-circle" size={18} color="#FF9F66" />
+          <Text className="text-primary font-semibold ml-2">How it works</Text>
+        </View>
         <Text className="text-text-secondary text-sm leading-5">
           • Submit with 100 $SKR deposit{'\n'}
           • If approved: refund + vault{'\n'}

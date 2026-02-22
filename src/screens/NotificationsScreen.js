@@ -143,7 +143,7 @@ export default function NotificationsScreen({ route }) {
             </Text>
             <Text className="text-text-muted text-center mt-2 text-sm px-8">
               {filter === 'unread'
-                ? 'All caught up! 🎉'
+                ? 'All caught up!'
                 : 'Subscribe to projects to start receiving alerts'}
             </Text>
           </View>

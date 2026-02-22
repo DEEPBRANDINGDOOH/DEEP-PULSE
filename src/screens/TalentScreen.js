@@ -43,30 +43,67 @@ const MOCK_HUBS = [
   { id: '3', name: 'DeFi Alerts' },
 ];
 
+const ROLE_OPTIONS = [
+  'UI/UX Designer',
+  'Full Stack Dev',
+  'Smart Contract Dev',
+  'Community Manager',
+  'Content Creator',
+  'Marketing Specialist',
+];
+
 export default function TalentScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedHub, setSelectedHub] = useState(MOCK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState(ROLE_OPTIONS[0]);
+  const [showRolePicker, setShowRolePicker] = useState(false);
   const [experience, setExperience] = useState('');
   const [portfolio, setPortfolio] = useState('');
+  const [email, setEmail] = useState('');
 
   const renderSubmitTab = () => (
     <ScrollView className="px-6 py-4">
       <View className="bg-background-card rounded-xl p-4 mb-6 border border-border">
-        <Text className="text-primary font-semibold mb-2">ℹ️ How it works</Text>
+        <View className="flex-row items-center mb-2">
+          <Ionicons name="information-circle" size={18} color="#FF9F66" />
+          <Text className="text-primary font-semibold ml-2">How it works</Text>
+        </View>
         <Text className="text-text-secondary text-sm leading-5">
-          • Submit with 50 $SKR deposit{'\n'}
-          • Brand reviews profile{'\n'}
-          • If retained: refund + contact{'\n'}
-          • If rejected: no refund
+          {'\u2022'} Submit with 50 $SKR deposit{'\n'}
+          {'\u2022'} Brand reviews profile{'\n'}
+          {'\u2022'} If retained: refund + contact{'\n'}
+          {'\u2022'} If rejected: no refund
         </Text>
       </View>
 
       <Text className="text-text font-semibold mb-2">Role</Text>
-      <View className="bg-background-secondary rounded-xl px-4 py-3 mb-4 border border-border">
-        <Text className="text-text">UI/UX Designer ▼</Text>
-      </View>
+      <TouchableOpacity
+        onPress={() => setShowRolePicker(!showRolePicker)}
+        className="bg-background-secondary rounded-xl px-4 py-3 mb-1 border border-border flex-row items-center justify-between"
+      >
+        <Text className="text-text">{role}</Text>
+        <Ionicons name="chevron-down" size={20} color="#FF9F66" />
+      </TouchableOpacity>
+      {showRolePicker && (
+        <View className="bg-background-card rounded-xl border border-border mb-3">
+          {ROLE_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => {
+                setRole(option);
+                setShowRolePicker(false);
+              }}
+              className="px-4 py-3 border-b border-border"
+            >
+              <Text className={`font-semibold ${option === role ? 'text-primary' : 'text-text'}`}>
+                {option}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+      {!showRolePicker && <View className="mb-3" />}
 
       <Text className="text-text font-semibold mb-2">Experience & Skills</Text>
       <TextInput
@@ -91,19 +128,39 @@ export default function TalentScreen({ navigation }) {
 
       <Text className="text-text font-semibold mb-2">Email</Text>
       <TextInput
+        value={email}
+        onChangeText={setEmail}
         placeholder="your@email.com"
         placeholderTextColor="#666"
         keyboardType="email-address"
+        autoCapitalize="none"
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-6 border border-border"
       />
 
       <TouchableOpacity
         className="bg-primary rounded-xl py-4"
         onPress={() => {
-          Alert.alert('Submit Talent', 'Your talent submission will be sent for review. 50 $SKR deposit required.', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Submit', onPress: () => Alert.alert('Submitted', 'Your submission has been sent for review.') },
-          ]);
+          if (!experience.trim()) {
+            Alert.alert('Error', 'Please fill in your experience & skills.');
+            return;
+          }
+          if (!email.trim()) {
+            Alert.alert('Error', 'Please provide your email address.');
+            return;
+          }
+          Alert.alert(
+            'Submit Talent',
+            `Submit as "${role}" to ${selectedHub.name}?\n\n50 $SKR deposit required.`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Submit', onPress: () => {
+                Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
+                setExperience('');
+                setPortfolio('');
+                setEmail('');
+              }},
+            ]
+          );
         }}
       >
         <View className="flex-row items-center justify-center">
@@ -172,7 +229,19 @@ export default function TalentScreen({ navigation }) {
           </View>
 
           {/* Contact Button */}
-          <TouchableOpacity className="bg-primary/20 rounded-xl py-3 border border-primary">
+          <TouchableOpacity
+            onPress={() => {
+              if (talent.anonymous) {
+                Alert.alert(
+                  'Anonymous Profile',
+                  `This talent prefers to remain anonymous.\n\nRole: ${talent.role}\nRate: ${talent.rate.toLocaleString()} $SKR\nAvailability: ${talent.availability}\n\nContact will be revealed after hiring through the hub.`
+                );
+              } else {
+                Alert.alert('Contact', `Role: ${talent.role}\nRate: ${talent.rate.toLocaleString()} $SKR`);
+              }
+            }}
+            className="bg-primary/20 rounded-xl py-3 border border-primary"
+          >
             <View className="flex-row items-center justify-center">
               <Ionicons name="mail" size={16} color="#FF9F66" />
               <Text className="text-primary font-bold text-sm ml-2">View Contact</Text>
@@ -216,7 +285,23 @@ export default function TalentScreen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity className="bg-background-secondary rounded-xl py-3 border border-border">
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                'Edit Submission',
+                `Edit your "${sub.role}" submission to ${sub.hub}?`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Edit', onPress: () => {
+                    setRole(sub.role);
+                    setActiveTab('submit');
+                    Alert.alert('Editing', 'Update your submission details and re-submit.');
+                  }},
+                ]
+              );
+            }}
+            className="bg-background-secondary rounded-xl py-3 border border-border"
+          >
             <View className="flex-row items-center justify-center">
               <Ionicons name="create" size={16} color="#FF9F66" />
               <Text className="text-primary font-semibold text-sm ml-2">

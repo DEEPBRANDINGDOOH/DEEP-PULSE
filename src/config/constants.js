@@ -152,11 +152,11 @@ export const calculateUserScore = (actions, recentActivityDays, actionTypesCount
 // ========================================
 
 export const USER_TIERS = {
-  LEGEND: { min: 901, max: 1000, icon: 'LG', color: '#FFD700', name: 'Legend' },
-  DIAMOND: { min: 751, max: 900, icon: "DM", color: '#B9F2FF', name: 'Diamond' },
-  GOLD: { min: 501, max: 750, icon: 'GD', color: '#FFA500', name: 'Gold' },
-  SILVER: { min: 251, max: 500, icon: 'SV', color: '#C0C0C0', name: 'Silver' },
-  BRONZE: { min: 0, max: 250, icon: 'BZ', color: '#CD7F32', name: 'Bronze' },
+  LEGEND: { min: 901, max: 1000, icon: 'trophy', color: '#FFD700', name: 'Legend' },
+  DIAMOND: { min: 751, max: 900, icon: 'diamond', color: '#B9F2FF', name: 'Diamond' },
+  GOLD: { min: 501, max: 750, icon: 'medal', color: '#FFA500', name: 'Gold' },
+  SILVER: { min: 251, max: 500, icon: 'shield-half', color: '#C0C0C0', name: 'Silver' },
+  BRONZE: { min: 0, max: 250, icon: 'star', color: '#CD7F32', name: 'Bronze' },
 };
 
 export const getTierFromScore = (score) => {
@@ -275,7 +275,7 @@ export const MOCK_HUBS = [
     description: 'Latest gaming news and updates',
     category: 'Gaming',
     subscribers: 12500,
-    icon: "SG",
+    icon: 'game-controller',
   },
   {
     id: '2',
@@ -283,7 +283,7 @@ export const MOCK_HUBS = [
     description: 'Daily NFT drops and artist spotlights',
     category: 'NFT',
     subscribers: 8200,
-    icon: "DM",
+    icon: 'color-palette',
   },
   {
     id: '3',
@@ -291,7 +291,7 @@ export const MOCK_HUBS = [
     description: 'Real-time DeFi protocol updates',
     category: 'DeFi',
     subscribers: 15700,
-    icon: "DF",
+    icon: 'trending-up',
   },
 ];
 
