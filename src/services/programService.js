@@ -8,7 +8,18 @@
  * The $SKR token mint is: SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
  */
 
-import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
+// MWA availability — set to false for Expo Go, true for custom native build
+const MWA_ENABLED = false; // Set to true when using a custom dev build with MWA native module
+
+let transact = null;
+if (MWA_ENABLED) {
+  try {
+    transact = require('@solana-mobile/mobile-wallet-adapter-protocol-web3js').transact;
+  } catch (e) {
+    console.warn('[ProgramService] MWA import failed:', e.message);
+  }
+}
+
 import {
   Connection,
   PublicKey,

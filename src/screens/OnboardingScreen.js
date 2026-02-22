@@ -6,273 +6,125 @@ import {
   ScrollView,
   Dimensions,
   Alert,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
-import PulseOrb from '../components/ui/PulseOrb';
-import GradientButton from '../components/ui/GradientButton';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const SLIDES = [
   {
     id: 1,
-    title: 'Welcome to\nDEEP Pulse',
+    title: 'Welcome to DEEP Pulse',
     subtitle: 'Your Web3 Notification Hub',
     description: 'Stay connected to your favorite Solana projects in real-time',
     icon: 'notifications',
     color: '#FF9F66',
-    orbColor2: '#e88b52',
   },
   {
     id: 2,
-    title: 'Subscribe\nfor FREE',
+    title: 'Subscribe for FREE',
     subtitle: 'Zero cost, full access',
     description: 'Get instant notifications from hubs you love — completely free, no wallet needed',
     icon: 'rocket',
     color: '#4CAF50',
-    orbColor2: '#2E7D32',
   },
   {
     id: 3,
-    title: 'Engage\n& Earn $SKR',
+    title: 'Engage & Earn $SKR',
     subtitle: 'Your voice has value',
-    description: 'Send feedback, submit talent profiles, propose ideas — earn $SKR tokens for your contributions',
+    description: 'Send feedback, submit talent profiles, propose ideas — earn $SKR tokens',
     icon: 'diamond',
     color: '#2196F3',
-    orbColor2: '#1565C0',
   },
   {
     id: 4,
-    title: 'DAO\nGovernance',
+    title: 'DAO Governance',
     subtitle: 'Shape the future',
     description: 'Fund proposals, vote on ideas, grow communities — only 5% platform fee',
     icon: 'people',
     color: '#9C27B0',
-    orbColor2: '#6A1B9A',
   },
 ];
 
-/**
- * Animated slide content — each element animates in with stagger
- */
-function AnimatedSlideContent({ slide, isActive, isLastSlide, onGetStarted, onConnectWallet, isConnecting }) {
-  const iconScale = useRef(new Animated.Value(0)).current;
-  const iconRotate = useRef(new Animated.Value(0)).current;
-  const titleOpacity = useRef(new Animated.Value(0)).current;
-  const titleTranslate = useRef(new Animated.Value(30)).current;
-  const subtitleOpacity = useRef(new Animated.Value(0)).current;
-  const descOpacity = useRef(new Animated.Value(0)).current;
-  const descTranslate = useRef(new Animated.Value(20)).current;
-  const buttonsOpacity = useRef(new Animated.Value(0)).current;
-  const buttonsTranslate = useRef(new Animated.Value(40)).current;
-  const ringScale = useRef(new Animated.Value(0.6)).current;
-  const ringOpacity = useRef(new Animated.Value(0)).current;
+function PulsingRing({ color, size, delay = 0 }) {
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const opacityAnim = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    if (isActive) {
-      // Reset all values
-      iconScale.setValue(0);
-      iconRotate.setValue(0);
-      titleOpacity.setValue(0);
-      titleTranslate.setValue(30);
-      subtitleOpacity.setValue(0);
-      descOpacity.setValue(0);
-      descTranslate.setValue(20);
-      buttonsOpacity.setValue(0);
-      buttonsTranslate.setValue(40);
-      ringScale.setValue(0.6);
-      ringOpacity.setValue(0);
-
-      // Staggered entrance animations
+    const anim = Animated.loop(
       Animated.sequence([
-        // Ring expands
+        Animated.delay(delay),
         Animated.parallel([
-          Animated.spring(ringScale, { toValue: 1, friction: 5, tension: 40, useNativeDriver: true }),
-          Animated.timing(ringOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+          Animated.timing(scaleAnim, { toValue: 1.15, duration: 2000, useNativeDriver: true }),
+          Animated.timing(opacityAnim, { toValue: 0.1, duration: 2000, useNativeDriver: true }),
         ]),
-        // Icon bounces in
         Animated.parallel([
-          Animated.spring(iconScale, { toValue: 1, friction: 4, tension: 50, useNativeDriver: true }),
-          Animated.timing(iconRotate, { toValue: 1, duration: 600, useNativeDriver: true }),
+          Animated.timing(scaleAnim, { toValue: 0.9, duration: 2000, useNativeDriver: true }),
+          Animated.timing(opacityAnim, { toValue: 0.3, duration: 2000, useNativeDriver: true }),
         ]),
-        // Title slides up
-        Animated.parallel([
-          Animated.timing(titleOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-          Animated.timing(titleTranslate, { toValue: 0, duration: 400, useNativeDriver: true }),
-        ]),
-        // Subtitle fades in
-        Animated.timing(subtitleOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-        // Description slides up
-        Animated.parallel([
-          Animated.timing(descOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
-          Animated.timing(descTranslate, { toValue: 0, duration: 350, useNativeDriver: true }),
-        ]),
-        // Buttons slide up (last slide only)
-        ...(isLastSlide ? [
-          Animated.parallel([
-            Animated.timing(buttonsOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-            Animated.spring(buttonsTranslate, { toValue: 0, friction: 6, tension: 40, useNativeDriver: true }),
-          ]),
-        ] : []),
-      ]).start();
-
-      // Continuous ring pulse
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(ringScale, { toValue: 1.08, duration: 2000, useNativeDriver: true }),
-          Animated.timing(ringScale, { toValue: 1, duration: 2000, useNativeDriver: true }),
-        ])
-      ).start();
-    }
-  }, [isActive]);
-
-  const spin = iconRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
 
   return (
-    <View style={{ width }} className="flex-1 items-center justify-center px-8">
-      {/* Animated ring behind icon */}
-      <Animated.View
-        style={{
-          width: 160,
-          height: 160,
-          borderRadius: 80,
-          borderWidth: 2,
-          borderColor: `${slide.color}30`,
-          position: 'absolute',
-          top: height * 0.12,
-          opacity: ringOpacity,
-          transform: [{ scale: ringScale }],
-        }}
-      />
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        borderWidth: 2,
+        borderColor: color,
+        opacity: opacityAnim,
+        transform: [{ scale: scaleAnim }],
+      }}
+    />
+  );
+}
 
-      {/* Outer glow ring */}
-      <Animated.View
-        style={{
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          borderWidth: 1,
-          borderColor: `${slide.color}15`,
-          position: 'absolute',
-          top: height * 0.1,
-          opacity: ringOpacity,
-          transform: [{ scale: ringScale }],
-        }}
-      />
+function IconBounce({ icon, color }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-      {/* Icon Container */}
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center', height: 160, width: 160, marginBottom: 32 }}>
+      <PulsingRing color={color} size={160} delay={0} />
+      <PulsingRing color={color} size={200} delay={500} />
       <Animated.View
         style={{
-          width: 120,
-          height: 120,
-          borderRadius: 60,
-          backgroundColor: `${slide.color}18`,
+          width: 100,
+          height: 100,
+          borderRadius: 50,
+          backgroundColor: `${color}20`,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 40,
-          transform: [{ scale: iconScale }],
-          shadowColor: slide.color,
-          shadowOffset: { width: 0, height: 8 },
+          transform: [{ scale: scaleAnim }],
+          shadowColor: color,
+          shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
-          shadowRadius: 20,
-          elevation: 15,
+          shadowRadius: 12,
+          elevation: 10,
         }}
       >
-        <Animated.View style={{ transform: [{ rotate: spin }] }}>
-          <Ionicons name={slide.icon} size={56} color={slide.color} />
-        </Animated.View>
+        <Ionicons name={icon} size={44} color={color} />
       </Animated.View>
-
-      {/* Title */}
-      <Animated.Text
-        className="text-text font-black text-center"
-        style={{
-          fontSize: 38,
-          lineHeight: 44,
-          letterSpacing: -1,
-          opacity: titleOpacity,
-          transform: [{ translateY: titleTranslate }],
-        }}
-      >
-        {slide.title}
-      </Animated.Text>
-
-      {/* Subtitle badge */}
-      <Animated.View
-        style={{
-          opacity: subtitleOpacity,
-          marginTop: 16,
-          backgroundColor: `${slide.color}15`,
-          borderRadius: 20,
-          paddingHorizontal: 16,
-          paddingVertical: 6,
-          borderWidth: 1,
-          borderColor: `${slide.color}25`,
-        }}
-      >
-        <Text style={{ color: slide.color, fontWeight: '800', fontSize: 13, letterSpacing: 0.5 }}>
-          {slide.subtitle}
-        </Text>
-      </Animated.View>
-
-      {/* Description */}
-      <Animated.Text
-        className="text-text-secondary text-center"
-        style={{
-          fontSize: 16,
-          lineHeight: 24,
-          marginTop: 20,
-          paddingHorizontal: 12,
-          opacity: descOpacity,
-          transform: [{ translateY: descTranslate }],
-        }}
-      >
-        {slide.description}
-      </Animated.Text>
-
-      {/* Action Buttons (last slide) */}
-      {isLastSlide && (
-        <Animated.View
-          style={{
-            marginTop: 48,
-            width: '100%',
-            paddingHorizontal: 8,
-            opacity: buttonsOpacity,
-            transform: [{ translateY: buttonsTranslate }],
-          }}
-        >
-          {/* Primary: Get Started */}
-          <GradientButton
-            title="Get Started"
-            icon="arrow-forward-circle"
-            onPress={onGetStarted}
-            pulse={true}
-          />
-
-          {/* Secondary: Connect Wallet */}
-          <View style={{ marginTop: 12 }}>
-            <GradientButton
-              title={isConnecting ? 'Connecting...' : 'Connect Wallet'}
-              icon={isConnecting ? null : 'wallet'}
-              onPress={onConnectWallet}
-              disabled={isConnecting}
-              variant="secondary"
-            />
-          </View>
-
-          <Text className="text-text-muted text-xs text-center mt-4">
-            Wallet only needed for $SKR transactions
-          </Text>
-        </Animated.View>
-      )}
     </View>
   );
 }
@@ -336,26 +188,21 @@ export default function OnboardingScreen({ navigation }) {
   const currentColor = SLIDES[currentSlide]?.color || '#FF9F66';
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      {/* Dynamic background orbs — change color with slide */}
-      <PulseOrb color={currentColor} size={300} top={-100} left={-100} opacity={0.07} delay={0} />
-      <PulseOrb color={SLIDES[currentSlide]?.orbColor2 || '#e88b52'} size={200} top={height * 0.5} left={width - 80} opacity={0.05} delay={1000} />
-      <PulseOrb color={currentColor} size={150} top={height * 0.7} left={-50} opacity={0.04} delay={2000} />
-
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0c0c0e' }}>
       {/* Skip Button */}
-      <View className="absolute top-4 right-6 z-10">
+      <View style={{ position: 'absolute', top: 16, right: 24, zIndex: 10 }}>
         <TouchableOpacity
           onPress={handleSkip}
-          className="px-4 py-2 rounded-full bg-background-card border border-border"
           style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 3,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 20,
+            backgroundColor: '#16161a',
+            borderWidth: 1,
+            borderColor: '#2a2a30',
           }}
         >
-          <Text className="text-text-secondary text-sm font-bold">Skip</Text>
+          <Text style={{ color: '#9898a0', fontSize: 13, fontWeight: '700' }}>Skip</Text>
         </TouchableOpacity>
       </View>
 
@@ -367,35 +214,141 @@ export default function OnboardingScreen({ navigation }) {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        style={{ flex: 1 }}
       >
         {SLIDES.map((slide, index) => (
-          <AnimatedSlideContent
+          <View
             key={slide.id}
-            slide={slide}
-            isActive={index === currentSlide}
-            isLastSlide={index === SLIDES.length - 1}
-            onGetStarted={() => navigation.replace('MainApp')}
-            onConnectWallet={handleConnectWallet}
-            isConnecting={isConnecting}
-          />
+            style={{
+              width,
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 32,
+            }}
+          >
+            {/* Animated Icon */}
+            <IconBounce icon={slide.icon} color={slide.color} />
+
+            {/* Title */}
+            <Text
+              style={{
+                color: '#fafafa',
+                fontSize: 30,
+                fontWeight: '900',
+                textAlign: 'center',
+                letterSpacing: -0.5,
+                marginBottom: 12,
+              }}
+            >
+              {slide.title}
+            </Text>
+
+            {/* Subtitle badge */}
+            <View
+              style={{
+                backgroundColor: `${slide.color}20`,
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                paddingVertical: 5,
+                borderWidth: 1,
+                borderColor: `${slide.color}30`,
+                marginBottom: 16,
+              }}
+            >
+              <Text style={{ color: slide.color, fontWeight: '800', fontSize: 12, letterSpacing: 0.5 }}>
+                {slide.subtitle}
+              </Text>
+            </View>
+
+            {/* Description */}
+            <Text
+              style={{
+                color: '#9898a0',
+                fontSize: 15,
+                lineHeight: 22,
+                textAlign: 'center',
+                paddingHorizontal: 8,
+              }}
+            >
+              {slide.description}
+            </Text>
+
+            {/* Action Buttons (last slide only) */}
+            {index === SLIDES.length - 1 && (
+              <View style={{ marginTop: 36, width: '100%' }}>
+                {/* Get Started */}
+                <TouchableOpacity
+                  onPress={() => navigation.replace('MainApp')}
+                  activeOpacity={0.8}
+                  style={{
+                    backgroundColor: '#FF9F66',
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    marginBottom: 12,
+                    shadowColor: '#FF9F66',
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 16,
+                    elevation: 10,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="arrow-forward-circle" size={22} color="#fff" />
+                    <Text style={{ color: '#fff', fontWeight: '900', fontSize: 17, marginLeft: 8 }}>
+                      Get Started
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Connect Wallet */}
+                <TouchableOpacity
+                  onPress={handleConnectWallet}
+                  disabled={isConnecting}
+                  activeOpacity={0.8}
+                  style={{
+                    backgroundColor: '#16161a',
+                    borderRadius: 16,
+                    paddingVertical: 16,
+                    borderWidth: 1,
+                    borderColor: '#2a2a30',
+                    shadowColor: '#FF9F66',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 3,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="wallet" size={20} color="#FF9F66" />
+                    <Text style={{ color: '#fafafa', fontWeight: '700', fontSize: 15, marginLeft: 8 }}>
+                      {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <Text style={{ color: '#6b6b73', fontSize: 11, textAlign: 'center', marginTop: 12 }}>
+                  Wallet only needed for $SKR transactions
+                </Text>
+              </View>
+            )}
+          </View>
         ))}
       </ScrollView>
 
-      {/* Bottom: Dots + Next button */}
-      <View className="pb-8 px-8">
-        {/* Dots Indicator — modern capsule style */}
-        <View className="flex-row justify-center mb-6">
+      {/* Bottom: Dots + Next */}
+      <View style={{ paddingBottom: 32, paddingHorizontal: 32 }}>
+        {/* Dots */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 20 }}>
           {SLIDES.map((slide, index) => (
             <View
               key={index}
-              className="h-1.5 rounded-full mx-1"
               style={{
-                width: index === currentSlide ? 32 : 8,
+                height: 5,
+                borderRadius: 3,
+                marginHorizontal: 4,
+                width: index === currentSlide ? 28 : 8,
                 backgroundColor: index === currentSlide ? currentColor : '#2a2a30',
-                shadowColor: index === currentSlide ? currentColor : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.5,
-                shadowRadius: 4,
               }}
             />
           ))}
@@ -403,11 +356,25 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* Next Button (not on last slide) */}
         {currentSlide < SLIDES.length - 1 && (
-          <GradientButton
-            title="Next"
-            icon="arrow-forward"
+          <TouchableOpacity
             onPress={handleNext}
-          />
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: '#FF9F66',
+              borderRadius: 16,
+              paddingVertical: 16,
+              shadowColor: '#FF9F66',
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.35,
+              shadowRadius: 14,
+              elevation: 8,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, marginLeft: 8 }}>Next</Text>
+            </View>
+          </TouchableOpacity>
         )}
       </View>
     </SafeAreaView>

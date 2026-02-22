@@ -18,11 +18,29 @@
  * Reference: https://docs.solanamobile.com/react-native/using_mobile_wallet_adapter
  */
 
-import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
-import {
-  SolanaMobileWalletAdapterError,
-  SolanaMobileWalletAdapterProtocolError
-} from '@solana-mobile/mobile-wallet-adapter-protocol';
+// MWA availability — set to false for Expo Go, true for custom native build
+// In Expo Go, the native SolanaMobileWalletAdapter TurboModule is not available
+// so we must NOT require the MWA packages (they crash on import)
+const MWA_ENABLED = false; // Set to true when using a custom dev build with MWA native module
+
+let transact = null;
+let SolanaMobileWalletAdapterProtocolError = null;
+let mwaAvailable = false;
+
+if (MWA_ENABLED) {
+  try {
+    transact = require('@solana-mobile/mobile-wallet-adapter-protocol-web3js').transact;
+    const protocol = require('@solana-mobile/mobile-wallet-adapter-protocol');
+    SolanaMobileWalletAdapterProtocolError = protocol.SolanaMobileWalletAdapterProtocolError;
+    mwaAvailable = true;
+    console.log('[WalletAdapter] MWA native module loaded');
+  } catch (e) {
+    console.warn('[WalletAdapter] MWA import failed:', e.message);
+  }
+} else {
+  console.log('[WalletAdapter] MWA disabled — running in mock mode (Expo Go)');
+}
+
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -76,6 +94,18 @@ class MobileWalletAdapterService {
    * @returns {Promise<{publicKey: PublicKey, authToken: string, label: string, walletUriBase: string}>}
    */
   async connect() {
+    // Fallback for Expo Go where MWA native module is unavailable
+    if (!mwaAvailable || !transact) {
+      console.warn('[WalletAdapter] MWA not available — using dev mock wallet');
+      const mockPublicKey = new PublicKey('7xKLuJkm9QPZWF8yKJp9kn6YLddgjA18BxvFQCc9Qz4');
+      return {
+        publicKey: mockPublicKey,
+        authToken: 'mock-auth-token-dev',
+        label: 'Dev Wallet (Expo Go)',
+        walletUriBase: '',
+      };
+    }
+
     try {
       const result = await transact(async (wallet) => {
         const authorization = await wallet.authorize({
@@ -501,7 +531,7 @@ class MobileWalletAdapterService {
    * @private
    */
   _handleMwaError(error) {
-    if (error instanceof SolanaMobileWalletAdapterProtocolError) {
+    if (SolanaMobileWalletAdapterProtocolError && error instanceof SolanaMobileWalletAdapterProtocolError) {
       switch (error.code) {
         case 4001:
           throw new Error('User declined wallet connection');
