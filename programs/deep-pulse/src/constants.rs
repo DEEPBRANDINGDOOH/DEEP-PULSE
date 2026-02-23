@@ -7,6 +7,7 @@ pub const DEPOSIT_SEED: &[u8] = b"deposit";
 pub const ESCROW_SEED: &[u8] = b"escrow";
 pub const VAULT_SEED: &[u8] = b"vault";
 pub const VAULT_TOKEN_SEED: &[u8] = b"vault_token";
+pub const VAULT_AUTHORITY_SEED: &[u8] = b"vault_authority";
 pub const CONTRIBUTION_SEED: &[u8] = b"contribution";
 pub const AD_SLOT_SEED: &[u8] = b"ad_slot";
 pub const USER_SCORE_SEED: &[u8] = b"user_score";

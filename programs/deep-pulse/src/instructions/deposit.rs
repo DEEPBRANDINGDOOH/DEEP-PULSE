@@ -89,6 +89,12 @@ pub fn create_deposit(
     let config = &ctx.accounts.platform_config;
     let clock = Clock::get()?;
 
+    // Verify hub subscription is still active
+    require!(
+        ctx.accounts.hub.subscription_paid_until >= clock.unix_timestamp,
+        DeepPulseError::HubSubscriptionExpired
+    );
+
     // Determine deposit amount based on type
     let amount = match deposit_type {
         DepositType::Feedback => config.feedback_deposit,
@@ -353,10 +359,10 @@ pub struct ApproveDaoProposal<'info> {
     )]
     pub vault_token_account: UncheckedAccount<'info>,
 
-    /// CHECK: Vault token PDA authority — validated by seeds (same as vault_token_account)
+    /// CHECK: Vault token PDA authority — validated by seeds (distinct from vault_token_account)
     /// Used as authority for the token account
     #[account(
-        seeds = [VAULT_TOKEN_SEED, dao_vault.key().as_ref()],
+        seeds = [VAULT_AUTHORITY_SEED, dao_vault.key().as_ref()],
         bump,
     )]
     pub vault_token_authority: UncheckedAccount<'info>,

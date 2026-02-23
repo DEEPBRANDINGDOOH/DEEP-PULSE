@@ -63,6 +63,7 @@ pub fn purchase_ad_slot(
     duration_weeks: u8,
 ) -> Result<()> {
     require!(duration_weeks >= 1, DeepPulseError::InvalidAdDuration);
+    require!(duration_weeks <= 52, DeepPulseError::InvalidAdDuration); // Max 1 year
 
     let config = &ctx.accounts.platform_config;
     let clock = Clock::get()?;

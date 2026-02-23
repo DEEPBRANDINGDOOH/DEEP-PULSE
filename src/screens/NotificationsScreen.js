@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../store/appStore';
 import { AlertCard } from '../components/AlertCard';
 
-export default function NotificationsScreen({ route }) {
+export default function NotificationsScreen({ navigation, route }) {
   const { alerts, markAlertAsRead, markAllAlertsAsRead, getUnreadCount } =
     useAppStore();
   const [filter, setFilter] = useState('all'); // 'all' | 'unread'
@@ -130,7 +130,14 @@ export default function NotificationsScreen({ route }) {
           />
         }
         renderItem={({ item }) => (
-          <AlertCard alert={item} onMarkAsRead={markAlertAsRead} />
+          <AlertCard
+            alert={item}
+            onMarkAsRead={markAlertAsRead}
+            onPress={() => {
+              markAlertAsRead(item.id);
+              navigation.navigate('NotificationDetail', { notification: item });
+            }}
+          />
         )}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={() => (

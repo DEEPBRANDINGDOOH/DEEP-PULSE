@@ -142,6 +142,13 @@ pub struct VaultCancelled {
 }
 
 #[event]
+pub struct VaultExpired {
+    pub vault: Pubkey,
+    pub expired_by: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct VaultRefunded {
     pub vault: Pubkey,
     pub contributor: Pubkey,

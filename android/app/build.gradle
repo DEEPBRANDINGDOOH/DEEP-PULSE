@@ -16,7 +16,7 @@ react {
 
 android {
     namespace "com.deeppulse"
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.deeppulse"
@@ -69,23 +69,43 @@ android {
 
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+configurations.configureEach {
+    resolutionStrategy {
+        // Pin androidx.core to 1.13.x which is compatible with AGP 8.6
+        force 'androidx.core:core:1.13.1'
+        force 'androidx.core:core-ktx:1.13.1'
+        // Pin kotlin-stdlib to match MWA clientlib 2.0.3
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
+    }
+}
+
 dependencies {
     // React Native
     implementation("com.facebook.react:react-android")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    
-    // CRITIQUE: Solana Mobile Wallet Adapter
-    // Sans cette dépendance, MWA ne fonctionnera pas!
-    implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.1.0'
-    
+
+    // Autolinked React Native modules
+    implementation project(':react-native-async-storage_async-storage')
+    implementation project(':react-native-gesture-handler')
+    implementation project(':react-native-get-random-values')
+    implementation project(':react-native-safe-area-context')
+    implementation project(':react-native-screens')
+    implementation project(':react-native-svg')
+    implementation project(':react-native-vector-icons')
+    implementation project(':solana-mobile_mobile-wallet-adapter-protocol')
+    implementation project(':solana-mobile_mobile-wallet-adapter-walletlib')
+
+    // CRITIQUE: Solana Mobile Wallet Adapter (native Kotlin lib)
+    implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.0.3'
+
     // Debug tools
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
     }
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
-    
+
     // Hermes
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -94,6 +114,5 @@ dependencies {
     }
 }
 
-// Apply native modules
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
-applyNativeModulesAppBuildGradle(project)
+// Note: native_modules.gradle removed - React Native 0.76+ uses the
+// com.facebook.react Gradle plugin for autolinking instead

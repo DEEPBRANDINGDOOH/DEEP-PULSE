@@ -52,7 +52,8 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { wallet } = useAppStore();
+  const { wallet, getUnreadCount } = useAppStore();
+  const unreadCount = getUnreadCount();
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -129,9 +130,11 @@ export default function HomeScreen({ navigation }) {
               }}
             >
               <Ionicons name="notifications" size={18} color="#FF9F66" />
-              <View className="absolute -top-1 -right-1 bg-primary rounded-full w-4 h-4 items-center justify-center">
-                <Text className="text-white font-bold" style={{ fontSize: 9 }}>3</Text>
-              </View>
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-primary rounded-full w-4 h-4 items-center justify-center">
+                  <Text className="text-white font-bold" style={{ fontSize: 9 }}>{unreadCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>

@@ -195,9 +195,9 @@ pub struct CompleteVault<'info> {
     )]
     pub vault_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: Vault token PDA authority
+    /// CHECK: Vault token PDA authority (distinct seed from vault_token_account)
     #[account(
-        seeds = [VAULT_TOKEN_SEED, dao_vault.key().as_ref()],
+        seeds = [VAULT_AUTHORITY_SEED, dao_vault.key().as_ref()],
         bump,
     )]
     pub vault_token_authority: SystemAccount<'info>,
@@ -357,9 +357,9 @@ pub fn expire_vault(ctx: Context<ExpireVault>) -> Result<()> {
     let vault = &mut ctx.accounts.dao_vault;
     vault.status = VaultStatus::Expired;
 
-    emit!(VaultCancelled {
+    emit!(VaultExpired {
         vault: vault.key(),
-        cancelled_by: ctx.accounts.caller.key(),
+        expired_by: ctx.accounts.caller.key(),
         timestamp: clock.unix_timestamp,
     });
 
@@ -402,9 +402,9 @@ pub struct ClaimVaultRefund<'info> {
     )]
     pub vault_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: Vault token PDA authority
+    /// CHECK: Vault token PDA authority (distinct seed from vault_token_account)
     #[account(
-        seeds = [VAULT_TOKEN_SEED, dao_vault.key().as_ref()],
+        seeds = [VAULT_AUTHORITY_SEED, dao_vault.key().as_ref()],
         bump,
     )]
     pub vault_token_authority: SystemAccount<'info>,

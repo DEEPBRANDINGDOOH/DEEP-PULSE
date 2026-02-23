@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getTierFromScore, PRICING } from '../config/constants';
@@ -99,6 +99,7 @@ export default function AdminScreen({ navigation }) {
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
   const [pendingAds, setPendingAds] = useState(MOCK_PENDING_ADS);
+  const [pendingHubs, setPendingHubs] = useState(MOCK_PENDING_HUBS);
 
   // Stats state
   const [statsPeriod, setStatsPeriod] = useState('30d');
@@ -184,7 +185,10 @@ export default function AdminScreen({ navigation }) {
     }
     Alert.alert('Approve Hub', `Approve "${hubName}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Approve', onPress: () => console.log('Approved hub:', hubId) },
+      { text: 'Approve', onPress: () => {
+        setPendingHubs(prev => prev.filter(h => h.id !== hubId));
+        Alert.alert('Hub Approved', `"${hubName}" is now active.`);
+      }},
     ]);
   };
 
@@ -195,7 +199,10 @@ export default function AdminScreen({ navigation }) {
     }
     Alert.alert('Suspend Hub', `Suspend "${hubName}" for non-payment?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Suspend', style: 'destructive', onPress: () => console.log('Suspended:', hubId) },
+      { text: 'Suspend', style: 'destructive', onPress: () => {
+        setPendingHubs(prev => prev.filter(h => h.id !== hubId));
+        Alert.alert('Hub Suspended', `"${hubName}" has been suspended.`);
+      }},
     ]);
   };
 
@@ -360,7 +367,7 @@ export default function AdminScreen({ navigation }) {
           </View>
           <View className="flex-row items-center">
             <View className="bg-primary rounded-full w-6 h-6 items-center justify-center mr-2">
-              <Text className="text-white text-xs font-bold">{MOCK_PENDING_HUBS.length}</Text>
+              <Text className="text-white text-xs font-bold">{pendingHubs.length}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </View>
@@ -547,7 +554,7 @@ export default function AdminScreen({ navigation }) {
       </TouchableOpacity>
       <Text className="text-text font-black text-2xl mb-4">Manage Hubs</Text>
       <Text className="text-text font-semibold mb-3">Pending Approval</Text>
-      {MOCK_PENDING_HUBS.map((hub) => (
+      {pendingHubs.map((hub) => (
         <View key={hub.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
           <View className="flex-row items-center justify-between mb-2">
             <Text className="text-text font-bold text-lg">{hub.name}</Text>

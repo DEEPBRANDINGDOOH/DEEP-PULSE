@@ -61,8 +61,8 @@
 |   React Native App        |   Anchor Program (Solana)     |
 |   (Solana Mobile)         |   1 monolithic program        |
 |                           |   22 instructions             |
-|   13 screens              |   8 account types             |
-|   MWA 2.0                 |   18 events                   |
+|   16 screens              |   8 account types             |
+|   MWA 2.0                 |   19 events                   |
 |   NativeWind UI           |   30 error codes              |
 |   Zustand store           |                               |
 |                           |   +-------------------------+ |
@@ -173,7 +173,7 @@ deep-pulse-complete/
 |       |-- lib.rs                     # Program entry point — 22 instructions
 |       |-- constants.rs               # PDA seeds, pricing defaults, scoring
 |       |-- errors.rs                  # 30 error codes
-|       |-- events.rs                  # 18 on-chain events for indexing
+|       |-- events.rs                  # 19 on-chain events for indexing
 |       |-- instructions/
 |       |   |-- admin.rs               # initialize_platform, update_config
 |       |   |-- hub.rs                 # create, renew, subscribe, unsubscribe, verify, activate
@@ -193,7 +193,7 @@ deep-pulse-complete/
 |   +-- deep-pulse.ts                 # === TEST SUITE (TypeScript / Mocha) ===
 |
 |-- src/                               # === REACT NATIVE APP ===
-|   |-- screens/                       # 13 screens
+|   |-- screens/                       # 16 screens
 |   |   |-- OnboardingScreen.js        # Wallet connect + onboarding slides
 |   |   |-- HomeScreen.js              # Feed + rotating ad banners
 |   |   |-- DiscoverScreen.js          # Browse and search hubs
@@ -206,7 +206,10 @@ deep-pulse-complete/
 |   |   |-- DAOBoostScreen.js          # Community vault funding
 |   |   |-- TalentScreen.js            # Talent marketplace
 |   |   |-- AdSlotsScreen.js           # Purchase ad slots
-|   |   +-- AdminScreen.js             # Platform admin panel
+|   |   |-- AdminScreen.js             # Platform admin panel
+|   |   |-- AdminMessagesScreen.js     # Admin <-> Brand messaging
+|   |   |-- HubNotificationsScreen.js  # Hub-specific notification feed
+|   |   +-- NotificationDetailScreen.js # Full notification detail view
 |   |-- components/
 |   |   |-- WalletButton.js            # MWA connect / disconnect + SIWS
 |   |   |-- AdRotation.js              # 15-second rotating banner ads
@@ -303,7 +306,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 
 | Duration | Discount |
 |----------|----------|
-| 52+ weeks (1 year) | 40% off |
+| 52 weeks (1 year, max) | 40% off |
 | 26+ weeks (6 months) | 30% off |
 | 12+ weeks (3 months) | 20% off |
 | 4+ weeks (1 month) | 10% off |

@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_USER, getTierFromScore, isAdmin } from '../config/constants';
+import { useAppStore } from '../store/appStore';
+import { walletAdapter } from '../services/walletAdapter';
 
 const MOCK_LEADERBOARD = [
   { rank: 1, wallet: '7xK...9Qz', score: 945, tier: 'LEGEND', boost: 12, talent: 5, feedback: 8 },
@@ -13,6 +15,7 @@ const MOCK_LEADERBOARD = [
 ];
 
 export default function ProfileScreen({ navigation }) {
+  const clearWallet = useAppStore((state) => state.clearWallet);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const user = MOCK_USER;
   const tier = getTierFromScore(user.score);
@@ -150,7 +153,11 @@ export default function ProfileScreen({ navigation }) {
         onPress={() => {
           Alert.alert('Disconnect Wallet', 'Are you sure you want to disconnect your wallet?', [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Disconnect', style: 'destructive', onPress: () => navigation.replace('Onboarding') },
+            { text: 'Disconnect', style: 'destructive', onPress: () => {
+              clearWallet();
+              try { walletAdapter.disconnect(); } catch(e) {}
+              navigation.replace('Onboarding');
+            }},
           ]);
         }}
       >

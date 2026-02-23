@@ -21,7 +21,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../store/appStore';
-import { walletAdapter } from '../services/walletAdapter';
 
 export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
