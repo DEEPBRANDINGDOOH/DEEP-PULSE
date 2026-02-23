@@ -21,6 +21,9 @@ import BrandModerationScreen from './src/screens/BrandModerationScreen';
 import BrandBoostScreen from './src/screens/BrandBoostScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import AdminScreen from './src/screens/AdminScreen';
+import AdminMessagesScreen from './src/screens/AdminMessagesScreen';
+import HubNotificationsScreen from './src/screens/HubNotificationsScreen';
+import NotificationDetailScreen from './src/screens/NotificationDetailScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -176,6 +179,21 @@ const App = () => {
             name="Admin"
             component={AdminScreen}
             options={{ title: 'Admin Dashboard' }}
+          />
+          <Stack.Screen
+            name="AdminMessages"
+            component={AdminMessagesScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HubNotifications"
+            component={HubNotificationsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NotificationDetail"
+            component={NotificationDetailScreen}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -47,7 +47,11 @@ export default function MyHubsScreen({ navigation }) {
   };
 
   const handleHubClick = (hub) => {
-    navigation.navigate('HubDashboard', { hubName: hub.name });
+    navigation.navigate('HubNotifications', {
+      hubName: hub.name,
+      hubIcon: hub.icon,
+      subscribers: hub.subscribers,
+    });
   };
 
   const handleUnsubscribe = (hubId, hubName) => {

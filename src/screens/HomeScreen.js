@@ -16,6 +16,8 @@ const MOCK_NOTIFICATIONS = [
     hubIcon: 'game-controller',
     title: 'New Game Launch',
     message: 'Check out the latest game on Solana! Epic gameplay awaits...',
+    fullMessage: 'Get ready for the biggest game launch of the year on Solana. Exclusive NFT rewards for early adopters. Be among the first to play and earn!\n\nThe game features a unique play-to-earn model with $SKR token integration. Top players will receive legendary NFTs and governance tokens.\n\nLaunch time: February 23, 2026 at 12:00 PM UTC\nPlatform: Solana Mobile (Seeker compatible)\nRewards: 10,000 $SKR pool for first 500 players',
+    link: 'https://solanagaming.io/launch',
     timestamp: '2 hours ago',
     reactions: 234,
     comments: 56,
@@ -27,6 +29,8 @@ const MOCK_NOTIFICATIONS = [
     hubIcon: 'color-palette',
     title: 'Artist Spotlight',
     message: '@solartist drops exclusive collection tomorrow at 12PM UTC',
+    fullMessage: 'This week\'s featured artist is @solartist, known for their stunning generative art pieces.\n\nCollection: "Solar Flares"\nMint Date: Tomorrow at 12:00 PM UTC\nSupply: 500 unique pieces\nMint Price: 2 SOL\n\nEach piece is algorithmically generated using real solar data from NASA. Whitelist is open for DEEP Pulse subscribers!',
+    link: 'https://magiceden.io/drops/solar-flares',
     timestamp: '5 hours ago',
     reactions: 156,
     comments: 23,
@@ -38,6 +42,8 @@ const MOCK_NOTIFICATIONS = [
     hubIcon: 'trending-up',
     title: 'New Yield Farm',
     message: 'Jupiter launches new LP rewards program with 50% APY',
+    fullMessage: 'Jupiter has launched a new liquidity provision rewards program offering up to 50% APY on selected pairs.\n\nFeatured Pairs:\n- SOL/USDC: 50% APY\n- JUP/SOL: 35% APY\n- BONK/USDC: 28% APY\n\nRewards are paid in JUP tokens and are claimable weekly. The program runs for 3 months starting today.\n\nNote: APY rates are variable and subject to change. Always DYOR before investing.',
+    link: 'https://jup.ag/earn',
     timestamp: '1 day ago',
     reactions: 412,
     comments: 89,
@@ -158,50 +164,77 @@ export default function HomeScreen({ navigation }) {
               intensity={notif.isNew ? 'medium' : 'low'}
               accent={notif.isNew ? '#FF9F66' : '#2a2a30'}
             >
-              <View className="p-5">
-                {/* Header */}
-                <View className="flex-row items-center mb-3">
-                  <View
-                    className="w-11 h-11 rounded-xl items-center justify-center"
-                    style={{ backgroundColor: 'rgba(255,159,102,0.15)' }}
-                  >
-                    <Ionicons name={notif.hubIcon} size={22} color="#FF9F66" />
-                  </View>
-                  <View className="flex-1 ml-3">
-                    <View className="flex-row items-center">
-                      <Text className="text-text font-bold text-sm">{notif.hubName}</Text>
-                      {notif.isNew && (
-                        <View className="ml-2 rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(255,159,102,0.2)' }}>
-                          <Text className="text-primary font-black" style={{ fontSize: 9, letterSpacing: 1 }}>NEW</Text>
-                        </View>
-                      )}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('NotificationDetail', { notification: notif })}
+              >
+                <View className="p-5 pb-3">
+                  {/* Header */}
+                  <View className="flex-row items-center mb-3">
+                    <View
+                      className="w-11 h-11 rounded-xl items-center justify-center"
+                      style={{ backgroundColor: 'rgba(255,159,102,0.15)' }}
+                    >
+                      <Ionicons name={notif.hubIcon} size={22} color="#FF9F66" />
                     </View>
-                    <Text className="text-text-muted text-xs mt-0.5">{notif.timestamp}</Text>
+                    <View className="flex-1 ml-3">
+                      <View className="flex-row items-center">
+                        <Text className="text-text font-bold text-sm">{notif.hubName}</Text>
+                        {notif.isNew && (
+                          <View className="ml-2 rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(255,159,102,0.2)' }}>
+                            <Text className="text-primary font-black" style={{ fontSize: 9, letterSpacing: 1 }}>NEW</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-text-muted text-xs mt-0.5">{notif.timestamp}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#555" />
+                  </View>
+
+                  {/* Content */}
+                  <Text className="text-text font-bold text-base mb-1.5" style={{ letterSpacing: -0.2 }}>{notif.title}</Text>
+                  <Text className="text-text-secondary text-sm mb-3 leading-5" numberOfLines={2}>
+                    {notif.message}
+                  </Text>
+
+                  {/* Link indicator */}
+                  {notif.link && (
+                    <View className="flex-row items-center mb-3 bg-primary/8 rounded-lg px-3 py-1.5">
+                      <Ionicons name="link" size={12} color="#FF9F66" />
+                      <Text className="text-primary text-xs ml-1.5 flex-1" numberOfLines={1}>{notif.link}</Text>
+                    </View>
+                  )}
+
+                  {/* Engagement Stats */}
+                  <View className="flex-row items-center mb-3">
+                    <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5 mr-3">
+                      <Ionicons name="flame" size={14} color="#FF9F66" />
+                      <Text className="text-text font-semibold text-xs ml-1.5">{notif.reactions}</Text>
+                    </View>
+                    <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5">
+                      <Ionicons name="chatbubble" size={14} color="#9898a0" />
+                      <Text className="text-text font-semibold text-xs ml-1.5">{notif.comments}</Text>
+                    </View>
                   </View>
                 </View>
+              </TouchableOpacity>
 
-                {/* Content */}
-                <Text className="text-text font-bold text-base mb-1.5" style={{ letterSpacing: -0.2 }}>{notif.title}</Text>
-                <Text className="text-text-secondary text-sm mb-4 leading-5">
-                  {notif.message}
-                </Text>
-
-                {/* Engagement Stats */}
-                <View className="flex-row items-center mb-4">
-                  <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5 mr-3">
-                    <Ionicons name="flame" size={14} color="#FF9F66" />
-                    <Text className="text-text font-semibold text-xs ml-1.5">{notif.reactions}</Text>
+              {/* Action buttons */}
+              <View className="flex-row px-5 pb-5">
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('NotificationDetail', { notification: notif })}
+                  className="flex-1 rounded-xl py-2.5 mr-2"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: '#2a2a30' }}
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="expand" size={14} color="#9898a0" />
+                    <Text className="text-text font-semibold text-sm ml-1.5">Read More</Text>
                   </View>
-                  <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5">
-                    <Ionicons name="chatbubble" size={14} color="#9898a0" />
-                    <Text className="text-text font-semibold text-xs ml-1.5">{notif.comments}</Text>
-                  </View>
-                </View>
-
-                {/* Send Feedback Button */}
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleSendFeedback(notif)}
-                  className="rounded-xl py-3 overflow-hidden"
+                  className="flex-1 rounded-xl py-2.5 ml-2"
                   style={{
                     backgroundColor: 'rgba(255,159,102,0.12)',
                     borderWidth: 1,
@@ -210,12 +243,10 @@ export default function HomeScreen({ navigation }) {
                   activeOpacity={0.7}
                 >
                   <View className="flex-row items-center justify-center">
-                    <Ionicons name="chatbox" size={16} color="#FF9F66" />
-                    <Text className="text-primary font-bold text-sm ml-2">
-                      Send Feedback
-                    </Text>
-                    <View className="ml-2 bg-primary/20 rounded-md px-2 py-0.5">
-                      <Text className="text-primary font-black" style={{ fontSize: 10 }}>400 $SKR</Text>
+                    <Ionicons name="chatbox" size={14} color="#FF9F66" />
+                    <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
+                    <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
+                      <Text className="text-primary font-black" style={{ fontSize: 9 }}>400</Text>
                     </View>
                   </View>
                 </TouchableOpacity>

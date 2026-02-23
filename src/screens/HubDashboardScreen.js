@@ -113,6 +113,17 @@ export default function HubDashboardScreen({ navigation, route }) {
           <Text className="text-text font-bold text-xl mb-4">Quick Actions</Text>
 
           <TouchableOpacity
+            onPress={() => navigation.navigate('AdminMessages', { fromBrand: true, hubName: hubName })}
+            className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="chatbubbles" size={24} color="#FF9F66" />
+              <Text className="text-text font-semibold text-base ml-3">Messages from Admin</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => navigation.navigate('BrandModeration')}
             className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
           >
