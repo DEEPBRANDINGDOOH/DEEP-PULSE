@@ -175,6 +175,7 @@ export default function TalentScreen({ navigation }) {
           <Text className="text-white font-bold text-base ml-2">Submit (50 $SKR)</Text>
         </View>
       </TouchableOpacity>
+      <View className="h-8" />
     </ScrollView>
   );
 

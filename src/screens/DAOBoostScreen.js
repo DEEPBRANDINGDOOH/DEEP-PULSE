@@ -61,7 +61,7 @@ export default function DAOBoostScreen({ navigation }) {
   const [funded, setFunded] = useState(MOCK_FUNDED);
 
   const renderProposeTab = () => (
-    <View className="px-6 py-4">
+    <ScrollView className="px-6 py-4" showsVerticalScrollIndicator={false}>
       <View className="bg-background-card rounded-xl p-4 mb-6 border border-border">
         <View className="flex-row items-center mb-2">
           <Ionicons name="information-circle" size={18} color="#FF9F66" />
@@ -139,7 +139,8 @@ export default function DAOBoostScreen({ navigation }) {
           <Text className="text-white font-bold text-base ml-2">Submit (100 $SKR)</Text>
         </View>
       </TouchableOpacity>
-    </View>
+      <View className="h-6" />
+    </ScrollView>
   );
 
   const openFundModal = (proposal) => {
