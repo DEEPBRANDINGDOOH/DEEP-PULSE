@@ -119,6 +119,30 @@ export default function DiscoverScreen({ navigation }) {
           ))}
         </View>
 
+        {/* Create Hub CTA */}
+        <View className="px-6 mt-4">
+          <View className="bg-background-card rounded-2xl p-5 border border-primary/30">
+            <View className="flex-row items-center mb-3">
+              <View className="w-12 h-12 bg-primary/20 rounded-full items-center justify-center">
+                <Ionicons name="storefront" size={24} color="#FF9F66" />
+              </View>
+              <View className="flex-1 ml-3">
+                <Text className="text-text font-bold text-lg">Are you a brand?</Text>
+                <Text className="text-text-secondary text-sm">Create your own notification hub</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('BrandBoost')}
+              className="bg-primary rounded-xl py-3"
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="rocket" size={18} color="#fff" />
+                <Text className="text-white font-bold text-base ml-2">Create Hub (2000 $SKR/mo)</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* BOTTOM AD SLOT */}
         <View className="px-6 mt-4 mb-6">
           <AdRotation
