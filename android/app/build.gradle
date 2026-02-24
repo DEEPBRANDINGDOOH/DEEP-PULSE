@@ -116,3 +116,6 @@ dependencies {
 
 // Note: native_modules.gradle removed - React Native 0.76+ uses the
 // com.facebook.react Gradle plugin for autolinking instead
+
+// Copy vector icon fonts to assets
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")

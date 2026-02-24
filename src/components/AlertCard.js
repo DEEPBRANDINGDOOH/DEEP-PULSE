@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Linking } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
 
 export const AlertCard = ({ alert, onPress, onMarkAsRead }) => {

@@ -11,21 +11,29 @@
  */
 
 import React from 'react';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { NOTIFICATION_CONFIG } from '../config/constants';
 
-/**
- * Configure how notifications are handled when app is in foreground
- */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+// Safe import for expo-notifications (native module may not be available in bare RN builds)
+let Notifications = null;
+let Device = null;
+try {
+  Notifications = require('expo-notifications');
+  Device = require('expo-device');
+
+  /**
+   * Configure how notifications are handled when app is in foreground
+   */
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (e) {
+  console.warn('expo-notifications not available (bare RN build):', e.message);
+}
 
 class NotificationService {
   constructor() {
@@ -45,6 +53,10 @@ class NotificationService {
    * @returns {Promise<string|null>} Expo push token
    */
   async registerForPushNotifications() {
+    if (!Notifications || !Device) {
+      console.warn('Push notifications not available in this build');
+      return null;
+    }
     let token;
 
     // Check if physical device (push doesn't work on simulators)
@@ -103,6 +115,7 @@ class NotificationService {
    * @param {Function} onNotificationResponse - Called when user taps notification
    */
   addNotificationListeners(onNotificationReceived, onNotificationResponse) {
+    if (!Notifications) return;
     // Listener for notifications received while app is foregrounded
     this.notificationListener = Notifications.addNotificationReceivedListener(
       (notification) => {
@@ -146,6 +159,7 @@ class NotificationService {
    * @param {number} seconds - Delay in seconds
    */
   async scheduleLocalNotification(notification, seconds = 0) {
+    if (!Notifications) return;
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -178,6 +192,7 @@ class NotificationService {
    * Get notification permissions status
    */
   async getPermissionsStatus() {
+    if (!Notifications) return 'unavailable';
     const { status } = await Notifications.getPermissionsAsync();
     return status;
   }
@@ -212,6 +227,7 @@ class NotificationService {
    * Dismiss all notifications
    */
   async dismissAllNotifications() {
+    if (!Notifications) return;
     await Notifications.dismissAllNotificationsAsync();
   }
 
