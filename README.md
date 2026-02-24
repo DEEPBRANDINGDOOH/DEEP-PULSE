@@ -498,6 +498,7 @@ await walletAdapter.disconnect(authToken);
 | Talent Deposit | 50 $SKR | `constants.rs`, `constants.js` |
 | Top Ad Price | 1,500 $SKR/week | `constants.js` |
 | Bottom Ad Price | 800 $SKR/week | `constants.js` |
+| Lock Screen Ad | 2,000 $SKR/week | `constants.js` |
 | Global Notification | 1,000 $SKR | `constants.js` |
 | DAO Brand Share | 95% (9500 bps) | `constants.rs` |
 | DAO Platform Share | 5% (500 bps) | `constants.rs` |
