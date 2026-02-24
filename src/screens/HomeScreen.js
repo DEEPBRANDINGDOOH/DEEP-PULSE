@@ -210,14 +210,31 @@ export default function HomeScreen({ navigation }) {
 
                   {/* Engagement Stats */}
                   <View className="flex-row items-center mb-3">
-                    <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5 mr-3">
-                      <Ionicons name="flame" size={14} color="#FF9F66" />
-                      <Text className="text-text font-semibold text-xs ml-1.5">{notif.reactions}</Text>
-                    </View>
-                    <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setNotifications(prev => prev.map(n =>
+                          n.id === notif.id ? { ...n, reactions: n.reactions + 1, reacted: true } : n
+                        ));
+                      }}
+                      activeOpacity={0.7}
+                      className="flex-row items-center rounded-lg px-3 py-1.5 mr-3"
+                      style={{
+                        backgroundColor: notif.reacted ? 'rgba(255,159,102,0.15)' : 'rgba(255,255,255,0.05)',
+                        borderWidth: 1,
+                        borderColor: notif.reacted ? 'rgba(255,159,102,0.3)' : 'transparent',
+                      }}
+                    >
+                      <Ionicons name={notif.reacted ? 'flame' : 'flame-outline'} size={14} color="#FF9F66" />
+                      <Text className={`font-semibold text-xs ml-1.5 ${notif.reacted ? 'text-primary' : 'text-text'}`}>{notif.reactions}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleSendFeedback(notif)}
+                      activeOpacity={0.7}
+                      className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5"
+                    >
                       <Ionicons name="chatbubble" size={14} color="#9898a0" />
                       <Text className="text-text font-semibold text-xs ml-1.5">{notif.comments}</Text>
-                    </View>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </TouchableOpacity>
