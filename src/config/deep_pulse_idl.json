@@ -1,0 +1,3070 @@
+{
+  "address": "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4",
+  "metadata": {
+    "name": "deep_pulse",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "DEEP Pulse \u2014 Web3 Notification Hub for Solana Mobile"
+  },
+  "instructions": [
+    {
+      "name": "initialize_platform",
+      "discriminator": [
+        119,
+        201,
+        101,
+        45,
+        75,
+        122,
+        89,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "skr_mint",
+          "writable": false
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "hub_subscription_price",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "feedback_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "dao_proposal_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "talent_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "top_ad_price_per_week",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "bottom_ad_price_per_week",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "dao_brand_share_bps",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "dao_platform_share_bps",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "min_vault_contribution",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_platform_config",
+      "discriminator": [
+        195,
+        60,
+        76,
+        129,
+        146,
+        45,
+        67,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "hub_subscription_price",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "feedback_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "dao_proposal_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "talent_deposit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "top_ad_price_per_week",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "bottom_ad_price_per_week",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "dao_brand_share_bps",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "dao_platform_share_bps",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "min_vault_contribution",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_hub",
+      "discriminator": [
+        247,
+        142,
+        101,
+        165,
+        135,
+        38,
+        9,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "creator_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_score",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": {
+            "defined": {
+              "name": "HubCategory"
+            }
+          }
+        },
+        {
+          "name": "hub_index",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "renew_hub_subscription",
+      "discriminator": [
+        220,
+        77,
+        27,
+        183,
+        214,
+        154,
+        172,
+        219
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "creator_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "subscribe_to_hub",
+      "discriminator": [
+        114,
+        9,
+        161,
+        28,
+        151,
+        186,
+        44,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "subscription",
+          "writable": true
+        },
+        {
+          "name": "user_score",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "unsubscribe_from_hub",
+      "discriminator": [
+        158,
+        113,
+        230,
+        160,
+        164,
+        255,
+        181,
+        80
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "subscription",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "set_hub_verified",
+      "discriminator": [
+        100,
+        62,
+        191,
+        89,
+        145,
+        154,
+        131,
+        213
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "is_verified",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_hub_active",
+      "discriminator": [
+        80,
+        161,
+        135,
+        144,
+        245,
+        122,
+        52,
+        129
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "is_active",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "create_deposit",
+      "discriminator": [
+        157,
+        30,
+        11,
+        129,
+        16,
+        166,
+        115,
+        75
+      ],
+      "accounts": [
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "deposit",
+          "writable": true
+        },
+        {
+          "name": "escrow_token_account",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "skr_mint",
+          "writable": false
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_score",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "writable": false,
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "deposit_type",
+          "type": {
+            "defined": {
+              "name": "DepositType"
+            }
+          }
+        },
+        {
+          "name": "content_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "deposit_index",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "approve_feedback",
+      "discriminator": [
+        192,
+        224,
+        152,
+        7,
+        98,
+        240,
+        25,
+        195
+      ],
+      "accounts": [
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "deposit",
+          "writable": true
+        },
+        {
+          "name": "escrow_token_account",
+          "writable": true
+        },
+        {
+          "name": "escrow_authority",
+          "writable": false
+        },
+        {
+          "name": "depositor",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "approve_dao_proposal",
+      "discriminator": [
+        41,
+        77,
+        86,
+        131,
+        141,
+        83,
+        139,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "deposit",
+          "writable": true
+        },
+        {
+          "name": "escrow_token_account",
+          "writable": true
+        },
+        {
+          "name": "escrow_authority",
+          "writable": false
+        },
+        {
+          "name": "depositor",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "dao_vault",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_authority",
+          "writable": false
+        },
+        {
+          "name": "skr_mint",
+          "writable": false
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vault_index",
+          "type": "u32"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "target_amount",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "approve_talent",
+      "discriminator": [
+        151,
+        105,
+        10,
+        218,
+        34,
+        118,
+        88,
+        251
+      ],
+      "accounts": [
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "deposit",
+          "writable": true
+        },
+        {
+          "name": "escrow_token_account",
+          "writable": true
+        },
+        {
+          "name": "escrow_authority",
+          "writable": false
+        },
+        {
+          "name": "depositor",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "reject_deposit",
+      "discriminator": [
+        29,
+        130,
+        68,
+        0,
+        27,
+        121,
+        47,
+        131
+      ],
+      "accounts": [
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "deposit",
+          "writable": true
+        },
+        {
+          "name": "escrow_token_account",
+          "writable": true
+        },
+        {
+          "name": "escrow_authority",
+          "writable": false
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "contribute_to_vault",
+      "discriminator": [
+        253,
+        119,
+        169,
+        174,
+        178,
+        249,
+        197,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "contributor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "dao_vault",
+          "writable": true
+        },
+        {
+          "name": "contribution",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "contributor_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_score",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "complete_vault",
+      "discriminator": [
+        13,
+        122,
+        144,
+        244,
+        184,
+        172,
+        57,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "dao_vault",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_authority",
+          "writable": false
+        },
+        {
+          "name": "brand_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_vault",
+      "discriminator": [
+        150,
+        95,
+        141,
+        252,
+        158,
+        53,
+        60,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "dao_vault",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_vault_refund",
+      "discriminator": [
+        242,
+        132,
+        144,
+        12,
+        104,
+        87,
+        100,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "contributor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "dao_vault",
+          "writable": true
+        },
+        {
+          "name": "contribution",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_authority",
+          "writable": false
+        },
+        {
+          "name": "contributor_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "purchase_ad_slot",
+      "discriminator": [
+        63,
+        224,
+        181,
+        173,
+        71,
+        45,
+        21,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "advertiser",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "hub",
+          "writable": false
+        },
+        {
+          "name": "ad_slot",
+          "writable": true
+        },
+        {
+          "name": "advertiser_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "platform_config",
+          "writable": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_type",
+          "type": {
+            "defined": {
+              "name": "SlotType"
+            }
+          }
+        },
+        {
+          "name": "slot_index",
+          "type": "u8"
+        },
+        {
+          "name": "image_url_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "landing_url_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "duration_weeks",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "update_ad_slot",
+      "discriminator": [
+        120,
+        48,
+        13,
+        28,
+        4,
+        187,
+        58,
+        199
+      ],
+      "accounts": [
+        {
+          "name": "advertiser",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "ad_slot",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_image_url_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "new_landing_url_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "expire_ad_slot",
+      "discriminator": [
+        50,
+        121,
+        241,
+        136,
+        223,
+        33,
+        86,
+        21
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": false,
+          "signer": true
+        },
+        {
+          "name": "ad_slot",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_user_score",
+      "discriminator": [
+        29,
+        118,
+        77,
+        180,
+        7,
+        205,
+        73,
+        203
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_score",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "writable": false,
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PlatformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
+      ]
+    },
+    {
+      "name": "Hub",
+      "discriminator": [
+        143,
+        189,
+        4,
+        120,
+        169,
+        234,
+        14,
+        125
+      ]
+    },
+    {
+      "name": "HubSubscription",
+      "discriminator": [
+        83,
+        175,
+        6,
+        140,
+        241,
+        17,
+        221,
+        110
+      ]
+    },
+    {
+      "name": "Deposit",
+      "discriminator": [
+        148,
+        146,
+        121,
+        66,
+        207,
+        173,
+        21,
+        227
+      ]
+    },
+    {
+      "name": "DaoVault",
+      "discriminator": [
+        168,
+        220,
+        223,
+        166,
+        77,
+        241,
+        169,
+        48
+      ]
+    },
+    {
+      "name": "VaultContribution",
+      "discriminator": [
+        239,
+        191,
+        217,
+        188,
+        119,
+        206,
+        120,
+        221
+      ]
+    },
+    {
+      "name": "AdSlot",
+      "discriminator": [
+        144,
+        74,
+        20,
+        57,
+        15,
+        178,
+        12,
+        70
+      ]
+    },
+    {
+      "name": "UserScore",
+      "discriminator": [
+        212,
+        150,
+        123,
+        224,
+        34,
+        227,
+        84,
+        39
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "PlatformInitialized",
+      "discriminator": [
+        16,
+        222,
+        212,
+        5,
+        213,
+        140,
+        112,
+        162
+      ]
+    },
+    {
+      "name": "PlatformConfigUpdated",
+      "discriminator": [
+        198,
+        206,
+        187,
+        204,
+        148,
+        251,
+        237,
+        25
+      ]
+    },
+    {
+      "name": "HubCreated",
+      "discriminator": [
+        23,
+        9,
+        252,
+        247,
+        30,
+        187,
+        151,
+        167
+      ]
+    },
+    {
+      "name": "HubSubscriptionRenewed",
+      "discriminator": [
+        13,
+        221,
+        167,
+        37,
+        210,
+        229,
+        161,
+        162
+      ]
+    },
+    {
+      "name": "UserSubscribed",
+      "discriminator": [
+        248,
+        188,
+        188,
+        101,
+        240,
+        150,
+        66,
+        234
+      ]
+    },
+    {
+      "name": "UserUnsubscribed",
+      "discriminator": [
+        196,
+        240,
+        140,
+        185,
+        56,
+        155,
+        123,
+        61
+      ]
+    },
+    {
+      "name": "HubVerifiedChanged",
+      "discriminator": [
+        15,
+        113,
+        248,
+        251,
+        141,
+        42,
+        18,
+        172
+      ]
+    },
+    {
+      "name": "HubActiveChanged",
+      "discriminator": [
+        11,
+        47,
+        236,
+        66,
+        124,
+        125,
+        63,
+        235
+      ]
+    },
+    {
+      "name": "DepositCreated",
+      "discriminator": [
+        146,
+        225,
+        181,
+        133,
+        194,
+        173,
+        54,
+        71
+      ]
+    },
+    {
+      "name": "DepositApproved",
+      "discriminator": [
+        229,
+        217,
+        230,
+        247,
+        42,
+        220,
+        160,
+        243
+      ]
+    },
+    {
+      "name": "DepositRejected",
+      "discriminator": [
+        142,
+        2,
+        235,
+        2,
+        171,
+        247,
+        250,
+        10
+      ]
+    },
+    {
+      "name": "VaultCreated",
+      "discriminator": [
+        117,
+        25,
+        120,
+        254,
+        75,
+        236,
+        78,
+        115
+      ]
+    },
+    {
+      "name": "VaultContributed",
+      "discriminator": [
+        115,
+        194,
+        213,
+        163,
+        213,
+        189,
+        202,
+        162
+      ]
+    },
+    {
+      "name": "VaultCompleted",
+      "discriminator": [
+        174,
+        72,
+        181,
+        184,
+        121,
+        48,
+        107,
+        227
+      ]
+    },
+    {
+      "name": "VaultCancelled",
+      "discriminator": [
+        137,
+        72,
+        110,
+        157,
+        80,
+        107,
+        59,
+        181
+      ]
+    },
+    {
+      "name": "VaultRefunded",
+      "discriminator": [
+        144,
+        207,
+        178,
+        46,
+        176,
+        40,
+        56,
+        210
+      ]
+    },
+    {
+      "name": "AdSlotPurchased",
+      "discriminator": [
+        18,
+        53,
+        17,
+        198,
+        190,
+        245,
+        80,
+        50
+      ]
+    },
+    {
+      "name": "AdSlotUpdated",
+      "discriminator": [
+        92,
+        87,
+        128,
+        98,
+        0,
+        153,
+        182,
+        175
+      ]
+    },
+    {
+      "name": "AdSlotExpired",
+      "discriminator": [
+        47,
+        186,
+        131,
+        49,
+        73,
+        240,
+        176,
+        9
+      ]
+    },
+    {
+      "name": "ActionRecorded",
+      "discriminator": [
+        115,
+        16,
+        23,
+        116,
+        227,
+        176,
+        247,
+        96
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedAdmin",
+      "msg": "Only the platform admin can perform this action"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidShareConfig",
+      "msg": "Invalid share configuration: brand_bps + platform_bps must equal 10000"
+    },
+    {
+      "code": 6002,
+      "name": "HubNameTooLong",
+      "msg": "Hub name exceeds maximum length of 64 characters"
+    },
+    {
+      "code": 6003,
+      "name": "HubDescriptionTooLong",
+      "msg": "Hub description exceeds maximum length of 256 characters"
+    },
+    {
+      "code": 6004,
+      "name": "HubSubscriptionExpired",
+      "msg": "Hub subscription has expired"
+    },
+    {
+      "code": 6005,
+      "name": "HubNotActive",
+      "msg": "Hub is not active"
+    },
+    {
+      "code": 6006,
+      "name": "UnauthorizedHubCreator",
+      "msg": "Only the hub creator can perform this action"
+    },
+    {
+      "code": 6007,
+      "name": "AlreadySubscribed",
+      "msg": "User is already subscribed to this hub"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidDepositType",
+      "msg": "Invalid deposit type"
+    },
+    {
+      "code": 6009,
+      "name": "DepositNotPending",
+      "msg": "Deposit is not in pending status"
+    },
+    {
+      "code": 6010,
+      "name": "UnauthorizedModerator",
+      "msg": "Only the hub creator (brand) can moderate deposits"
+    },
+    {
+      "code": 6011,
+      "name": "DepositTypeMismatch",
+      "msg": "Deposit type mismatch for this operation"
+    },
+    {
+      "code": 6012,
+      "name": "VaultTitleTooLong",
+      "msg": "Vault title exceeds maximum length of 64 characters"
+    },
+    {
+      "code": 6013,
+      "name": "VaultDescriptionTooLong",
+      "msg": "Vault description exceeds maximum length of 256 characters"
+    },
+    {
+      "code": 6014,
+      "name": "VaultNotOpen",
+      "msg": "Vault is not open for contributions"
+    },
+    {
+      "code": 6015,
+      "name": "VaultExpired",
+      "msg": "Vault has expired"
+    },
+    {
+      "code": 6016,
+      "name": "ContributionTooSmall",
+      "msg": "Contribution amount is below the minimum"
+    },
+    {
+      "code": 6017,
+      "name": "VaultTargetNotReached",
+      "msg": "Vault target amount has not been reached"
+    },
+    {
+      "code": 6018,
+      "name": "VaultAlreadyFunded",
+      "msg": "Vault target amount already reached"
+    },
+    {
+      "code": 6019,
+      "name": "UnauthorizedVaultCancel",
+      "msg": "Only the brand or admin can cancel this vault"
+    },
+    {
+      "code": 6020,
+      "name": "VaultNotRefundable",
+      "msg": "Vault is not in a refundable state"
+    },
+    {
+      "code": 6021,
+      "name": "AlreadyRefunded",
+      "msg": "Contribution has already been refunded"
+    },
+    {
+      "code": 6022,
+      "name": "NoContribution",
+      "msg": "No contribution found to refund"
+    },
+    {
+      "code": 6023,
+      "name": "InvalidSlotType",
+      "msg": "Invalid ad slot type"
+    },
+    {
+      "code": 6024,
+      "name": "InvalidAdDuration",
+      "msg": "Ad slot duration must be at least 1 week"
+    },
+    {
+      "code": 6025,
+      "name": "AdSlotStillActive",
+      "msg": "Ad slot is still active and cannot be overwritten"
+    },
+    {
+      "code": 6026,
+      "name": "UnauthorizedAdvertiser",
+      "msg": "Only the advertiser can update this ad slot"
+    },
+    {
+      "code": 6027,
+      "name": "AdSlotNotExpired",
+      "msg": "Ad slot has not expired yet"
+    },
+    {
+      "code": 6028,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidSkrMint",
+      "msg": "Invalid $SKR token mint"
+    },
+    {
+      "code": 6030,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient $SKR balance"
+    },
+    {
+      "code": 6031,
+      "name": "ScoreOverflow",
+      "msg": "Score calculation overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "skr_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub_subscription_price",
+            "type": "u64"
+          },
+          {
+            "name": "feedback_deposit",
+            "type": "u64"
+          },
+          {
+            "name": "dao_proposal_deposit",
+            "type": "u64"
+          },
+          {
+            "name": "talent_deposit",
+            "type": "u64"
+          },
+          {
+            "name": "top_ad_price_per_week",
+            "type": "u64"
+          },
+          {
+            "name": "bottom_ad_price_per_week",
+            "type": "u64"
+          },
+          {
+            "name": "dao_brand_share_bps",
+            "type": "u16"
+          },
+          {
+            "name": "dao_platform_share_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_vault_contribution",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Hub",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": {
+              "defined": {
+                "name": "HubCategory"
+              }
+            }
+          },
+          {
+            "name": "subscriber_count",
+            "type": "u32"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "subscription_paid_until",
+            "type": "i64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "hub_index",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubSubscription",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "subscribed_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposit",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_type",
+            "type": {
+              "defined": {
+                "name": "DepositType"
+              }
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "DepositStatus"
+              }
+            }
+          },
+          {
+            "name": "content_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "resolved_at",
+            "type": "i64"
+          },
+          {
+            "name": "resolver",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_index",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DaoVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_deposit",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "target_amount",
+            "type": "u64"
+          },
+          {
+            "name": "current_amount",
+            "type": "u64"
+          },
+          {
+            "name": "contributor_count",
+            "type": "u32"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "VaultStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "funded_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "vault_index",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultContribution",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "contributor",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "contributed_at",
+            "type": "i64"
+          },
+          {
+            "name": "refunded",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AdSlot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "advertiser",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "slot_type",
+            "type": {
+              "defined": {
+                "name": "SlotType"
+              }
+            }
+          },
+          {
+            "name": "image_url_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "landing_url_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount_paid",
+            "type": "u64"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "slot_index",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserScore",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_score",
+            "type": "u32"
+          },
+          {
+            "name": "dao_boost_count",
+            "type": "u16"
+          },
+          {
+            "name": "talent_submit_count",
+            "type": "u16"
+          },
+          {
+            "name": "feedback_count",
+            "type": "u16"
+          },
+          {
+            "name": "subscribe_count",
+            "type": "u16"
+          },
+          {
+            "name": "notification_read_count",
+            "type": "u16"
+          },
+          {
+            "name": "ad_click_count",
+            "type": "u16"
+          },
+          {
+            "name": "last_activity",
+            "type": "i64"
+          },
+          {
+            "name": "action_types_used",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubCategory",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "DeFi"
+          },
+          {
+            "name": "NFT"
+          },
+          {
+            "name": "Gaming"
+          },
+          {
+            "name": "Social"
+          },
+          {
+            "name": "Infrastructure"
+          },
+          {
+            "name": "DAO"
+          },
+          {
+            "name": "DePIN"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Feedback"
+          },
+          {
+            "name": "DaoProposal"
+          },
+          {
+            "name": "Talent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Approved"
+          },
+          {
+            "name": "Rejected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Funded"
+          },
+          {
+            "name": "Expired"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Refunded"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Top"
+          },
+          {
+            "name": "Bottom"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ActionType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Subscribe"
+          },
+          {
+            "name": "Feedback"
+          },
+          {
+            "name": "TalentSubmit"
+          },
+          {
+            "name": "DaoBoost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "skr_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfigUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": "u8"
+          },
+          {
+            "name": "hub_index",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubSubscriptionRenewed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "paid_until",
+            "type": "i64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserSubscribed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserUnsubscribed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubVerifiedChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "changed_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HubActiveChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "changed_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "deposit",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_type",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "deposit_index",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositApproved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "deposit",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "resolver",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_type",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositRejected",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "deposit",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "resolver",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_type",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand",
+            "type": "pubkey"
+          },
+          {
+            "name": "target_amount",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "vault_index",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultContributed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "contributor",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "current_total",
+            "type": "u64"
+          },
+          {
+            "name": "target_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultCompleted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand_amount",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee",
+            "type": "u64"
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "cancelled_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "contributor",
+            "type": "pubkey"
+          },
+          {
+            "name": "refund_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AdSlotPurchased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ad_slot",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "advertiser",
+            "type": "pubkey"
+          },
+          {
+            "name": "slot_type",
+            "type": "u8"
+          },
+          {
+            "name": "amount_paid",
+            "type": "u64"
+          },
+          {
+            "name": "duration_weeks",
+            "type": "u8"
+          },
+          {
+            "name": "discount_bps",
+            "type": "u16"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AdSlotUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ad_slot",
+            "type": "pubkey"
+          },
+          {
+            "name": "advertiser",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AdSlotExpired",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ad_slot",
+            "type": "pubkey"
+          },
+          {
+            "name": "hub",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ActionRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "action_type",
+            "type": "u8"
+          },
+          {
+            "name": "score_delta",
+            "type": "u32"
+          },
+          {
+            "name": "new_total_score",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

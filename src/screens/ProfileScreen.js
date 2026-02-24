@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { MOCK_USER, getTierFromScore, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
+import { setWalletState } from '../services/transactionHelper';
 
 const MOCK_LEADERBOARD = [
   { rank: 1, wallet: '7xK...9Qz', score: 945, tier: 'LEGEND', boost: 12, talent: 5, feedback: 8 },
@@ -155,6 +156,7 @@ export default function ProfileScreen({ navigation }) {
             { text: 'Cancel', style: 'cancel' },
             { text: 'Disconnect', style: 'destructive', onPress: () => {
               clearWallet();
+              setWalletState(null, null); // Clear transaction helper state
               try { walletAdapter.disconnect(); } catch(e) {}
               navigation.replace('Onboarding');
             }},

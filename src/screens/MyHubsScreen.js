@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import { MOCK_ADS } from '../config/constants';
+import { unsubscribeFromHub } from '../services/transactionHelper';
 
 const MOCK_MY_HUBS = [
   {
@@ -55,6 +56,7 @@ export default function MyHubsScreen({ navigation }) {
   };
 
   const handleUnsubscribe = (hubId, hubName) => {
+    const hub = myHubs.find(h => h.id === hubId);
     Alert.alert(
       'Unsubscribe',
       `Are you sure you want to unsubscribe from ${hubName}?`,
@@ -63,10 +65,17 @@ export default function MyHubsScreen({ navigation }) {
         {
           text: 'Unsubscribe',
           style: 'destructive',
-          onPress: () => {
-            setMyHubs(myHubs.filter(h => h.id !== hubId));
-            console.log('Unsubscribed from:', hubId);
-            // TODO: Call API to unsubscribe
+          onPress: async () => {
+            // Real on-chain unsubscribe
+            if (hub?.hubPda) {
+              const result = await unsubscribeFromHub(hub.hubPda);
+              if (result.success) {
+                setMyHubs(myHubs.filter(h => h.id !== hubId));
+              }
+            } else {
+              // Mock fallback
+              setMyHubs(myHubs.filter(h => h.id !== hubId));
+            }
           },
         },
       ]

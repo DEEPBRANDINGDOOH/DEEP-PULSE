@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { submitDaoProposal, contributeToVault } from '../services/transactionHelper';
 
 const MOCK_PROPOSALS = [
   {
@@ -108,7 +109,7 @@ export default function DAOBoostScreen({ navigation }) {
       />
 
       <TouchableOpacity
-        onPress={() => {
+        onPress={async () => {
           if (!wallet.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
             return;
@@ -126,11 +127,21 @@ export default function DAOBoostScreen({ navigation }) {
             Alert.alert('Invalid amount', 'Target must be at least 100 $SKR.');
             return;
           }
-          Alert.alert(
-            'Proposal submitted',
-            `"${title}" submitted with 100 $SKR deposit. Community can now fund it. (Demo)`,
-            [{ text: 'OK', onPress: () => { setTitle(''); setDescription(''); setTargetAmount(''); } }]
-          );
+          // Real on-chain proposal submission
+          if (selectedHub?.hubPda) {
+            const depositIndex = Date.now() % 1000000;
+            const result = await submitDaoProposal(selectedHub.hubPda, `${title}: ${description}`, depositIndex);
+            if (result.success) {
+              setTitle(''); setDescription(''); setTargetAmount('');
+            }
+          } else {
+            // Mock fallback
+            Alert.alert(
+              'Proposal submitted',
+              `"${title}" submitted with 100 $SKR deposit. Community can now fund it.`,
+              [{ text: 'OK', onPress: () => { setTitle(''); setDescription(''); setTargetAmount(''); } }]
+            );
+          }
         }}
         className="bg-primary rounded-xl py-4"
       >
@@ -153,7 +164,7 @@ export default function DAOBoostScreen({ navigation }) {
     setFundModalVisible(true);
   };
 
-  const confirmFund = () => {
+  const confirmFund = async () => {
     if (!fundProposal) return;
     const amount = parseInt(fundAmount, 10);
     if (isNaN(amount) || amount < 100) {
@@ -161,19 +172,31 @@ export default function DAOBoostScreen({ navigation }) {
       return;
     }
     setFundModalVisible(false);
+
+    // Real on-chain contribution
+    if (fundProposal.vaultPda) {
+      const result = await contributeToVault(fundProposal.vaultPda, amount);
+      if (result.success) {
+        setProposals((prev) =>
+          prev.map((p) =>
+            p.id === fundProposal.id
+              ? { ...p, currentAmount: p.currentAmount + amount, backers: p.backers + 1 }
+              : p
+          )
+        );
+      }
+    } else {
+      // Mock fallback
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === fundProposal.id
+            ? { ...p, currentAmount: p.currentAmount + amount, backers: p.backers + 1 }
+            : p
+        )
+      );
+      Alert.alert('Funded', `You contributed ${amount} $SKR to "${fundProposal.title}".`);
+    }
     setFundProposal(null);
-    setProposals((prev) =>
-      prev.map((p) =>
-        p.id === fundProposal.id
-          ? {
-              ...p,
-              currentAmount: p.currentAmount + amount,
-              backers: p.backers + 1,
-            }
-          : p
-      )
-    );
-    Alert.alert('Funded', `You contributed ${amount} $SKR to "${fundProposal.title}". (Demo)`);
   };
 
   const renderVotesTab = () => (

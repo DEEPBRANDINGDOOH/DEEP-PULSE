@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
+import { setWalletState, initUserScore } from '../services/transactionHelper';
 
 const { width } = Dimensions.get('window');
 
@@ -139,11 +140,16 @@ export default function OnboardingScreen({ navigation }) {
     setIsConnecting(true);
     try {
       const result = await walletAdapter.connect();
+      // Set wallet in app store
       setWallet({
         connected: true,
         publicKey: result.publicKey,
         authToken: result.authToken,
       });
+      // Set wallet state for transaction helper (enables on-chain transactions)
+      setWalletState(result.publicKey, result.authToken);
+      // Initialize user score on-chain (silent, first time only)
+      initUserScore().catch(() => {}); // Don't block on this
       Alert.alert(
         'Wallet Connected',
         `Connected to ${result.label || 'wallet'}`,

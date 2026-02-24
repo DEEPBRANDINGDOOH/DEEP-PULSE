@@ -17,10 +17,12 @@ import {
   TextInput,
   Alert,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { createHub } from '../services/transactionHelper';
 
 export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
@@ -48,11 +50,13 @@ export default function BrandBoostScreen({ navigation }) {
   ];
 
   const handleCreateHub = async () => {
-    // Dev mode: allow hub creation without wallet for testing
-    const __DEV_MODE__ = !wallet.connected;
-
     if (!hubName.trim() || !hubDescription.trim()) {
       Alert.alert('Missing Information', 'Please fill in all fields');
+      return;
+    }
+
+    if (!wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your wallet first. Hub creation costs 2000 $SKR/month.');
       return;
     }
 
@@ -62,15 +66,23 @@ export default function BrandBoostScreen({ navigation }) {
       const createdHubName = hubName;
       Alert.alert(
         'Payment Required',
-        `To create "${hubName}" hub, you need to pay 2000 $SKR per month.${__DEV_MODE__ ? '\n\n(Dev mode: wallet not connected, simulated transaction)' : '\n\nThis will create an on-chain transaction.'}`,
+        `To create "${hubName}" hub, you need to pay 2000 $SKR per month.\n\nThis will create an on-chain transaction via your wallet.`,
         [
           { text: 'Cancel', style: 'cancel', onPress: () => setIsCreating(false) },
           {
             text: 'Create Hub',
             onPress: async () => {
               try {
-                // Simulate transaction
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Map category to Anchor enum format
+                const categoryMap = {
+                  'DeFi': 'defi', 'NFT': 'nft', 'Gaming': 'gaming',
+                  'Wallet': 'wallet', 'Infrastructure': 'infrastructure',
+                  'DAO': 'dao', 'Metaverse': 'metaverse',
+                };
+                const categoryKey = categoryMap[hubCategory] || 'defi';
+                const hubIndex = Date.now() % 1000000; // Unique index
+
+                const result = await createHub(hubName, hubDescription, categoryKey, hubIndex);
 
                 // Reset form
                 setHubName('');
@@ -80,14 +92,16 @@ export default function BrandBoostScreen({ navigation }) {
                 setShowCreateModal(false);
                 setIsCreating(false);
 
-                Alert.alert(
-                  'Hub Created!',
-                  `Your hub "${createdHubName}" has been created successfully!\n\nYou can now send notifications to your subscribers.`,
-                  [{
-                    text: 'Go to Dashboard',
-                    onPress: () => navigation.navigate('HubDashboard', { hubName: createdHubName }),
-                  }]
-                );
+                if (result.success) {
+                  Alert.alert(
+                    'Hub Created!',
+                    `Your hub "${createdHubName}" has been created on-chain!\n\nYou can now send notifications to your subscribers.`,
+                    [{
+                      text: 'Go to Dashboard',
+                      onPress: () => navigation.navigate('HubDashboard', { hubName: createdHubName }),
+                    }]
+                  );
+                }
               } catch (error) {
                 Alert.alert('Error', 'Failed to create hub. Please try again.');
                 setIsCreating(false);

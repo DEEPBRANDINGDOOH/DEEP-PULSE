@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -8,6 +8,7 @@ import { useAppStore } from '../store/appStore';
 import GlowCard from '../components/ui/GlowCard';
 import GradientButton from '../components/ui/GradientButton';
 import PulseOrb from '../components/ui/PulseOrb';
+import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -76,14 +77,36 @@ export default function HomeScreen({ navigation }) {
     setFeedbackModalVisible(true);
   };
 
-  const submitFeedback = () => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const submitFeedback = async () => {
     if (!feedbackText.trim()) {
       Alert.alert('Error', 'Please write your feedback before submitting.');
       return;
     }
-    Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`);
-    setFeedbackText('');
-    setFeedbackModalVisible(false);
+
+    setSubmitting(true);
+
+    // If notification has a hubPda (on-chain hub), do real transaction
+    if (selectedNotification?.hubPda) {
+      const depositIndex = Date.now() % 1000000; // Simple unique index
+      const result = await submitFeedbackTx(
+        selectedNotification.hubPda,
+        feedbackText,
+        depositIndex
+      );
+      setSubmitting(false);
+      if (result.success) {
+        setFeedbackText('');
+        setFeedbackModalVisible(false);
+      }
+    } else {
+      // Mock mode fallback
+      setSubmitting(false);
+      Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`);
+      setFeedbackText('');
+      setFeedbackModalVisible(false);
+    }
   };
 
   return (

@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import { MOCK_HUBS, MOCK_ADS } from '../config/constants';
+import { subscribeToHub, unsubscribeFromHub, fetchAllHubs } from '../services/transactionHelper';
+import useAppStore from '../store/appStore';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [hubs, setHubs] = useState(MOCK_HUBS.map(h => ({ ...h, subscribed: false })));
+  const [subscribing, setSubscribing] = useState(null); // hubId currently subscribing
+  const { wallet } = useAppStore();
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -17,12 +21,46 @@ export default function DiscoverScreen({ navigation }) {
     AdRotationManager.trackClick(data);
   };
 
-  const handleSubscribe = (hubId) => {
-    setHubs(hubs.map(h =>
-      h.id === hubId ? { ...h, subscribed: !h.subscribed } : h
-    ));
+  const handleSubscribe = async (hubId) => {
     const hub = hubs.find(h => h.id === hubId);
-    if (hub && !hub.subscribed) {
+    if (!hub) return;
+
+    // If already subscribed, unsubscribe
+    if (hub.subscribed) {
+      if (hub.hubPda) {
+        setSubscribing(hubId);
+        const result = await unsubscribeFromHub(hub.hubPda);
+        setSubscribing(null);
+        if (result.success) {
+          setHubs(hubs.map(h =>
+            h.id === hubId ? { ...h, subscribed: false } : h
+          ));
+        }
+      } else {
+        // Mock mode fallback
+        setHubs(hubs.map(h =>
+          h.id === hubId ? { ...h, subscribed: false } : h
+        ));
+      }
+      return;
+    }
+
+    // Subscribe
+    if (hub.hubPda) {
+      // Real on-chain subscription
+      setSubscribing(hubId);
+      const result = await subscribeToHub(hub.hubPda);
+      setSubscribing(null);
+      if (result.success) {
+        setHubs(hubs.map(h =>
+          h.id === hubId ? { ...h, subscribed: true } : h
+        ));
+      }
+    } else {
+      // Mock mode — toggle locally
+      setHubs(hubs.map(h =>
+        h.id === hubId ? { ...h, subscribed: true } : h
+      ));
       Alert.alert('Subscribed!', `You are now subscribed to ${hub.name}. Check My Hubs for updates.`);
     }
   };
@@ -102,17 +140,24 @@ export default function DiscoverScreen({ navigation }) {
               {/* Subscribe Button */}
               <TouchableOpacity
                 onPress={() => handleSubscribe(hub.id)}
-                className={`rounded-xl py-3 ${hub.subscribed ? 'bg-background-secondary border border-border' : 'bg-primary'}`}
+                disabled={subscribing === hub.id}
+                className={`rounded-xl py-3 ${hub.subscribed ? 'bg-background-secondary border border-border' : 'bg-primary'} ${subscribing === hub.id ? 'opacity-50' : ''}`}
               >
                 <View className="flex-row items-center justify-center">
-                  <Ionicons
-                    name={hub.subscribed ? 'checkmark-circle' : 'notifications'}
-                    size={18}
-                    color={hub.subscribed ? '#4CAF50' : '#fff'}
-                  />
-                  <Text className={`font-bold text-base ml-2 ${hub.subscribed ? 'text-text-secondary' : 'text-white'}`}>
-                    {hub.subscribed ? 'Subscribed' : 'Subscribe (FREE)'}
-                  </Text>
+                  {subscribing === hub.id ? (
+                    <ActivityIndicator size="small" color={hub.subscribed ? '#4CAF50' : '#fff'} />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name={hub.subscribed ? 'checkmark-circle' : 'notifications'}
+                        size={18}
+                        color={hub.subscribed ? '#4CAF50' : '#fff'}
+                      />
+                      <Text className={`font-bold text-base ml-2 ${hub.subscribed ? 'text-text-secondary' : 'text-white'}`}>
+                        {hub.subscribed ? 'Subscribed' : 'Subscribe (FREE)'}
+                      </Text>
+                    </>
+                  )}
                 </View>
               </TouchableOpacity>
             </View>

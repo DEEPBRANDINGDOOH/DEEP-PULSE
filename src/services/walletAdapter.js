@@ -21,7 +21,7 @@
 // MWA availability — set to false for Expo Go, true for custom native build
 // In Expo Go, the native SolanaMobileWalletAdapter TurboModule is not available
 // so we must NOT require the MWA packages (they crash on import)
-const MWA_ENABLED = false; // Set to true when using a custom dev build with MWA native module
+const MWA_ENABLED = true; // Enabled for Seeker release build
 
 let transact = null;
 let SolanaMobileWalletAdapterProtocolError = null;

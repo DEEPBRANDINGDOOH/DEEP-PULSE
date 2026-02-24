@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { submitTalent } from '../services/transactionHelper';
 
 const MOCK_TALENTS = [
   {
@@ -160,11 +161,24 @@ export default function TalentScreen({ navigation }) {
             `Submit as "${role}" to ${selectedHub.name}?\n\n50 $SKR deposit required.`,
             [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Submit', onPress: () => {
-                Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
-                setExperience('');
-                setPortfolio('');
-                setEmail('');
+              { text: 'Submit', onPress: async () => {
+                // Real on-chain talent submission
+                if (selectedHub?.hubPda) {
+                  const depositIndex = Date.now() % 1000000;
+                  const talentContent = `${role} | ${experience} | ${portfolio} | ${email}`;
+                  const result = await submitTalent(selectedHub.hubPda, talentContent, depositIndex);
+                  if (result.success) {
+                    setExperience('');
+                    setPortfolio('');
+                    setEmail('');
+                  }
+                } else {
+                  // Mock fallback
+                  Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
+                  setExperience('');
+                  setPortfolio('');
+                  setEmail('');
+                }
               }},
             ]
           );
