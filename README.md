@@ -36,9 +36,9 @@
 
 | Role | Features |
 |------|----------|
-| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent |
+| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen |
 | **Brands** | Create notification hubs (2,000 $SKR/month), moderate content, manage ad slots, receive DAO boost funding |
-| **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off) |
+| **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (2,000 $SKR/week) |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
 
 ### Key Differentiators
@@ -48,6 +48,7 @@
 - **Existing token** — Uses the $SKR SPL token (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`), no new token creation
 - **Escrow-based deposits** — Tokens locked in PDA escrows until brand moderation resolves
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
+- **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+5/+10 pts per swipe, max 15/day)
 
 ---
 
@@ -61,7 +62,7 @@
 |   React Native App        |   Anchor Program (Solana)     |
 |   (Solana Mobile)         |   Single Anchor program       |
 |                           |   24 instructions             |
-|   16 screens              |   8 account types             |
+|   17 screens              |   8 account types             |
 |   MWA 2.0                 |   19 events                   |
 |   NativeWind UI           |   30 error codes              |
 |   Firebase Cloud Messaging|                               |
@@ -200,7 +201,7 @@ deep-pulse-complete/
 |   +-- deep-pulse.ts                 # === TEST SUITE (TypeScript / Mocha) ===
 |
 |-- src/                               # === REACT NATIVE APP ===
-|   |-- screens/                       # 16 screens
+|   |-- screens/                       # 17 screens
 |   |   |-- OnboardingScreen.js        # Wallet connect + onboarding slides
 |   |   |-- HomeScreen.js              # Feed + rotating ad banners
 |   |   |-- DiscoverScreen.js          # Browse and search hubs
@@ -216,7 +217,8 @@ deep-pulse-complete/
 |   |   |-- AdminScreen.js             # Platform admin panel
 |   |   |-- AdminMessagesScreen.js     # Admin <-> Brand messaging
 |   |   |-- HubNotificationsScreen.js  # Hub-specific notification feed
-|   |   +-- NotificationDetailScreen.js # Full notification detail view
+|   |   |-- NotificationDetailScreen.js # Full notification detail view
+|   |   +-- SwipeEarnScreen.js          # Swipe-to-Earn dashboard (lock screen ads)
 |   |-- components/
 |   |   |-- WalletButton.js            # MWA connect / disconnect + SIWS
 |   |   |-- AdRotation.js              # 15-second rotating banner ads
@@ -227,6 +229,7 @@ deep-pulse-complete/
 |   |   |-- ModerationService.js       # Brand moderation (on-chain calls)
 |   |   |-- walletAdapter.js           # MWA 2.0 (authorize, sign, SIWS, error handling)
 |   |   |-- transactionHelper.js       # UI ↔ chain bridge (wallet state, error handling, alerts)
+|   |   |-- lockScreenService.js       # Swipe-to-Earn JS bridge (native Android LockScreen module)
 |   |   +-- notificationService.js     # Firebase Cloud Messaging (FCM) push notifications
 |   |-- store/
 |   |   +-- appStore.js                # Zustand + AsyncStorage persist
@@ -402,6 +405,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 | `transactionHelper.js` | UI ↔ chain bridge — wallet state management, generic `executeTransaction()` wrapper, user-friendly error parsing, all screen-level transaction functions |
 | `ModerationService.js` | Brand moderation — wraps `programService` calls for approve/reject flows |
 | `walletAdapter.js` | MWA 2.0 — authorize, reauthorize, SIWS (Sign In With Solana), `signAndSendTransactions`, full error handling |
+| `lockScreenService.js` | Swipe-to-Earn — JS bridge to native Android LockScreen overlay (start/stop, permissions, ad queue, swipe events) |
 | `notificationService.js` | Firebase Cloud Messaging (FCM) — push notification token registration and channel setup |
 
 ### State Management
@@ -649,6 +653,7 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 | Rejected talent | 50 $SKR | Brand rejects talent submission |
 | DAO vault fee | 5% of total raised | Vault reaches funding target |
 | Ad slot purchase | Variable (with discounts) | Advertiser buys a slot |
+| Lock screen ad | 2,000 $SKR/week | Advertiser targets lock screen users |
 
 ### Deposit Economics
 
@@ -727,6 +732,8 @@ Notification reads and ad clicks are scored off-chain (too frequent for on-chain
 | App configuration | `src/config/constants.js` |
 | Global state | `src/store/appStore.js` |
 | Screen UI | `src/screens/` |
+| Swipe-to-Earn (native) | `android/.../lockscreen/` |
+| Swipe-to-Earn (JS) | `src/services/lockScreenService.js` |
 
 ---
 
@@ -755,4 +762,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging integrated ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Swipe-to-Earn LockScreen Overlay ✓ | Release APK built (~54MB) ✓
