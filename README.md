@@ -36,7 +36,7 @@
 
 | Role | Features |
 |------|----------|
-| **Users** | Free hub subscriptions, push notifications, submit feedback (400 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent |
+| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent |
 | **Brands** | Create notification hubs (2,000 $SKR/month), moderate content, manage ad slots, receive DAO boost funding |
 | **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off) |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
@@ -59,15 +59,16 @@
 +---------------------------+-------------------------------+
 |                           |                               |
 |   React Native App        |   Anchor Program (Solana)     |
-|   (Solana Mobile)         |   1 monolithic program        |
-|                           |   22 instructions             |
+|   (Solana Mobile)         |   Single Anchor program       |
+|                           |   24 instructions             |
 |   16 screens              |   8 account types             |
 |   MWA 2.0                 |   19 events                   |
 |   NativeWind UI           |   30 error codes              |
+|   Firebase Cloud Messaging|                               |
 |   Zustand store           |                               |
 |                           |   +-------------------------+ |
 |   programService.js  <----+-->|  deep_pulse program     | |
-|   ModerationService       |   |                         | |
+|   transactionHelper       |   |                         | |
 |   walletAdapter           |   |  Admin | Hub | Deposit  | |
 |                           |   |  Vault | Ads | Scoring  | |
 |                           |   +-------------------------+ |
@@ -92,6 +93,8 @@
 | **State** | Zustand + persist | 4.5.x |
 | **Styling** | NativeWind (Tailwind) | 2.x |
 | **Navigation** | React Navigation | 6.x |
+| **Push Notifications** | Firebase Cloud Messaging | latest |
+| **Admin** | Platform admin panel | Built-in |
 
 ---
 
@@ -142,11 +145,15 @@ anchor test
 # Set Android SDK path (macOS)
 echo "sdk.dir=$HOME/Library/Android/sdk" > android/local.properties
 
-# Build debug APK
+# Build debug APK (for testing)
 cd android && ./gradlew assembleDebug
 
+# Build release APK (for distribution / Seeker)
+cd android && ./gradlew assembleRelease
+# Output: android/app/build/outputs/apk/release/app-release.apk (~54MB)
+
 # Install on connected device / Solana Seeker
-adb install app/build/outputs/apk/debug/app-debug.apk
+adb install app/build/outputs/apk/release/app-release.apk
 
 # Launch the app
 adb shell am start -n com.deeppulse/.MainActivity
@@ -170,15 +177,15 @@ deep-pulse-complete/
 |-- programs/deep-pulse/               # === SOLANA PROGRAM (Anchor / Rust) ===
 |   |-- Cargo.toml                     # Rust deps: anchor-lang 0.30.1, anchor-spl
 |   +-- src/
-|       |-- lib.rs                     # Program entry point — 22 instructions
+|       |-- lib.rs                     # Program entry point — 24 instructions
 |       |-- constants.rs               # PDA seeds, pricing defaults, scoring
 |       |-- errors.rs                  # 30 error codes
 |       |-- events.rs                  # 19 on-chain events for indexing
 |       |-- instructions/
-|       |   |-- admin.rs               # initialize_platform, update_config
+|       |   |-- admin.rs               # initialize_platform, update_config, transfer_admin
 |       |   |-- hub.rs                 # create, renew, subscribe, unsubscribe, verify, activate
 |       |   |-- deposit.rs             # create, approve_feedback/dao/talent, reject
-|       |   |-- dao_vault.rs           # contribute, complete, cancel, claim_refund
+|       |   |-- dao_vault.rs           # contribute, complete, cancel, expire, claim_refund
 |       |   |-- ad_slot.rs             # purchase, update, expire
 |       |   +-- scoring.rs             # init_user_score
 |       +-- state/
@@ -219,11 +226,13 @@ deep-pulse-complete/
 |   |   |-- programService.js          # Anchor client SDK (PDA helpers + MWA wrappers)
 |   |   |-- ModerationService.js       # Brand moderation (on-chain calls)
 |   |   |-- walletAdapter.js           # MWA 2.0 (authorize, sign, SIWS, error handling)
-|   |   +-- notificationService.js     # Expo push notification service
+|   |   |-- transactionHelper.js       # UI ↔ chain bridge (wallet state, error handling, alerts)
+|   |   +-- notificationService.js     # Firebase Cloud Messaging (FCM) push notifications
 |   |-- store/
 |   |   +-- appStore.js                # Zustand + AsyncStorage persist
 |   |-- config/
-|   |   +-- constants.js               # App config, pricing, $SKR mint, scoring
+|   |   |-- constants.js               # App config, pricing, $SKR mint, scoring
+|   |   +-- deep_pulse_idl.json        # Anchor IDL (24 instructions, imported locally)
 |   |-- data/
 |   |   +-- mockData.js                # Development mock data
 |   +-- utils/
@@ -233,7 +242,7 @@ deep-pulse-complete/
 |-- android-config/                     # Pre-configured Android files (MWA ready)
 |-- web-preview/                        # Browser preview (no emulator needed)
 |-- idl/
-|   +-- deep_pulse.json                # Anchor IDL (22 instructions, auto-generated)
+|   +-- deep_pulse.json                # Anchor IDL (24 instructions, auto-generated)
 |-- Anchor.toml                         # Anchor config (cluster, wallet, scripts)
 |-- Cargo.toml                          # Rust workspace
 |-- package.json                        # JS dependencies
@@ -258,12 +267,12 @@ A single monolithic Anchor program handles all on-chain logic. No CPI between mo
 | Module | Instructions | Description |
 |--------|-------------|-------------|
 | **Admin** | 3 | Platform initialization, config updates, admin transfer |
-| **Hub** | 6 | Hub CRUD, user subscriptions, admin verification |
+| **Hub** | 8 | Hub CRUD, user subscriptions, admin verification, activate/deactivate |
 | **Deposit** | 5 | Escrow create, approve (3 types), reject |
 | **DAO Vault** | 5 | Contribute, complete, cancel, expire, refund |
 | **Ad Slots** | 3 | Purchase, update creative, expire |
 | **Scoring** | 1 | Initialize user score account |
-| **Total** | **22** | |
+| **Total** | **24** | (including renew_hub_subscription) |
 
 ### On-Chain Accounts (PDAs)
 
@@ -312,7 +321,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 | 4+ weeks (1 month) | 10% off |
 | < 4 weeks | No discount |
 
-### All 20 Instructions
+### All 24 Instructions
 
 <details>
 <summary><strong>Click to expand full instruction reference</strong></summary>
@@ -340,7 +349,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 
 | # | Instruction | Description | Signer |
 |---|-------------|-------------|--------|
-| 9 | `create_deposit` | Lock $SKR in escrow PDA. Amount by type: Feedback=400, DaoProposal=100, Talent=50. | User |
+| 9 | `create_deposit` | Lock $SKR in escrow PDA. Amount by type: Feedback=300, DaoProposal=100, Talent=50. | User |
 | 10 | `approve_feedback` | Refund escrow to depositor. Close escrow account. | Brand (hub creator) |
 | 11 | `approve_dao_proposal` | Refund depositor + create `DaoVault` with target, expiry, title. | Brand |
 | 12 | `approve_talent` | Refund escrow to depositor. Close escrow account. | Brand |
@@ -389,10 +398,11 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 
 | Service | Purpose |
 |---------|---------|
-| `programService.js` | Anchor client SDK — all PDA derivation helpers, IDL loading, MWA `transact()` wrappers for every instruction |
+| `programService.js` | Anchor client SDK — all PDA derivation helpers, IDL loading (local JSON), MWA `transact()` wrappers for every instruction |
+| `transactionHelper.js` | UI ↔ chain bridge — wallet state management, generic `executeTransaction()` wrapper, user-friendly error parsing, all screen-level transaction functions |
 | `ModerationService.js` | Brand moderation — wraps `programService` calls for approve/reject flows |
 | `walletAdapter.js` | MWA 2.0 — authorize, reauthorize, SIWS (Sign In With Solana), `signAndSendTransactions`, full error handling |
-| `notificationService.js` | Expo push notification token registration and channel setup |
+| `notificationService.js` | Firebase Cloud Messaging (FCM) — push notification token registration and channel setup |
 
 ### State Management
 
@@ -406,11 +416,30 @@ pushToken        // Expo push notification token
 theme            // 'light' | 'dark'
 ```
 
-### Using the Program SDK
+### Using the Transaction Helper (Recommended for Screens)
+
+```javascript
+import { subscribeToHub, submitFeedback, contributeToVault } from './services/transactionHelper';
+import { setWalletState } from './services/transactionHelper';
+
+// Set wallet state after MWA connect
+setWalletState(publicKey, authToken);
+
+// Subscribe to a hub (handles wallet check + error alerts)
+const result = await subscribeToHub(hubPda);
+if (result.success) { /* update UI */ }
+
+// Submit feedback (locks 300 $SKR in escrow)
+await submitFeedback(hubPda, "Great notifications!", depositIndex);
+
+// Contribute to a DAO vault
+await contributeToVault(vaultPda, 500_000_000);
+```
+
+### Using the Program SDK (Low-Level)
 
 ```javascript
 import { programService } from './services/programService';
-import { PublicKey } from '@solana/web3.js';
 
 // === Read operations (no wallet needed) ===
 const hubs     = await programService.fetchAllHubs();
@@ -422,27 +451,12 @@ const deposits = await programService.fetchPendingDepositsForHub(hubPda);
 const subs     = await programService.fetchUserSubscriptions(userPubkey);
 
 // === Write operations (triggers MWA wallet prompt) ===
-
-// Initialize user score (once per user)
 await programService.initUserScore();
-
-// Subscribe to a hub (free, rent only)
 await programService.subscribeToHub(hubPda);
-
-// Submit feedback (locks 400 $SKR in escrow)
-const hash = await programService.hashContent("Great notifications!");
 await programService.createDeposit(hubPda, 'feedback', hash, 0);
-
-// Contribute to a DAO vault (500 $SKR)
 await programService.contributeToVault(vaultPda, 500_000_000);
-
-// Purchase a top ad slot for 12 weeks (20% discount applied automatically)
 await programService.purchaseAdSlot(hubPda, 'top', 0, imgHash, urlHash, 12);
-
-// Brand: approve feedback (refunds user)
 await programService.approveFeedback(depositPda, hubPda, depositorPubkey);
-
-// Brand: reject deposit (tokens go to treasury)
 await programService.rejectDeposit(depositPda, hubPda, depositorPubkey);
 ```
 
@@ -474,15 +488,17 @@ await walletAdapter.disconnect(authToken);
 |----------|-------|-----------------|
 | **Program ID** | `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` | `lib.rs`, `Anchor.toml`, `constants.js`, `programService.js` |
 | **$SKR Mint** | `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` | `constants.rs`, `constants.js`, `programService.js` |
-| Hub Subscription | 2,000 $SKR/month | `constants.rs` |
-| Feedback Deposit | 400 $SKR | `constants.rs` |
-| DAO Proposal Deposit | 100 $SKR | `constants.rs` |
-| Talent Deposit | 50 $SKR | `constants.rs` |
-| Top Ad Price | 500 $SKR/week | `constants.rs` |
-| Bottom Ad Price | 250 $SKR/week | `constants.rs` |
+| Hub Subscription | 2,000 $SKR/month | `constants.rs`, `constants.js` |
+| Feedback Deposit | 300 $SKR | `constants.js` (overrides default 400 in `constants.rs`) |
+| DAO Proposal Deposit | 100 $SKR | `constants.rs`, `constants.js` |
+| Talent Deposit | 50 $SKR | `constants.rs`, `constants.js` |
+| Top Ad Price | 1,500 $SKR/week | `constants.js` |
+| Bottom Ad Price | 800 $SKR/week | `constants.js` |
+| Global Notification | 1,000 $SKR | `constants.js` |
 | DAO Brand Share | 95% (9500 bps) | `constants.rs` |
 | DAO Platform Share | 5% (500 bps) | `constants.rs` |
 | Min Vault Contribution | 10 $SKR | `constants.rs` |
+| **Admin Wallet** | `89Ez94...nXVZc` | `constants.js` |
 
 ### Environment
 
@@ -512,7 +528,7 @@ anchor test --provider.cluster devnet --skip-local-validator
 |-------|---------------|
 | **Admin** | Initialize platform with defaults, update config, reject unauthorized access |
 | **Hub** | Create hub (deducts 2000 $SKR), subscribe, unsubscribe, set verified, renew subscription |
-| **Deposit** | Create feedback deposit (locks 400 $SKR), approve (refund), reject (treasury forfeit) |
+| **Deposit** | Create feedback deposit (locks 300 $SKR), approve (refund), reject (treasury forfeit) |
 | **DAO Vault** | Approve proposal (creates vault), contribute, cancel, claim refund |
 | **Ad Slots** | Purchase with discount calculation (4 weeks = 10% off), update creative |
 | **Scoring** | Init score account, verify point accumulation on subscribe |
@@ -628,7 +644,7 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 |--------|--------|------|
 | Hub creation | 2,000 $SKR | Brand creates a hub |
 | Hub renewal | 2,000 $SKR/month | Brand renews subscription |
-| Rejected feedback | 400 $SKR | Brand rejects feedback deposit |
+| Rejected feedback | 300 $SKR | Brand rejects feedback deposit |
 | Rejected proposal | 100 $SKR | Brand rejects DAO proposal |
 | Rejected talent | 50 $SKR | Brand rejects talent submission |
 | DAO vault fee | 5% of total raised | Vault reaches funding target |
@@ -638,7 +654,7 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 
 | Action | User Deposits | On Approve | On Reject |
 |--------|---------------|------------|-----------|
-| Feedback | 400 $SKR | Full refund to user | Sent to treasury |
+| Feedback | 300 $SKR | Full refund to user | Sent to treasury |
 | DAO Proposal | 100 $SKR | Full refund + vault created | Sent to treasury |
 | Talent | 50 $SKR | Full refund to user | Sent to treasury |
 
@@ -704,7 +720,8 @@ Notification reads and ad clicks are scored off-chain (too frequent for on-chain
 |---------------|------------|
 | Smart contract logic | `programs/deep-pulse/src/instructions/` |
 | On-chain data models | `programs/deep-pulse/src/state/` |
-| Frontend ↔ chain bridge | `src/services/programService.js` |
+| Frontend ↔ chain bridge | `src/services/transactionHelper.js` (screens) |
+| Low-level program calls | `src/services/programService.js` |
 | Brand moderation flows | `src/services/ModerationService.js` |
 | Wallet connection (MWA) | `src/services/walletAdapter.js` |
 | App configuration | `src/config/constants.js` |
@@ -737,4 +754,5 @@ MIT License
 **Anchor:** 0.30.1
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
-**Status:** Smart contracts compiled and deployed (local validator verified ✓)
+**Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
+**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging integrated ✓ | Release APK built (~54MB) ✓
