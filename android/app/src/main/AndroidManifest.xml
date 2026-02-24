@@ -3,6 +3,13 @@
     <!-- Permissions requises -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- LockScreen Overlay (Swipe-to-Earn) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     
     <!-- CRITIQUE: MWA Queries - Sans ça, MWA ne fonctionne pas! -->
     <queries>
@@ -44,5 +51,37 @@
             <data android:scheme="deeppulse" />
         </intent-filter>
       </activity>
+
+      <!-- LockScreen Ad Overlay Activity -->
+      <activity
+        android:name=".lockscreen.LockScreenAdActivity"
+        android:exported="false"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:screenOrientation="portrait"
+        android:showWhenLocked="true"
+        android:turnScreenOn="true"
+        android:excludeFromRecents="true"
+        android:taskAffinity=""
+        android:launchMode="singleInstance" />
+
+      <!-- LockScreen Foreground Service -->
+      <service
+        android:name=".lockscreen.LockScreenService"
+        android:exported="false"
+        android:foregroundServiceType="specialUse">
+        <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="lockscreen_content_display" />
+      </service>
+
+      <!-- Boot Receiver — Restart LockScreen service after reboot -->
+      <receiver
+        android:name=".lockscreen.BootReceiver"
+        android:exported="false"
+        android:enabled="true">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+      </receiver>
     </application>
 </manifest>

@@ -24,6 +24,7 @@ import AdminScreen from './src/screens/AdminScreen';
 import AdminMessagesScreen from './src/screens/AdminMessagesScreen';
 import HubNotificationsScreen from './src/screens/HubNotificationsScreen';
 import NotificationDetailScreen from './src/screens/NotificationDetailScreen';
+import SwipeEarnScreen from './src/screens/SwipeEarnScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -193,6 +194,11 @@ const App = () => {
           <Stack.Screen
             name="NotificationDetail"
             component={NotificationDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SwipeEarn"
+            component={SwipeEarnScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

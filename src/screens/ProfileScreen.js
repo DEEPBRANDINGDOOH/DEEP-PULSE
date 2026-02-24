@@ -75,6 +75,23 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Swipe-to-Earn Access */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('SwipeEarn')}
+        className="bg-gradient-to-r from-primary/20 to-yellow-500/20 bg-background-card rounded-2xl p-4 mb-4 flex-row items-center justify-between border border-primary/50"
+      >
+        <View className="flex-row items-center flex-1">
+          <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center mr-3">
+            <Ionicons name="swap-horizontal" size={22} color="#FF9F66" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-text font-bold text-sm">Swipe-to-Earn</Text>
+            <Text className="text-text-secondary text-xs">Gagnez des points sur l'écran de verrouillage</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#FF9F66" />
+      </TouchableOpacity>
+
       {/* Stats */}
       <View className="flex-row mb-4">
         <View className="flex-1 bg-background-card rounded-2xl p-4 mr-2 border border-border items-center">
