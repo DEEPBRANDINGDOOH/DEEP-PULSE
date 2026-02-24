@@ -72,10 +72,11 @@ export default function TalentScreen({ navigation }) {
           <Text className="text-primary font-semibold ml-2">How it works</Text>
         </View>
         <Text className="text-text-secondary text-sm leading-5">
-          {'\u2022'} Submit with 50 $SKR deposit{'\n'}
-          {'\u2022'} Brand reviews profile{'\n'}
-          {'\u2022'} If retained: refund + contact{'\n'}
-          {'\u2022'} If rejected: no refund
+          {'\u2022'} Showcase your talent to your favorite brand/project{'\n'}
+          {'\u2022'} Deposit 50 $SKR to prove you're serious{'\n'}
+          {'\u2022'} The brand reviews your profile privately{'\n'}
+          {'\u2022'} Hired? → Refunded + the brand contacts you when they need you{'\n'}
+          {'\u2022'} Not selected? → Your deposit goes to the hub's vault
         </Text>
       </View>
 
