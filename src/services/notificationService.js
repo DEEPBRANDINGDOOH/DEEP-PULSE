@@ -1,295 +1,242 @@
 /**
- * Push Notifications Service
- * 
+ * Push Notifications Service — Firebase Cloud Messaging (FCM)
+ *
  * Handles all push notification functionality:
- * - Register for push permissions
- * - Get Expo push token
- * - Handle incoming notifications
- * - Schedule local notifications
- * 
- * Uses Expo Notifications API
+ * - Register for push permissions (Android 13+)
+ * - Get FCM device token
+ * - Handle incoming notifications (foreground + background)
+ * - Subscribe to hub topics
+ *
+ * Uses @react-native-firebase/messaging
  */
 
 import React from 'react';
-import { Platform } from 'react-native';
-import { NOTIFICATION_CONFIG } from '../config/constants';
+import { Platform, PermissionsAndroid, Alert } from 'react-native';
 
-// Safe import for expo-notifications (native module may not be available in bare RN builds)
-let Notifications = null;
-let Device = null;
+// Safe import for Firebase Messaging
+let messaging = null;
 try {
-  Notifications = require('expo-notifications');
-  Device = require('expo-device');
-
-  /**
-   * Configure how notifications are handled when app is in foreground
-   */
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
+  messaging = require('@react-native-firebase/messaging').default;
 } catch (e) {
-  console.warn('expo-notifications not available (bare RN build):', e.message);
+  console.warn('Firebase Messaging not available:', e.message);
 }
 
 class NotificationService {
   constructor() {
-    this.notificationListener = null;
-    this.responseListener = null;
+    this.unsubscribeOnMessage = null;
+    this.fcmToken = null;
+  }
+
+  /**
+   * Request notification permissions (required on Android 13+)
+   * @returns {Promise<boolean>} Whether permission was granted
+   */
+  async requestPermission() {
+    if (!messaging) {
+      console.warn('Firebase Messaging not available');
+      return false;
+    }
+
+    try {
+      // Android 13+ requires POST_NOTIFICATIONS permission
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.warn('Notification permission denied');
+          return false;
+        }
+      }
+
+      // Request FCM permission
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log('FCM permission granted:', authStatus);
+      }
+      return enabled;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the FCM device token
+   * This token is used to send push notifications to this device
+   *
+   * @returns {Promise<string|null>} FCM token
+   */
+  async getToken() {
+    if (!messaging) return null;
+
+    try {
+      const token = await messaging().getToken();
+      this.fcmToken = token;
+      console.log('FCM Token:', token);
+      return token;
+    } catch (error) {
+      console.error('Error getting FCM token:', error);
+      return null;
+    }
   }
 
   /**
    * Register for push notifications
-   * 
-   * Flow:
-   * 1. Check if device supports push
-   * 2. Request permissions
-   * 3. Get Expo push token
-   * 4. Send token to backend (TODO)
-   * 
-   * @returns {Promise<string|null>} Expo push token
+   * Requests permission + gets token
+   *
+   * @returns {Promise<string|null>} FCM token if successful
    */
   async registerForPushNotifications() {
-    if (!Notifications || !Device) {
-      console.warn('Push notifications not available in this build');
-      return null;
-    }
-    let token;
+    const permitted = await this.requestPermission();
+    if (!permitted) return null;
 
-    // Check if physical device (push doesn't work on simulators)
-    if (!Device.isDevice) {
-      console.warn('Push notifications require a physical device');
-      return null;
-    }
+    const token = await this.getToken();
 
-    // Check/request permissions
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.warn('Push notification permission denied');
-      return null;
-    }
-
-    // Get Expo push token
-    try {
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('Expo push token:', token);
-    } catch (error) {
-      console.error('Error getting push token:', error);
-      return null;
-    }
-
-    // Android-specific: Create notification channel
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync(
-        NOTIFICATION_CONFIG.channelId,
-        {
-          name: NOTIFICATION_CONFIG.channelName,
-          description: NOTIFICATION_CONFIG.channelDescription,
-          importance: Notifications.AndroidImportance.HIGH,
-          sound: NOTIFICATION_CONFIG.sound,
-          vibrationPattern: NOTIFICATION_CONFIG.vibrate,
-          enableVibrate: true,
-          enableLights: true,
-          lightColor: '#FF6B35',
-        }
-      );
-    }
+    // TODO: Send token to backend to associate with user's wallet
+    // await api.registerDevice({ token, walletAddress });
 
     return token;
   }
 
   /**
-   * Add listeners for incoming notifications
-   * 
-   * @param {Function} onNotificationReceived - Called when notification received
-   * @param {Function} onNotificationResponse - Called when user taps notification
+   * Subscribe to a hub topic
+   * When a brand sends a notification, all subscribers to that hub topic receive it
+   *
+   * @param {string} hubId - The hub ID to subscribe to
    */
-  addNotificationListeners(onNotificationReceived, onNotificationResponse) {
-    if (!Notifications) return;
-    // Listener for notifications received while app is foregrounded
-    this.notificationListener = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        console.log('Notification received:', notification);
-        if (onNotificationReceived) {
-          onNotificationReceived(notification);
-        }
-      }
-    );
-
-    // Listener for user tapping on notification
-    this.responseListener = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        console.log('Notification tapped:', response);
-        if (onNotificationResponse) {
-          onNotificationResponse(response);
-        }
-      }
-    );
-  }
-
-  /**
-   * Remove notification listeners
-   * Call this in cleanup (useEffect return)
-   */
-  removeNotificationListeners() {
-    if (this.notificationListener) {
-      Notifications.removeNotificationSubscription(this.notificationListener);
-    }
-    if (this.responseListener) {
-      Notifications.removeNotificationSubscription(this.responseListener);
-    }
-  }
-
-  /**
-   * Schedule a local notification
-   * 
-   * For testing or offline notifications
-   * 
-   * @param {Object} notification - Notification content
-   * @param {number} seconds - Delay in seconds
-   */
-  async scheduleLocalNotification(notification, seconds = 0) {
-    if (!Notifications) return;
+  async subscribeToHub(hubId) {
+    if (!messaging) return;
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: notification.title,
-          body: notification.body,
-          data: notification.data || {},
-          sound: NOTIFICATION_CONFIG.sound,
-        },
-        trigger: seconds > 0 ? { seconds } : null,
-      });
+      await messaging().subscribeToTopic(`hub_${hubId}`);
+      console.log(`Subscribed to hub: ${hubId}`);
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.error(`Error subscribing to hub ${hubId}:`, error);
     }
   }
 
   /**
-   * Send a test notification (for development)
+   * Unsubscribe from a hub topic
+   *
+   * @param {string} hubId - The hub ID to unsubscribe from
    */
-  async sendTestNotification() {
-    await this.scheduleLocalNotification({
-      title: 'DEEP Pulse Test',
-      body: 'Push notifications are working correctly!',
-      data: {
-        type: 'test',
-      },
-    }, 2);
+  async unsubscribeFromHub(hubId) {
+    if (!messaging) return;
+    try {
+      await messaging().unsubscribeFromTopic(`hub_${hubId}`);
+      console.log(`Unsubscribed from hub: ${hubId}`);
+    } catch (error) {
+      console.error(`Error unsubscribing from hub ${hubId}:`, error);
+    }
   }
 
   /**
-   * Get notification permissions status
+   * Listen for notifications while app is in foreground
+   *
+   * @param {Function} onNotification - Callback with notification data
+   */
+  addForegroundListener(onNotification) {
+    if (!messaging) return;
+
+    this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
+      console.log('FCM foreground message:', remoteMessage);
+
+      if (onNotification) {
+        onNotification({
+          title: remoteMessage.notification?.title,
+          body: remoteMessage.notification?.body,
+          data: remoteMessage.data,
+        });
+      }
+
+      // Show an alert since foreground notifications don't show in tray
+      Alert.alert(
+        remoteMessage.notification?.title || 'DEEP Pulse',
+        remoteMessage.notification?.body || '',
+      );
+    });
+  }
+
+  /**
+   * Setup background notification handler
+   * Must be called at app startup (outside of components)
+   */
+  setupBackgroundHandler() {
+    if (!messaging) return;
+
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log('FCM background message:', remoteMessage);
+      // Background notifications are automatically shown in the tray
+      // This handler is for custom data processing
+    });
+  }
+
+  /**
+   * Handle notification that opened the app
+   * Called when user taps a notification while app is in background/killed
+   *
+   * @param {Function} onNotificationOpen - Callback with notification data
+   */
+  async getInitialNotification(onNotificationOpen) {
+    if (!messaging) return;
+
+    // App opened from background
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      console.log('Notification opened app from background:', remoteMessage);
+      if (onNotificationOpen) {
+        onNotificationOpen(remoteMessage.data);
+      }
+    });
+
+    // App opened from killed state
+    const initialNotification = await messaging().getInitialNotification();
+    if (initialNotification) {
+      console.log('Notification opened app from killed state:', initialNotification);
+      if (onNotificationOpen) {
+        onNotificationOpen(initialNotification.data);
+      }
+    }
+  }
+
+  /**
+   * Listen for token refresh
+   * FCM token can change — when it does, update backend
+   */
+  onTokenRefresh(callback) {
+    if (!messaging) return;
+    return messaging().onTokenRefresh((token) => {
+      console.log('FCM token refreshed:', token);
+      this.fcmToken = token;
+      if (callback) callback(token);
+    });
+  }
+
+  /**
+   * Remove foreground listener
+   */
+  removeForegroundListener() {
+    if (this.unsubscribeOnMessage) {
+      this.unsubscribeOnMessage();
+      this.unsubscribeOnMessage = null;
+    }
+  }
+
+  /**
+   * Get permission status
    */
   async getPermissionsStatus() {
-    if (!Notifications) return 'unavailable';
-    const { status } = await Notifications.getPermissionsAsync();
-    return status;
-  }
-
-  /**
-   * Get badge count (iOS only)
-   */
-  async getBadgeCount() {
-    if (Platform.OS === 'ios') {
-      return await Notifications.getBadgeCountAsync();
-    }
-    return 0;
-  }
-
-  /**
-   * Set badge count (iOS only)
-   */
-  async setBadgeCount(count) {
-    if (Platform.OS === 'ios') {
-      await Notifications.setBadgeCountAsync(count);
-    }
-  }
-
-  /**
-   * Clear badge count
-   */
-  async clearBadge() {
-    await this.setBadgeCount(0);
-  }
-
-  /**
-   * Dismiss all notifications
-   */
-  async dismissAllNotifications() {
-    if (!Notifications) return;
-    await Notifications.dismissAllNotificationsAsync();
-  }
-
-  /**
-   * Format alert data into notification format
-   * 
-   * This converts our alert objects into Expo notification format
-   * 
-   * @param {Object} alert - Alert from backend
-   * @returns {Object} Expo notification object
-   */
-  formatAlertAsNotification(alert) {
-    return {
-      title: `${alert.projectIcon} ${alert.projectName}`,
-      body: alert.title,
-      data: {
-        alertId: alert.id,
-        projectId: alert.projectId,
-        category: alert.category,
-        link: alert.link,
-        imageUrl: alert.imageUrl,
-      },
-    };
-  }
-
-  /**
-   * Send notification to Expo Push API (backend integration)
-   * 
-   * TODO: This should be called from your backend, not client
-   * Shown here for reference
-   * 
-   * @param {string} expoPushToken - User's push token
-   * @param {Object} notification - Notification content
-   */
-  async sendPushNotification(expoPushToken, notification) {
-    const message = {
-      to: expoPushToken,
-      sound: 'default',
-      title: notification.title,
-      body: notification.body,
-      data: notification.data,
-      priority: 'high',
-      channelId: NOTIFICATION_CONFIG.channelId,
-    };
-
+    if (!messaging) return 'unavailable';
     try {
-      const response = await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(message),
-      });
-
-      const data = await response.json();
-      console.log('Push notification sent:', data);
-      return data;
-    } catch (error) {
-      console.error('Error sending push notification:', error);
-      throw error;
+      const authStatus = await messaging().hasPermission();
+      if (authStatus === messaging.AuthorizationStatus.AUTHORIZED) return 'granted';
+      if (authStatus === messaging.AuthorizationStatus.PROVISIONAL) return 'provisional';
+      return 'denied';
+    } catch (e) {
+      return 'unavailable';
     }
   }
 }
@@ -302,6 +249,7 @@ export const notificationService = new NotificationService();
  */
 export const useNotifications = () => {
   const [notificationPermission, setNotificationPermission] = React.useState(null);
+  const [fcmToken, setFcmToken] = React.useState(null);
 
   React.useEffect(() => {
     // Check permission on mount
@@ -312,12 +260,15 @@ export const useNotifications = () => {
     const token = await notificationService.registerForPushNotifications();
     const status = await notificationService.getPermissionsStatus();
     setNotificationPermission(status);
+    setFcmToken(token);
     return { token, status };
   };
 
   return {
     notificationPermission,
+    fcmToken,
     requestPermissions,
-    sendTestNotification: () => notificationService.sendTestNotification(),
+    subscribeToHub: (hubId) => notificationService.subscribeToHub(hubId),
+    unsubscribeFromHub: (hubId) => notificationService.unsubscribeFromHub(hubId),
   };
 };

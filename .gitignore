@@ -49,6 +49,7 @@ web-build/
 .env.production
 *.pem
 credentials.json
+google-services.json
 
 # === Logs ===
 npm-debug.log*

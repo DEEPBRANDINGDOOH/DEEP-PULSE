@@ -5,6 +5,7 @@ plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
     id "com.facebook.react"
+    id "com.google.gms.google-services"
 }
 
 react {
@@ -38,14 +39,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        // Pour release builds:
-        // Décommentez et configurez avec vos vraies credentials
-        // release {
-        //     storeFile file('deep-pulse-release.keystore')
-        //     storePassword System.getenv("KEYSTORE_PASSWORD") ?: 'YOUR_PASSWORD'
-        //     keyAlias 'deep-pulse'
-        //     keyPassword System.getenv("KEY_PASSWORD") ?: 'YOUR_PASSWORD'
-        // }
+        release {
+            storeFile file('deep-pulse-release.keystore')
+            storePassword 'DeepPulse2026!'
+            keyAlias 'deep-pulse'
+            keyPassword 'DeepPulse2026!'
+        }
     }
 
     buildTypes {
@@ -53,9 +52,9 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // signingConfig signingConfigs.release
         }
     }
 
@@ -95,9 +94,13 @@ dependencies {
     implementation project(':react-native-vector-icons')
     implementation project(':solana-mobile_mobile-wallet-adapter-protocol')
     implementation project(':solana-mobile_mobile-wallet-adapter-walletlib')
+    implementation project(':react-native-firebase_app')
+    implementation project(':react-native-firebase_messaging')
 
     // CRITIQUE: Solana Mobile Wallet Adapter (native Kotlin lib)
     implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.0.3'
+
+    // Firebase (managed by @react-native-firebase packages above)
 
     // Debug tools
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")

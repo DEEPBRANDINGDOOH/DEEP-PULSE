@@ -80,13 +80,13 @@ export const NOTIFICATION_CONFIG = {
 // ADMIN CONFIGURATION
 // ========================================
 
-// TODO: Replace with your actual admin wallet address
-export const ADMIN_WALLET = "YOUR_WALLET_HERE";
+// Platform admin wallet — receives all platform fees
+export const ADMIN_WALLET = "89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc";
 
 // Multi-sig support (add more admin wallets here)
 export const ADMIN_WALLETS = [
-  // ADMIN_WALLET, // Uncomment and add your wallet
-  // "SECOND_ADMIN_WALLET", // For multi-sig
+  ADMIN_WALLET,
+  // "SECOND_ADMIN_WALLET", // For future multi-sig
 ];
 
 // Check if wallet is admin
