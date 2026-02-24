@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING } from '../config/constants';
@@ -104,6 +104,27 @@ export default function AdminScreen({ navigation }) {
   // Stats state
   const [statsPeriod, setStatsPeriod] = useState('30d');
   const [statsTab, setStatsTab] = useState('global');
+
+  // Pricing management state
+  const [prices, setPrices] = useState({
+    feedback: 300,
+    talent: 50,
+    daoBoost: 100,
+    hubCreation: 2000,
+    topAdSlot: 1500,
+    bottomAdSlot: 800,
+    globalNotification: 1000,
+  });
+  const [editingPrice, setEditingPrice] = useState(null);
+  const [editPriceValue, setEditPriceValue] = useState('');
+
+  // Custom deals state
+  const [customDeals, setCustomDeals] = useState([
+    { id: '1', brandName: 'Jupiter Exchange', brandWallet: '7xK...9Qz', type: 'Ad Slot', originalPrice: 1500, dealPrice: 1000, duration: '12 weeks', status: 'active', notes: 'Launch partner discount' },
+    { id: '2', brandName: 'Magic Eden', brandWallet: '2pQ...mNp', type: 'Hub Creation', originalPrice: 2000, dealPrice: 1500, duration: '6 months', status: 'active', notes: 'Strategic partner' },
+  ]);
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
 
   // Ad moderation handlers
   const handleApproveAd = (ad) => {
@@ -383,6 +404,33 @@ export default function AdminScreen({ navigation }) {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setActiveSection('pricing')}
+          className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+        >
+          <View className="flex-row items-center">
+            <Ionicons name="pricetag" size={24} color="#4CAF50" />
+            <Text className="text-text font-semibold ml-3">Pricing Management</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setActiveSection('deals')}
+          className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+        >
+          <View className="flex-row items-center">
+            <Ionicons name="gift" size={24} color="#9C27B0" />
+            <Text className="text-text font-semibold ml-3">Custom Brand Deals</Text>
+          </View>
+          <View className="flex-row items-center">
+            <View className="bg-purple-500/30 rounded-full w-6 h-6 items-center justify-center mr-2">
+              <Text className="text-white text-xs font-bold">{customDeals.length}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </View>
+        </TouchableOpacity>
       </ScrollView>
     );
   };
@@ -628,6 +676,252 @@ export default function AdminScreen({ navigation }) {
     </ScrollView>
   );
 
+  // ============================================
+  // RENDER: Pricing Management
+  // ============================================
+  const PRICE_LABELS = {
+    feedback: { label: 'Feedback Deposit', icon: 'chatbox', unit: '$SKR' },
+    talent: { label: 'Talent Deposit', icon: 'briefcase', unit: '$SKR' },
+    daoBoost: { label: 'DAO Boost Deposit', icon: 'rocket', unit: '$SKR' },
+    hubCreation: { label: 'Hub Creation', icon: 'storefront', unit: '$SKR/month' },
+    topAdSlot: { label: 'Top Ad Slot', icon: 'arrow-up-circle', unit: '$SKR/week' },
+    bottomAdSlot: { label: 'Bottom Ad Slot', icon: 'arrow-down-circle', unit: '$SKR/week' },
+    globalNotification: { label: 'Global Notification', icon: 'megaphone', unit: '$SKR' },
+  };
+
+  const handleSavePrice = (key) => {
+    const newValue = parseInt(editPriceValue, 10);
+    if (isNaN(newValue) || newValue <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid positive number.');
+      return;
+    }
+    Alert.alert(
+      'Update Price',
+      `Change "${PRICE_LABELS[key].label}" from ${prices[key]} to ${newValue} $SKR?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Update',
+          onPress: () => {
+            setPrices(prev => ({ ...prev, [key]: newValue }));
+            setEditingPrice(null);
+            setEditPriceValue('');
+            Alert.alert('Price Updated', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.\n\nNote: Rebuild the APK to apply this change to all users.`);
+          },
+        },
+      ]
+    );
+  };
+
+  const renderPricingManagement = () => (
+    <ScrollView className="px-6 py-4" showsVerticalScrollIndicator={false}>
+      <TouchableOpacity onPress={() => setActiveSection('overview')} className="flex-row items-center mb-4">
+        <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+        <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
+      </TouchableOpacity>
+
+      <Text className="text-text font-black text-2xl mb-2">Pricing Management</Text>
+      <Text className="text-text-secondary text-sm mb-5">
+        Modify platform pricing for all actions
+      </Text>
+
+      {Object.entries(prices).map(([key, value]) => {
+        const info = PRICE_LABELS[key];
+        const isEditing = editingPrice === key;
+        return (
+          <View key={key} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 rounded-lg bg-primary/10 items-center justify-center mr-3">
+                  <Ionicons name={info.icon} size={20} color="#FF9F66" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-text font-bold">{info.label}</Text>
+                  <Text className="text-text-secondary text-xs">{info.unit}</Text>
+                </View>
+              </View>
+              {isEditing ? (
+                <View className="flex-row items-center">
+                  <TextInput
+                    value={editPriceValue}
+                    onChangeText={setEditPriceValue}
+                    keyboardType="number-pad"
+                    className="bg-background-secondary text-primary font-bold text-right rounded-lg px-3 py-2 w-24 border border-primary mr-2"
+                    autoFocus
+                  />
+                  <TouchableOpacity onPress={() => handleSavePrice(key)} className="bg-success/20 rounded-lg p-2 mr-1">
+                    <Ionicons name="checkmark" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setEditingPrice(null); setEditPriceValue(''); }} className="bg-error/20 rounded-lg p-2">
+                    <Ionicons name="close" size={18} color="#f44336" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => { setEditingPrice(key); setEditPriceValue(String(value)); }}
+                  className="flex-row items-center"
+                >
+                  <Text className="text-primary font-black text-xl mr-2">{value.toLocaleString()}</Text>
+                  <Ionicons name="create-outline" size={18} color="#666" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        );
+      })}
+      <View className="h-6" />
+    </ScrollView>
+  );
+
+  // ============================================
+  // RENDER: Custom Brand Deals
+  // ============================================
+  const handleCreateDeal = () => {
+    if (!newDeal.brandName || !newDeal.brandWallet || !newDeal.dealPrice || !newDeal.duration) {
+      Alert.alert('Missing Fields', 'Please fill in all required fields.');
+      return;
+    }
+    const dealPrice = parseInt(newDeal.dealPrice, 10);
+    if (isNaN(dealPrice) || dealPrice <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid deal price.');
+      return;
+    }
+    const originalPrice = newDeal.type === 'Ad Slot' ? prices.topAdSlot
+      : newDeal.type === 'Hub Creation' ? prices.hubCreation
+      : newDeal.type === 'Bottom Ad Slot' ? prices.bottomAdSlot
+      : prices.feedback;
+
+    const deal = {
+      id: Date.now().toString(),
+      brandName: newDeal.brandName,
+      brandWallet: newDeal.brandWallet,
+      type: newDeal.type,
+      originalPrice,
+      dealPrice,
+      duration: newDeal.duration,
+      status: 'active',
+      notes: newDeal.notes,
+    };
+    setCustomDeals(prev => [...prev, deal]);
+    setShowDealModal(false);
+    setNewDeal({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
+    Alert.alert('Deal Created', `Custom deal for "${deal.brandName}" is now active.\n\n${deal.type}: ${dealPrice} $SKR instead of ${originalPrice} $SKR`);
+  };
+
+  const handleRevokeDeal = (deal) => {
+    Alert.alert(
+      'Revoke Deal',
+      `Remove custom deal for "${deal.brandName}"?\n\nThey will revert to standard pricing.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Revoke',
+          style: 'destructive',
+          onPress: () => {
+            setCustomDeals(prev => prev.filter(d => d.id !== deal.id));
+            Alert.alert('Deal Revoked', `${deal.brandName} is now on standard pricing.`);
+          },
+        },
+      ]
+    );
+  };
+
+  const renderCustomDeals = () => (
+    <ScrollView className="px-6 py-4" showsVerticalScrollIndicator={false}>
+      <TouchableOpacity onPress={() => setActiveSection('overview')} className="flex-row items-center mb-4">
+        <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+        <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
+      </TouchableOpacity>
+
+      <Text className="text-text font-black text-2xl mb-2">Custom Brand Deals</Text>
+      <Text className="text-text-secondary text-sm mb-5">
+        Create special pricing for strategic partners
+      </Text>
+
+      {/* Create New Deal Button */}
+      <TouchableOpacity
+        onPress={() => setShowDealModal(true)}
+        className="bg-primary/15 rounded-xl py-4 mb-5 border border-primary/30"
+      >
+        <View className="flex-row items-center justify-center">
+          <Ionicons name="add-circle" size={22} color="#FF9F66" />
+          <Text className="text-primary font-bold text-base ml-2">Create New Deal</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Active Deals */}
+      {customDeals.length === 0 ? (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="gift-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">
+            No active deals. Create one for a brand partner.
+          </Text>
+        </View>
+      ) : (
+        customDeals.map((deal) => (
+          <View key={deal.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 rounded-full bg-purple-500/20 items-center justify-center mr-3">
+                  <Ionicons name="business" size={20} color="#9C27B0" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-text font-bold">{deal.brandName}</Text>
+                  <Text className="text-text-secondary text-xs">{deal.brandWallet}</Text>
+                </View>
+              </View>
+              <View className="bg-success/20 rounded-full px-3 py-1">
+                <Text className="text-success text-xs font-bold">{deal.status.toUpperCase()}</Text>
+              </View>
+            </View>
+
+            <View className="bg-background-secondary rounded-lg p-3 mb-3">
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-text-secondary text-xs">Type</Text>
+                <Text className="text-text font-semibold text-xs">{deal.type}</Text>
+              </View>
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-text-secondary text-xs">Standard Price</Text>
+                <Text className="text-text-secondary text-xs line-through">{deal.originalPrice.toLocaleString()} $SKR</Text>
+              </View>
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-text-secondary text-xs">Deal Price</Text>
+                <Text className="text-success font-bold text-xs">{deal.dealPrice.toLocaleString()} $SKR</Text>
+              </View>
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-text-secondary text-xs">Duration</Text>
+                <Text className="text-text font-semibold text-xs">{deal.duration}</Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-text-secondary text-xs">Discount</Text>
+                <Text className="text-success font-bold text-xs">
+                  -{Math.round((1 - deal.dealPrice / deal.originalPrice) * 100)}%
+                </Text>
+              </View>
+            </View>
+
+            {deal.notes ? (
+              <View className="bg-primary/5 rounded-lg p-2 mb-3">
+                <Text className="text-text-secondary text-xs italic">{deal.notes}</Text>
+              </View>
+            ) : null}
+
+            <TouchableOpacity
+              onPress={() => handleRevokeDeal(deal)}
+              className="bg-error/10 rounded-xl py-2.5 border border-error/20"
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="trash-outline" size={16} color="#f44336" />
+                <Text className="text-error font-semibold text-sm ml-1">Revoke Deal</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+      <View className="h-6" />
+    </ScrollView>
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
@@ -646,6 +940,97 @@ export default function AdminScreen({ navigation }) {
       {activeSection === 'top100' && renderTop100()}
       {activeSection === 'hubs' && renderHubsManagement()}
       {activeSection === 'globalNotif' && renderGlobalNotification()}
+      {activeSection === 'pricing' && renderPricingManagement()}
+      {activeSection === 'deals' && renderCustomDeals()}
+
+      {/* Create Deal Modal */}
+      <Modal
+        visible={showDealModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDealModal(false)}
+      >
+        <View className="flex-1 bg-black/80 justify-end">
+          <View className="bg-background rounded-t-3xl p-6 max-h-[90%]">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-text font-black text-2xl">New Custom Deal</Text>
+                <TouchableOpacity onPress={() => setShowDealModal(false)}>
+                  <Ionicons name="close" size={28} color="#888" />
+                </TouchableOpacity>
+              </View>
+
+              <Text className="text-text-secondary text-sm mb-2">Brand Name *</Text>
+              <TextInput
+                value={newDeal.brandName}
+                onChangeText={(t) => setNewDeal(prev => ({ ...prev, brandName: t }))}
+                placeholder="e.g. Jupiter Exchange"
+                placeholderTextColor="#666"
+                className="bg-background-secondary text-text rounded-xl p-4 mb-4 border border-border"
+              />
+
+              <Text className="text-text-secondary text-sm mb-2">Brand Wallet Address *</Text>
+              <TextInput
+                value={newDeal.brandWallet}
+                onChangeText={(t) => setNewDeal(prev => ({ ...prev, brandWallet: t }))}
+                placeholder="e.g. 7xK4b...9QzP"
+                placeholderTextColor="#666"
+                className="bg-background-secondary text-text rounded-xl p-4 mb-4 border border-border"
+                autoCapitalize="none"
+              />
+
+              <Text className="text-text-secondary text-sm mb-2">Deal Type *</Text>
+              <View className="flex-row flex-wrap mb-4">
+                {['Ad Slot', 'Bottom Ad Slot', 'Hub Creation', 'Feedback'].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => setNewDeal(prev => ({ ...prev, type }))}
+                    className={`rounded-lg px-4 py-2 mr-2 mb-2 ${newDeal.type === type ? 'bg-primary' : 'bg-background-secondary border border-border'}`}
+                  >
+                    <Text className={`text-sm font-semibold ${newDeal.type === type ? 'text-white' : 'text-text-secondary'}`}>{type}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text className="text-text-secondary text-sm mb-2">Deal Price ($SKR) *</Text>
+              <TextInput
+                value={newDeal.dealPrice}
+                onChangeText={(t) => setNewDeal(prev => ({ ...prev, dealPrice: t }))}
+                placeholder="e.g. 1000"
+                placeholderTextColor="#666"
+                keyboardType="number-pad"
+                className="bg-background-secondary text-text rounded-xl p-4 mb-4 border border-border"
+              />
+
+              <Text className="text-text-secondary text-sm mb-2">Duration *</Text>
+              <TextInput
+                value={newDeal.duration}
+                onChangeText={(t) => setNewDeal(prev => ({ ...prev, duration: t }))}
+                placeholder="e.g. 12 weeks, 6 months"
+                placeholderTextColor="#666"
+                className="bg-background-secondary text-text rounded-xl p-4 mb-4 border border-border"
+              />
+
+              <Text className="text-text-secondary text-sm mb-2">Notes (optional)</Text>
+              <TextInput
+                value={newDeal.notes}
+                onChangeText={(t) => setNewDeal(prev => ({ ...prev, notes: t }))}
+                placeholder="e.g. Launch partner discount"
+                placeholderTextColor="#666"
+                className="bg-background-secondary text-text rounded-xl p-4 mb-6 border border-border"
+              />
+
+              <TouchableOpacity onPress={handleCreateDeal} className="bg-primary rounded-xl py-4">
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="gift" size={20} color="#fff" />
+                  <Text className="text-white font-bold text-base ml-2">Create Deal</Text>
+                </View>
+              </TouchableOpacity>
+              <View className="h-6" />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

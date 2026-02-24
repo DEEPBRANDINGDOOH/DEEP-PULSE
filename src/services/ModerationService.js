@@ -23,7 +23,7 @@ class ModerationService {
   async processFeedback(depositPda, hubPda, depositorPubkey, isUseful) {
     try {
       if (isUseful) {
-        // FEEDBACK USEFUL → Approve (refund 400 $SKR to user)
+        // FEEDBACK USEFUL → Approve (refund 300 $SKR to user)
         const result = await programService.approveFeedback(
           depositPda,
           hubPda,
@@ -33,9 +33,9 @@ class ModerationService {
         return {
           success: true,
           action: 'approved',
-          refundAmount: 400,
+          refundAmount: 300,
           signature: result.signature,
-          message: 'Feedback approved. User refunded 400 $SKR.',
+          message: 'Feedback approved. User refunded 300 $SKR.',
         };
       } else {
         // FEEDBACK SPAM/USELESS → Reject (tokens to treasury)
@@ -48,7 +48,7 @@ class ModerationService {
         return {
           success: true,
           action: 'rejected',
-          platformRevenue: 400,
+          platformRevenue: 300,
           signature: result.signature,
           message: 'Feedback rejected. No refund issued.',
         };

@@ -112,7 +112,7 @@ export default function ProfileScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => Alert.alert('Transaction History', 'Recent transactions:\n\n- Subscribe to Solana Gaming: FREE\n- Feedback deposit: 400 $SKR\n- DAO contribution: 500 $SKR\n\nFull on-chain history available on Solscan.')}
+        onPress={() => Alert.alert('Transaction History', 'Recent transactions:\n\n- Subscribe to Solana Gaming: FREE\n- Feedback deposit: 300 $SKR\n- DAO contribution: 500 $SKR\n\nFull on-chain history available on Solscan.')}
         className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
       >
         <View className="flex-row items-center">

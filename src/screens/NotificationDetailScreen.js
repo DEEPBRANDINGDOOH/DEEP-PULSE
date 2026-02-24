@@ -29,7 +29,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
 
   const handleSendFeedback = () => {
     if (!wallet.connected) {
-      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 400 $SKR deposit is required.');
+      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }
     setFeedbackModalVisible(true);
@@ -42,7 +42,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
     }
     Alert.alert(
       'Feedback Sent!',
-      `Your feedback for "${notification.hubName}" has been submitted.\n\n400 $SKR deposited in escrow.`
+      `Your feedback for "${notification.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`
     );
     setFeedbackText('');
     setFeedbackModalVisible(false);
@@ -148,7 +148,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
                   <Ionicons name="chatbox" size={18} color="#FF9F66" />
                   <Text className="text-primary font-bold text-sm ml-2">Send Feedback</Text>
                 </View>
-                <Text className="text-primary text-xs mt-1">400 $SKR deposit</Text>
+                <Text className="text-primary text-xs mt-1">300 $SKR deposit</Text>
               </View>
             </TouchableOpacity>
 
@@ -210,7 +210,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
               <View className="flex-row items-center">
                 <Ionicons name="shield-checkmark" size={18} color="#FF9F66" />
                 <Text className="text-text-secondary text-sm ml-2">
-                  Deposit: <Text className="text-primary font-bold">400 $SKR</Text> (refundable if approved)
+                  Deposit: <Text className="text-primary font-bold">300 $SKR</Text> (refundable if approved)
                 </Text>
               </View>
             </View>

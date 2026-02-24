@@ -10,7 +10,7 @@ const MOCK_SUBMISSIONS = {
       wallet: '7xK...9Qz',
       title: 'Re: Game Launch',
       message: 'Great timing! More details next time would help...',
-      deposit: 400,
+      deposit: 300,
       timestamp: '2 hours ago',
     },
     {
@@ -18,7 +18,7 @@ const MOCK_SUBMISSIONS = {
       wallet: '2pQ...mNp',
       title: 'Re: NFT Drop',
       message: 'Suggestion for improvement: Add rarity tiers info',
-      deposit: 400,
+      deposit: 300,
       timestamp: '5 hours ago',
     },
   ],

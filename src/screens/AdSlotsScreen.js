@@ -2,8 +2,8 @@
  * Ad Slots Screen
  *
  * Allows brands to purchase ad slots on their hubs
- * - Top Ad Slot: 2,000 $SKR/week (8 max, rotates every 15s)
- * - Bottom Ad Slot: 1,500 $SKR/week (8 max, rotates every 15s)
+ * - Top Ad Slot: 1,500 $SKR/week (8 max, rotates every 15s)
+ * - Bottom Ad Slot: 800 $SKR/week (8 max, rotates every 15s)
  *
  * Features:
  * - View available slots
@@ -31,7 +31,7 @@ import { useAppStore } from '../store/appStore';
 // Ad Slot Configuration
 const AD_CONFIG = {
   TOP_SLOT: {
-    price: 2000,
+    price: 1500,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,
@@ -45,7 +45,7 @@ const AD_CONFIG = {
     maxFileSize: '2 MB',
   },
   BOTTOM_SLOT: {
-    price: 1500,
+    price: 800,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,

@@ -64,7 +64,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
 
   const handleSendFeedback = (notif) => {
     if (!wallet.connected) {
-      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 400 $SKR deposit is required.');
+      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }
     navigation.navigate('NotificationDetail', {
@@ -163,7 +163,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
                     <Ionicons name="chatbox" size={14} color="#FF9F66" />
                     <Text className="text-primary font-semibold text-sm ml-1">Feedback</Text>
                     <View className="ml-1 bg-primary/20 rounded-md px-1.5 py-0.5">
-                      <Text className="text-primary font-bold" style={{ fontSize: 9 }}>400</Text>
+                      <Text className="text-primary font-bold" style={{ fontSize: 9 }}>300</Text>
                     </View>
                   </View>
                 </TouchableOpacity>

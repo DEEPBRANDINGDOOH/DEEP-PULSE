@@ -69,7 +69,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleSendFeedback = (notification) => {
     if (!wallet.connected) {
-      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 400 $SKR deposit is required.');
+      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }
     setSelectedNotification(notification);
@@ -81,7 +81,7 @@ export default function HomeScreen({ navigation }) {
       Alert.alert('Error', 'Please write your feedback before submitting.');
       return;
     }
-    Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n400 $SKR deposited in escrow.`);
+    Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`);
     setFeedbackText('');
     setFeedbackModalVisible(false);
   };
@@ -266,7 +266,7 @@ export default function HomeScreen({ navigation }) {
                     <Ionicons name="chatbox" size={14} color="#FF9F66" />
                     <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
                     <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
-                      <Text className="text-primary font-black" style={{ fontSize: 9 }}>400</Text>
+                      <Text className="text-primary font-black" style={{ fontSize: 9 }}>300</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -321,7 +321,7 @@ export default function HomeScreen({ navigation }) {
               <View className="flex-row items-center">
                 <Ionicons name="shield-checkmark" size={18} color="#FF9F66" />
                 <Text className="text-text-secondary text-sm ml-2">
-                  Deposit: <Text className="text-primary font-bold">400 $SKR</Text> (refundable if approved)
+                  Deposit: <Text className="text-primary font-bold">300 $SKR</Text> (refundable if approved)
                 </Text>
               </View>
             </View>

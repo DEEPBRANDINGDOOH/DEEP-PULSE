@@ -172,7 +172,7 @@ export const getTierFromScore = (score) => {
 // ========================================
 
 export const DEPOSITS = {
-  FEEDBACK: 400,      // $SKR
+  FEEDBACK: 300,      // $SKR
   DAO_PROPOSAL: 100,  // $SKR
   TALENT: 50,         // $SKR
 };
@@ -182,9 +182,12 @@ export const DEPOSITS = {
 // ========================================
 
 export const PRICING = {
-  HUB_SUBSCRIPTION: 2000,     // $SKR per month
-  TOP_AD_SLOT: 2000,          // $SKR per week
-  BOTTOM_AD_SLOT: 1500,       // $SKR per week
+  FEEDBACK: 300,              // $SKR per feedback
+  TALENT: 50,                 // $SKR per talent submission
+  DAO_BOOST: 100,             // $SKR per proposal deposit
+  HUB_CREATION: 2000,         // $SKR per month
+  TOP_AD_SLOT: 1500,          // $SKR per week
+  BOTTOM_AD_SLOT: 800,        // $SKR per week
   GLOBAL_NOTIFICATION: 1000,  // $SKR per notification
 };
 
