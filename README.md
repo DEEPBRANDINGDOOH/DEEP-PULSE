@@ -344,7 +344,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 | 4+ weeks (1 month) | 10% off |
 | < 4 weeks | No discount |
 
-### All 24 Instructions
+### All 23 Instructions
 
 <details>
 <summary><strong>Click to expand full instruction reference</strong></summary>

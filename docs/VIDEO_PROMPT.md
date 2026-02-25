@@ -42,7 +42,7 @@ Import recordings, add transitions, captions, and music.
 
 ### SCREEN 5: SWIPE-TO-EARN (1:30 - 1:50)
 **[Show SwipeEarn screen -> toggle ON -> lock screen demo if possible]**
-"Swipe-to-Earn turns the Android lock screen into a reward engine. Users see sponsored content when they unlock their phone. Swipe right to skip, swipe left to engage — earning $SKR points with every interaction. Max 15 per day, fully opt-in."
+"Swipe-to-Earn turns the Android lock screen into a reward engine. Users see sponsored content when they unlock their phone. Swipe right to skip, swipe left to engage — earning DEEP Score points with every interaction. Max 15 per day, fully opt-in."
 
 ### SCREEN 6: DEEP SCORE + PROFILE (1:50 - 2:10)
 **[Show Profile screen with DEEP Score, tier badge]**
@@ -54,7 +54,7 @@ Import recordings, add transitions, captions, and music.
 
 ### OUTRO (2:25 - 2:40)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 24 smart contract instructions, 17 screens, Swipe-to-Earn, DEEP Score v2, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 17 screens, Swipe-to-Earn, DEEP Score v2, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
