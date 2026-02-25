@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import { MOCK_HUBS, MOCK_ADS } from '../config/constants';
 import { subscribeToHub, unsubscribeFromHub, fetchAllHubs } from '../services/transactionHelper';
-import useAppStore from '../store/appStore';
+import { useAppStore } from '../store/appStore';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');

@@ -36,7 +36,7 @@
 
 | Role | Features |
 |------|----------|
-| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen |
+| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
 | **Brands** | Create notification hubs (2,000 $SKR/month), moderate content, manage ad slots, receive DAO boost funding |
 | **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (2,000 $SKR/week) |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
@@ -48,7 +48,8 @@
 - **Existing token** — Uses the $SKR SPL token (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`), no new token creation
 - **Escrow-based deposits** — Tokens locked in PDA escrows until brand moderation resolves
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
-- **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+5/+10 pts per swipe, max 15/day)
+- **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)
+- **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
 
 ---
 
@@ -246,9 +247,13 @@ deep-pulse-complete/
 |-- web-preview/                        # Browser preview (no emulator needed)
 |-- idl/
 |   +-- deep_pulse.json                # Anchor IDL (24 instructions, auto-generated)
+|-- scripts/
+|   |-- deploy-devnet.sh                # Automated devnet deploy (balance check + airdrop + deploy)
+|   |-- init-devnet.ts                  # Platform initialization (custom pricing + test hub)
+|   +-- patch-nativewind.js             # NativeWind postinstall fix
 |-- Anchor.toml                         # Anchor config (cluster, wallet, scripts)
 |-- Cargo.toml                          # Rust workspace
-|-- package.json                        # JS dependencies
+|-- package.json                        # JS dependencies + devnet:deploy/init scripts
 |-- app.json                            # Expo / React Native config (SDK 52)
 |-- metro.config.js                     # Metro bundler + crypto polyfills
 |-- index.js                            # Entry point (polyfills loaded first)
@@ -288,7 +293,7 @@ A single monolithic Anchor program handles all on-chain logic. No CPI between mo
 | `DaoVault` | `["vault", hub, index]` | 417 B | ~0.004 SOL |
 | `VaultContribution` | `["contribution", vault, contributor]` | 90 B | ~0.002 SOL |
 | `AdSlot` | `["ad_slot", hub, type, index]` | 172 B | ~0.002 SOL |
-| `UserScore` | `["user_score", user]` | 66 B | ~0.001 SOL |
+| `UserScore` | `["user_score", user]` | 76 B | ~0.001 SOL |
 
 ### Token Flows
 
@@ -382,14 +387,16 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 |---|-------------|-------------|--------|
 | -- | `init_user_score` | Create `UserScore` PDA for a user. Must be called before scoring hooks work. | User |
 
-**Scoring hooks** are embedded in other instructions:
+**Scoring hooks** are embedded in other instructions (DEEP Score v2):
 
 | Action | Triggered by | Points |
 |--------|-------------|--------|
-| Subscribe | `subscribe_to_hub` | +10 |
-| Feedback | `create_deposit(Feedback)` | +25 |
-| Talent | `create_deposit(Talent)` | +30 |
 | DAO Boost | `contribute_to_vault` | +50 |
+| Hub Creation | `create_hub` | +40 |
+| Talent | `create_deposit(Talent)` | +25 |
+| Feedback | `create_deposit(Feedback)` | +15 |
+| Proposal Vote | `contribute_to_vault` (vote) | +8 |
+| Subscribe | `subscribe_to_hub` | +5 |
 
 </details>
 
@@ -578,7 +585,9 @@ anchor build
 ### Step 2 — Deploy to Devnet (Automated)
 
 ```bash
-# One-command deploy (handles airdrop + deploy)
+# One-command deploy (handles balance check + airdrop + deploy)
+npm run devnet:deploy
+# OR
 ./scripts/deploy-devnet.sh
 ```
 
@@ -592,7 +601,29 @@ solana program deploy target/deploy/deep_pulse.so \
 
 > **Note:** Program ID is already set to `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` across all files.
 
-### Step 3 — Deploy to Local Validator (for testing)
+### Step 3 — Initialize Platform (After Deploy)
+
+```bash
+# Initialize PlatformConfig with DEEP Pulse custom pricing
+npm run devnet:init
+
+# Or deploy + init in one command
+npm run devnet:deploy-and-init
+```
+
+The init script (`scripts/init-devnet.ts`) does:
+1. Calls `initialize_platform` with custom pricing (Feedback=300, Top Ad=1500, Bottom Ad=800)
+2. Verifies PlatformConfig on-chain
+3. Initializes admin user score
+4. Creates a test hub "Solana Gaming" (if admin has $SKR tokens)
+5. Prints a full devnet status summary
+
+> **Pricing overrides vs Rust defaults:**
+> Feedback deposit: **300** $SKR (Rust default = 400)
+> Top ad/week: **1,500** $SKR (Rust default = 500)
+> Bottom ad/week: **800** $SKR (Rust default = 250)
+
+### Step 4 — Deploy to Local Validator (for testing)
 
 ```bash
 solana-test-validator --reset
@@ -600,14 +631,6 @@ solana config set --url localhost
 solana airdrop 10
 solana program deploy target/deploy/deep_pulse.so \
   --program-id target/deploy/deep_pulse-keypair.json
-```
-
-### Step 4 — Initialize Platform
-
-Call `initialize_platform` passing the existing $SKR mint:
-
-```bash
-anchor test --skip-local-validator
 ```
 
 ### Step 5 — Build Mobile App
@@ -664,26 +687,59 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 | DAO Proposal | 100 $SKR | Full refund + vault created | Sent to treasury |
 | Talent | 50 $SKR | Full refund to user | Sent to treasury |
 
-### On-Chain Scoring
+### DEEP Score v2 — Anti-Farming Scoring
 
-| Action | Points | Instruction |
-|--------|--------|-------------|
-| Subscribe to hub | +10 | `subscribe_to_hub` |
-| Submit feedback | +25 | `create_deposit(Feedback)` |
-| Submit talent | +30 | `create_deposit(Talent)` |
-| DAO vault contribution | +50 | `contribute_to_vault` |
+The scoring system uses **diminishing returns**, **daily caps**, **streak bonuses**, and **time decay** to reward real contributors and prevent farming.
 
-Notification reads and ad clicks are scored off-chain (too frequent for on-chain tx cost).
+#### Scoring Coefficients
 
-### User Tiers
+| Action | Points | Type | Daily Cap |
+|--------|--------|------|-----------|
+| DAO Boost contribution | +50 | On-chain (high value) | — |
+| Hub Creation | +40 | On-chain (high value) | — |
+| Talent submission | +25 | On-chain (medium value) | — |
+| Send Feedback | +15 | On-chain (medium value) | — |
+| Proposal Vote | +8 | On-chain (medium value) | — |
+| Subscribe to Hub | +5 | On-chain (low value) | 15 pts/day |
+| Read Notification | +0.5 | Off-chain (passive) | 5 pts/day |
+| Swipe engage (lock screen) | +0.5 | Off-chain (passive) | 3 pts/day |
+| Click Ad | +0.3 | Off-chain (passive) | 3 pts/day |
+| Swipe skip (lock screen) | +0.2 | Off-chain (passive) | 3 pts/day |
 
-| Tier | Score Range |
-|------|------------|
-| Legend | 901 — 1000 |
-| Diamond | 751 — 900 |
-| Gold | 501 — 750 |
-| Silver | 251 — 500 |
-| Bronze | 0 — 250 |
+#### Multipliers
+
+| Modifier | Condition | Multiplier |
+|----------|-----------|------------|
+| **Streak Bonus** | 0-2 days | x1.0 |
+| | 3-6 days | x1.1 |
+| | 7-13 days | x1.15 |
+| | 14-29 days | x1.25 |
+| | 30+ days (Veteran) | x1.4 |
+| **Time Decay** | Active (≤7 days) | x1.0 |
+| | Less active (≤30 days) | x0.85 |
+| | Rarely active (≤90 days) | x0.6 |
+| | Inactive (>90 days) | x0.3 |
+| **Diversity** | 5+ action types | x1.2 |
+| | 3-4 action types | x1.1 |
+| | ≤2 action types | x1.0 |
+
+#### Diminishing Returns
+
+After repeated actions of the same type, each additional action earns less:
+- DAO Boost: -15% per action after the 5th
+- Talent: -20% after the 3rd
+- Feedback: -10% after the 10th
+- Subscribe: -25% after the 8th
+
+### User Tiers (0 — 10,000)
+
+| Tier | Score Range | Icon |
+|------|------------|------|
+| Legend | 5,000+ | Trophy |
+| Diamond | 2,500 — 4,999 | Diamond |
+| Gold | 1,000 — 2,499 | Star |
+| Silver | 300 — 999 | Medal |
+| Bronze | 0 — 299 | Shield |
 
 ---
 
@@ -763,4 +819,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Swipe-to-Earn LockScreen Overlay ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓

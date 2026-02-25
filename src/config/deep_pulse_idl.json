@@ -54,6 +54,10 @@
           }
         },
         {
+          "name": "skr_mint",
+          "writable": false
+        },
+        {
           "name": "treasury",
           "writable": false,
           "pda": {
@@ -75,13 +79,24 @@
           }
         },
         {
-          "name": "skr_mint",
-          "writable": false
+          "name": "treasury_token_account",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "system_program",
           "writable": false,
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "writable": false,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "writable": false,
+          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": [
@@ -268,14 +283,6 @@
           "writable": true
         },
         {
-          "name": "creator_token_account",
-          "writable": true
-        },
-        {
-          "name": "treasury_token_account",
-          "writable": true
-        },
-        {
           "name": "platform_config",
           "writable": false,
           "pda": {
@@ -304,9 +311,12 @@
           }
         },
         {
-          "name": "user_score",
-          "writable": true,
-          "optional": true
+          "name": "creator_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
         },
         {
           "name": "token_program",
@@ -2377,6 +2387,14 @@
             "type": "u16"
           },
           {
+            "name": "hub_creation_count",
+            "type": "u16"
+          },
+          {
+            "name": "proposal_vote_count",
+            "type": "u16"
+          },
+          {
             "name": "notification_read_count",
             "type": "u16"
           },
@@ -2385,8 +2403,20 @@
             "type": "u16"
           },
           {
+            "name": "swipe_count",
+            "type": "u16"
+          },
+          {
             "name": "last_activity",
             "type": "i64"
+          },
+          {
+            "name": "streak_days",
+            "type": "u16"
+          },
+          {
+            "name": "last_active_day",
+            "type": "u32"
           },
           {
             "name": "action_types_used",

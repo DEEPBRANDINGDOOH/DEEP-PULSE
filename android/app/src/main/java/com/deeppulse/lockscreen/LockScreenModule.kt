@@ -58,12 +58,13 @@ class LockScreenModule(private val reactContext: ReactApplicationContext) :
         swipeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.getStringExtra("action") ?: return
-                val points = intent.getIntExtra("points", 0)
+                // points_x10: integer representing points * 10 (e.g. 2 = 0.2 pts, 5 = 0.5 pts)
+                val pointsX10 = intent.getIntExtra("points_x10", 0)
                 val adIndex = intent.getIntExtra("ad_index", 0)
 
                 val params: WritableMap = Arguments.createMap().apply {
                     putString("action", action)
-                    putInt("points", points)
+                    putDouble("points", pointsX10 / 10.0) // Convert back to decimal
                     putInt("adIndex", adIndex)
                 }
 

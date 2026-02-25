@@ -59,6 +59,20 @@ const AD_CONFIG = {
     recommendedSize: '390 x 100 px',
     maxFileSize: '2 MB',
   },
+  LOCKSCREEN_SLOT: {
+    price: 2000,
+    maxSlots: 4,
+    rotationInterval: 0,
+    width: 1080,
+    height: 1920,
+    position: 'lockscreen',
+    name: 'Lockscreen Ad',
+    description: 'Premium full-screen overlay on lock screen (Swipe-to-Earn)',
+    avgViews: 8500,
+    acceptedFormats: 'PNG, JPG, HTML5 (interactive supported)',
+    recommendedSize: '1080 x 1920 px (full screen)',
+    maxFileSize: '5 MB',
+  },
 };
 
 // Accepted image extensions
@@ -102,7 +116,7 @@ function validateAdCreative(imageUrl, landingUrl, slotType) {
     }
   }
 
-  const config = slotType === 'top' ? AD_CONFIG.TOP_SLOT : AD_CONFIG.BOTTOM_SLOT;
+  const config = slotType === 'top' ? AD_CONFIG.TOP_SLOT : slotType === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT : AD_CONFIG.BOTTOM_SLOT;
 
   return {
     valid: errors.length === 0,
@@ -188,6 +202,13 @@ export default function AdSlotsScreen({ route, navigation }) {
     { id: 8, advertiser: 'Available', active: false },
   ]);
 
+  const [lockscreenSlots, setLockscreenSlots] = useState([
+    { id: 1, advertiser: 'Available', active: false },
+    { id: 2, advertiser: 'Available', active: false },
+    { id: 3, advertiser: 'Available', active: false },
+    { id: 4, advertiser: 'Available', active: false },
+  ]);
+
   const handlePurchaseSlot = (slotType) => {
     if (!wallet.connected) {
       Alert.alert('Connect Wallet', 'Please connect your wallet to purchase ad slots');
@@ -211,7 +232,7 @@ export default function AdSlotsScreen({ route, navigation }) {
     setValidationErrors([]);
     setIsPurchasing(true);
 
-    const config = selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT : AD_CONFIG.BOTTOM_SLOT;
+    const config = selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT : selectedSlot === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT : AD_CONFIG.BOTTOM_SLOT;
     const totalCost = config.price * duration * (1 - calculateDiscount(duration));
 
     Alert.alert(
@@ -494,14 +515,14 @@ export default function AdSlotsScreen({ route, navigation }) {
                   <View className="flex-row items-center">
                     <View className="w-10 h-10 rounded-lg bg-primary/10 items-center justify-center mr-3">
                       <Ionicons
-                        name={ad.slotType === 'top' ? 'arrow-up-circle' : 'arrow-down-circle'}
+                        name={ad.slotType === 'top' ? 'arrow-up-circle' : ad.slotType === 'lockscreen' ? 'phone-portrait' : 'arrow-down-circle'}
                         size={22}
                         color="#FF9F66"
                       />
                     </View>
                     <View>
                       <Text className="text-text font-bold text-sm">
-                        {ad.slotType === 'top' ? 'Top' : 'Bottom'} Slot
+                        {ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : 'Bottom'} Slot
                       </Text>
                       <Text className="text-text-secondary text-xs">
                         {ad.remainingDays} days remaining
@@ -577,6 +598,18 @@ export default function AdSlotsScreen({ route, navigation }) {
         <View className="px-6 pb-6">
           <SlotCard config={AD_CONFIG.TOP_SLOT} slots={topSlots} type="top" />
           <SlotCard config={AD_CONFIG.BOTTOM_SLOT} slots={bottomSlots} type="bottom" />
+
+          {/* Lockscreen Ad Section */}
+          <View className="bg-primary/5 rounded-2xl p-4 mb-4 border border-primary/20">
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="phone-portrait" size={20} color="#FF9F66" />
+              <Text className="text-primary font-bold text-base ml-2">Premium: Lock Screen Ads</Text>
+            </View>
+            <Text className="text-text-secondary text-sm mb-3">
+              Full-screen overlay displayed when users unlock their phone. Users earn points by swiping (Swipe-to-Earn). Maximum engagement guaranteed.
+            </Text>
+          </View>
+          <SlotCard config={AD_CONFIG.LOCKSCREEN_SLOT} slots={lockscreenSlots} type="lockscreen" />
         </View>
 
         {/* Bulk Discount Info */}
@@ -618,7 +651,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-text font-black text-2xl">
-                  Purchase {selectedSlot === 'top' ? 'Top' : 'Bottom'} Slot
+                  Purchase {selectedSlot === 'top' ? 'Top' : selectedSlot === 'lockscreen' ? 'Lockscreen' : 'Bottom'} Slot
                 </Text>
                 <TouchableOpacity onPress={() => { setShowPurchaseModal(false); setIsPurchasing(false); }}>
                   <Ionicons name="close" size={28} color="#888" />
@@ -708,14 +741,14 @@ export default function AdSlotsScreen({ route, navigation }) {
                   <View className="flex-row justify-between mb-2">
                     <Text className="text-text-secondary">Base Price</Text>
                     <Text className="text-text font-semibold">
-                      {((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price) * duration).toLocaleString()} $SKR
+                      {(((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : selectedSlot === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price)) * duration).toLocaleString()} $SKR
                     </Text>
                   </View>
                   {calculateDiscount(duration) > 0 && (
                     <View className="flex-row justify-between mb-2">
                       <Text className="text-success">Discount ({(calculateDiscount(duration) * 100).toFixed(0)}%)</Text>
                       <Text className="text-success font-semibold">
-                        -{((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price) * duration * calculateDiscount(duration)).toLocaleString()} $SKR
+                        -{(((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : selectedSlot === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price)) * duration * calculateDiscount(duration)).toLocaleString()} $SKR
                       </Text>
                     </View>
                   )}
@@ -724,7 +757,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       <Text className="text-primary font-bold text-lg">Total</Text>
                       <Text className="text-primary font-black text-lg">
                         {(
-                          ((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price) * duration) *
+                          (((selectedSlot === 'top' ? AD_CONFIG.TOP_SLOT.price : selectedSlot === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT.price : AD_CONFIG.BOTTOM_SLOT.price)) * duration) *
                           (1 - calculateDiscount(duration))
                         ).toLocaleString()} $SKR
                       </Text>

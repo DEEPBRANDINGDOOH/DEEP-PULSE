@@ -8,11 +8,11 @@ import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState } from '../services/transactionHelper';
 
 const MOCK_LEADERBOARD = [
-  { rank: 1, wallet: '7xK...9Qz', score: 945, tier: 'LEGEND', boost: 12, talent: 5, feedback: 8 },
-  { rank: 2, wallet: '2pQ...mNp', score: 887, tier: 'DIAMOND', boost: 8, talent: 4, feedback: 12 },
-  { rank: 3, wallet: '8vN...4Wp', score: 832, tier: 'DIAMOND', boost: 10, talent: 3, feedback: 6 },
-  { rank: 4, wallet: '5tY...2Lm', score: 776, tier: 'DIAMOND', boost: 6, talent: 6, feedback: 10 },
-  { rank: 5, wallet: '3fR...8Kp', score: 723, tier: 'GOLD', boost: 7, talent: 2, feedback: 9 },
+  { rank: 1, wallet: '7xK...9Qz', score: 6820, tier: 'LEGEND', boost: 45, talent: 12, feedback: 28, streak: 47 },
+  { rank: 2, wallet: '2pQ...mNp', score: 5340, tier: 'LEGEND', boost: 32, talent: 8, feedback: 35, streak: 31 },
+  { rank: 3, wallet: '8vN...4Wp', score: 4150, tier: 'DIAMOND', boost: 28, talent: 15, feedback: 18, streak: 22 },
+  { rank: 4, wallet: '5tY...2Lm', score: 3200, tier: 'DIAMOND', boost: 18, talent: 10, feedback: 22, streak: 14 },
+  { rank: 5, wallet: '3fR...8Kp', score: 1890, tier: 'GOLD', boost: 12, talent: 5, feedback: 15, streak: 9 },
 ];
 
 export default function ProfileScreen({ navigation }) {
@@ -55,13 +55,27 @@ export default function ProfileScreen({ navigation }) {
           <View>
             <Text className="text-text-secondary text-sm mb-1">DEEP Score</Text>
             <View className="flex-row items-center">
-              <Text className="text-text font-black text-3xl mr-2">{user.score}</Text>
+              <Text className="text-text font-black text-3xl mr-2">{user.score.toLocaleString()}</Text>
               <Ionicons name={tier.icon} size={24} color={tier.color} />
             </View>
           </View>
           <View className="bg-primary/20 rounded-full px-4 py-2">
             <Text className="text-primary font-bold">{tier.name}</Text>
           </View>
+        </View>
+
+        {/* Streak */}
+        <View className="flex-row items-center mb-4 bg-background/50 rounded-xl p-3">
+          <Ionicons name="flame" size={20} color="#FF6B35" />
+          <Text className="text-text font-semibold ml-2">{user.streakDays || 0} days</Text>
+          <Text className="text-text-secondary text-xs ml-2">active streak</Text>
+          {(user.streakDays || 0) >= 7 && (
+            <View className="ml-auto bg-green-500/20 rounded-full px-2 py-1">
+              <Text className="text-green-400 text-xs font-bold">
+                {user.streakDays >= 30 ? '+40%' : user.streakDays >= 14 ? '+25%' : '+10%'} bonus
+              </Text>
+            </View>
+          )}
         </View>
 
         <TouchableOpacity
@@ -86,7 +100,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
           <View className="flex-1">
             <Text className="text-text font-bold text-sm">Swipe-to-Earn</Text>
-            <Text className="text-text-secondary text-xs">Gagnez des points sur l'écran de verrouillage</Text>
+            <Text className="text-text-secondary text-xs">Earn points on your lock screen</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#FF9F66" />
@@ -251,6 +265,13 @@ export default function ProfileScreen({ navigation }) {
               <View className="items-center">
                 <Text className="text-text font-semibold">{entry.feedback}</Text>
                 <Text className="text-text-secondary text-xs">Feedback</Text>
+              </View>
+              <View className="items-center">
+                <View className="flex-row items-center">
+                  <Ionicons name="flame" size={12} color="#FF6B35" />
+                  <Text className="text-text font-semibold ml-1">{entry.streak}</Text>
+                </View>
+                <Text className="text-text-secondary text-xs">Streak</Text>
               </View>
             </View>
           </View>

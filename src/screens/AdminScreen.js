@@ -68,6 +68,19 @@ const MOCK_PENDING_ADS = [
     status: 'PENDING',
     submittedDate: 'Feb 22, 2026',
   },
+  {
+    id: 'ad_review_4',
+    brandName: 'Phantom Wallet',
+    brandWallet: '9kR...3Wp',
+    hubName: 'DeFi Alerts',
+    slotType: 'lockscreen',
+    imageUrl: 'https://cdn.phantom.app/lockscreen-promo-1080x1920.png',
+    landingUrl: 'https://phantom.app/download',
+    duration: 2,
+    totalCost: 4000,
+    status: 'PENDING',
+    submittedDate: 'Feb 23, 2026',
+  },
 ];
 
 // Stats per period
@@ -113,6 +126,7 @@ export default function AdminScreen({ navigation }) {
     hubCreation: 2000,
     topAdSlot: 1500,
     bottomAdSlot: 800,
+    lockscreenAd: 2000,
     globalNotification: 1000,
   });
   const [editingPrice, setEditingPrice] = useState(null);
@@ -134,7 +148,7 @@ export default function AdminScreen({ navigation }) {
     }
     Alert.alert(
       'Approve Ad',
-      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${ad.slotType === 'top' ? 'Top' : 'Bottom'}\nDuration: ${ad.duration} week(s)\nCost: ${ad.totalCost.toLocaleString()} $SKR\n\nThe ad will go live immediately.`,
+      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : 'Bottom'}\nDuration: ${ad.duration} week(s)\nCost: ${ad.totalCost.toLocaleString()} $SKR\n\nThe ad will go live immediately.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -484,7 +498,7 @@ export default function AdminScreen({ navigation }) {
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Slot</Text>
-                <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : 'Bottom (390x100)'}</Text>
+                <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : ad.slotType === 'lockscreen' ? 'Lockscreen (1080x1920)' : 'Bottom (390x100)'}</Text>
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Duration</Text>
@@ -686,6 +700,7 @@ export default function AdminScreen({ navigation }) {
     hubCreation: { label: 'Hub Creation', icon: 'storefront', unit: '$SKR/month' },
     topAdSlot: { label: 'Top Ad Slot', icon: 'arrow-up-circle', unit: '$SKR/week' },
     bottomAdSlot: { label: 'Bottom Ad Slot', icon: 'arrow-down-circle', unit: '$SKR/week' },
+    lockscreenAd: { label: 'Lockscreen Ad', icon: 'phone-portrait', unit: '$SKR/week' },
     globalNotification: { label: 'Global Notification', icon: 'megaphone', unit: '$SKR' },
   };
 
@@ -789,6 +804,7 @@ export default function AdminScreen({ navigation }) {
     const originalPrice = newDeal.type === 'Ad Slot' ? prices.topAdSlot
       : newDeal.type === 'Hub Creation' ? prices.hubCreation
       : newDeal.type === 'Bottom Ad Slot' ? prices.bottomAdSlot
+      : newDeal.type === 'Lockscreen Ad' ? prices.lockscreenAd
       : prices.feedback;
 
     const deal = {
@@ -981,7 +997,7 @@ export default function AdminScreen({ navigation }) {
 
               <Text className="text-text-secondary text-sm mb-2">Deal Type *</Text>
               <View className="flex-row flex-wrap mb-4">
-                {['Ad Slot', 'Bottom Ad Slot', 'Hub Creation', 'Feedback'].map((type) => (
+                {['Ad Slot', 'Bottom Ad Slot', 'Lockscreen Ad', 'Hub Creation', 'Feedback'].map((type) => (
                   <TouchableOpacity
                     key={type}
                     onPress={() => setNewDeal(prev => ({ ...prev, type }))}

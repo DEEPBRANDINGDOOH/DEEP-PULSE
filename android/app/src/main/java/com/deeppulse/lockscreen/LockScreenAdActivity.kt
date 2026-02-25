@@ -1,20 +1,29 @@
 package com.deeppulse.lockscreen
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.OvershootInterpolator
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import kotlin.math.abs
 
@@ -22,7 +31,11 @@ import kotlin.math.abs
  * LockScreenAdActivity — Full-screen overlay displayed on the lock screen.
  *
  * Displays brand content via a WebView (HTML5: images, slideshows, videos, interactive).
- * User swipes RIGHT to dismiss (skip, +5 pts) or LEFT to learn more (+10 pts).
+ * User can:
+ *   - Tap "Unlock" button → skip (+0.2 pts)
+ *   - Tap "Learn More" button → learn more (+0.5 pts)
+ *   - Swipe RIGHT → skip (+5 pts)
+ *   - Swipe LEFT → learn more (+10 pts)
  *
  * Content is loaded from a URL passed via Intent extra "ad_content_url".
  * Fallback to a default HTML template if no URL is provided.
@@ -31,10 +44,9 @@ class LockScreenAdActivity : Activity() {
 
     private lateinit var webView: WebView
     private lateinit var gestureDetector: GestureDetector
-    private lateinit var swipeHintLeft: TextView
-    private lateinit var swipeHintRight: TextView
     private lateinit var pointsBadge: TextView
     private lateinit var adCountText: TextView
+    private lateinit var touchOverlay: View
 
     private var adContentUrl: String? = null
     private var adTitle: String = ""
@@ -51,11 +63,11 @@ class LockScreenAdActivity : Activity() {
         const val EXTRA_AD_INDEX = "ad_index"
         const val EXTRA_ADS_TODAY = "ads_today"
 
-        private const val SWIPE_THRESHOLD = 120
-        private const val SWIPE_VELOCITY_THRESHOLD = 200
+        private const val SWIPE_THRESHOLD = 100
+        private const val SWIPE_VELOCITY_THRESHOLD = 150
 
-        const val RESULT_SKIPPED = 1     // Swipe right — skip (+5 pts)
-        const val RESULT_ENGAGED = 2     // Swipe left — learn more (+10 pts)
+        const val RESULT_SKIPPED = 1     // Skip (+5 pts)
+        const val RESULT_ENGAGED = 2     // Learn more (+10 pts)
         const val RESULT_DISMISSED = 3   // Back button
     }
 
@@ -129,47 +141,125 @@ class LockScreenAdActivity : Activity() {
         }
         rootLayout.addView(webView)
 
-        // Swipe hint — LEFT (learn more)
-        swipeHintLeft = TextView(this).apply {
-            text = "\u2190 En savoir +"
-            textSize = 14f
-            setTextColor(0xCCFFFFFF.toInt())
-            setPadding(32, 0, 0, 48)
+        // ========================================
+        // Transparent touch overlay (captures swipes above WebView)
+        // ========================================
+        touchOverlay = View(this).apply {
             layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                // Leave bottom 200dp for buttons
+                bottomMargin = dpToPx(200)
+            }
+            setBackgroundColor(0x00000000)
+            isClickable = true
+            isFocusable = true
+        }
+        rootLayout.addView(touchOverlay)
+
+        // ========================================
+        // Bottom button panel
+        // ========================================
+        val bottomPanel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity = android.view.Gravity.BOTTOM or android.view.Gravity.START
+                gravity = Gravity.BOTTOM
             }
+            setPadding(dpToPx(24), dpToPx(16), dpToPx(24), dpToPx(32))
         }
-        rootLayout.addView(swipeHintLeft)
 
-        // Swipe hint — RIGHT (skip / unlock)
-        swipeHintRight = TextView(this).apply {
-            text = "D\u00e9verrouiller \u2192"
-            textSize = 14f
-            setTextColor(0xCCFFFFFF.toInt())
-            setPadding(0, 0, 32, 48)
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = android.view.Gravity.BOTTOM or android.view.Gravity.END
+        // Brand label
+        if (adBrandName.isNotEmpty()) {
+            val brandLabel = TextView(this).apply {
+                text = "Sponsored by $adBrandName"
+                textSize = 12f
+                setTextColor(0x99FFFFFF.toInt())
+                gravity = Gravity.CENTER
+                setPadding(0, 0, 0, dpToPx(16))
             }
+            bottomPanel.addView(brandLabel)
         }
-        rootLayout.addView(swipeHintRight)
 
+        // Button row
+        val buttonRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            gravity = Gravity.CENTER
+        }
+
+        // ---- "Learn More" button (LEFT action = engage = +0.5 pts) ----
+        val learnMoreBtn = createButton(
+            "\u2190  Learn More",
+            "+0.5 pts",
+            intArrayOf(0xFF533483.toInt(), 0xFFe94560.toInt()), // Purple-red gradient
+            true
+        )
+        learnMoreBtn.setOnClickListener {
+            animateButtonPress(it)
+            Handler(Looper.getMainLooper()).postDelayed({ onSwipeLeft() }, 300)
+        }
+        val learnMoreParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            rightMargin = dpToPx(8)
+        }
+        buttonRow.addView(learnMoreBtn, learnMoreParams)
+
+        // ---- "Unlock" button (RIGHT action = skip = +0.2 pts) ----
+        val unlockBtn = createButton(
+            "Unlock  \u2192",
+            "+0.2 pts",
+            intArrayOf(0xFF0f3460.toInt(), 0xFF16213e.toInt()), // Blue gradient
+            false
+        )
+        unlockBtn.setOnClickListener {
+            animateButtonPress(it)
+            Handler(Looper.getMainLooper()).postDelayed({ onSwipeRight() }, 300)
+        }
+        val unlockParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            leftMargin = dpToPx(8)
+        }
+        buttonRow.addView(unlockBtn, unlockParams)
+
+        bottomPanel.addView(buttonRow)
+
+        // Swipe hint text
+        val swipeHint = TextView(this).apply {
+            text = "\u2B05 Swipe or tap a button \u27A1"
+            textSize = 11f
+            setTextColor(0x66FFFFFF.toInt())
+            gravity = Gravity.CENTER
+            setPadding(0, dpToPx(12), 0, 0)
+        }
+        bottomPanel.addView(swipeHint)
+
+        rootLayout.addView(bottomPanel)
+
+        // ========================================
         // Points badge — top right
+        // ========================================
         pointsBadge = TextView(this).apply {
-            text = "+5 pts"
-            textSize = 12f
-            setTextColor(0xFFFFD700.toInt()) // Gold
-            setPadding(0, 48, 32, 0)
+            text = "DEEP Score"
+            textSize = 13f
+            setTextColor(0xFF000000.toInt())
+            val badgeBg = GradientDrawable().apply {
+                setColor(0xFFFFD700.toInt()) // Gold
+                cornerRadius = dpToPx(12).toFloat()
+            }
+            background = badgeBg
+            setPadding(dpToPx(12), dpToPx(6), dpToPx(12), dpToPx(6))
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity = android.view.Gravity.TOP or android.view.Gravity.END
+                gravity = Gravity.TOP or Gravity.END
+                topMargin = dpToPx(48)
+                rightMargin = dpToPx(16)
             }
         }
         rootLayout.addView(pointsBadge)
@@ -177,34 +267,24 @@ class LockScreenAdActivity : Activity() {
         // Ad counter — top left
         adCountText = TextView(this).apply {
             text = if (totalAdsToday > 0) "${currentAdIndex}/${totalAdsToday}" else ""
-            textSize = 12f
-            setTextColor(0x99FFFFFF.toInt())
-            setPadding(32, 48, 0, 0)
+            textSize = 13f
+            setTextColor(0xCCFFFFFF.toInt())
+            val counterBg = GradientDrawable().apply {
+                setColor(0x44FFFFFF.toInt())
+                cornerRadius = dpToPx(12).toFloat()
+            }
+            background = counterBg
+            setPadding(dpToPx(12), dpToPx(6), dpToPx(12), dpToPx(6))
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                gravity = Gravity.TOP or Gravity.START
+                topMargin = dpToPx(48)
+                leftMargin = dpToPx(16)
             }
         }
         rootLayout.addView(adCountText)
-
-        // Brand name — bottom center
-        if (adBrandName.isNotEmpty()) {
-            val brandLabel = TextView(this).apply {
-                text = "Sponsoris\u00e9 par $adBrandName"
-                textSize = 11f
-                setTextColor(0x88FFFFFF.toInt())
-                setPadding(0, 0, 0, 16)
-                layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
-                }
-            }
-            rootLayout.addView(brandLabel)
-        }
 
         setContentView(rootLayout)
 
@@ -224,10 +304,8 @@ class LockScreenAdActivity : Activity() {
 
                 if (abs(diffX) > abs(diffY) && abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
                     if (diffX > 0) {
-                        // Swipe RIGHT — Skip / Unlock (+5 pts)
                         onSwipeRight()
                     } else {
-                        // Swipe LEFT — Learn more (+10 pts)
                         onSwipeLeft()
                     }
                     return true
@@ -238,22 +316,109 @@ class LockScreenAdActivity : Activity() {
             override fun onDown(e: MotionEvent): Boolean = true
         })
 
+        // Set touch listener on the overlay
+        touchOverlay.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
+
         // ========================================
-        // Load content
+        // Load content + entrance animation
         // ========================================
         loadAdContent()
+        animateEntrance(rootLayout)
+    }
+
+    /**
+     * Create a styled button with gradient background.
+     */
+    private fun createButton(
+        label: String,
+        pointsLabel: String,
+        gradientColors: IntArray,
+        isLearnMore: Boolean
+    ): LinearLayout {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16))
+
+            val bg = GradientDrawable().apply {
+                colors = gradientColors
+                orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                cornerRadius = dpToPx(16).toFloat()
+                setStroke(1, 0x33FFFFFF.toInt())
+            }
+            background = bg
+            elevation = dpToPx(4).toFloat()
+            isClickable = true
+            isFocusable = true
+        }
+
+        val mainText = TextView(this).apply {
+            text = label
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+        container.addView(mainText)
+
+        val pointsText = TextView(this).apply {
+            text = pointsLabel
+            textSize = 12f
+            setTextColor(0xFFFFD700.toInt()) // Gold
+            gravity = Gravity.CENTER
+            setPadding(0, dpToPx(4), 0, 0)
+        }
+        container.addView(pointsText)
+
+        return container
+    }
+
+    /**
+     * Animate button press with scale effect.
+     */
+    private fun animateButtonPress(view: View) {
+        val scaleDownX = ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.9f)
+        val scaleDownY = ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.9f)
+        scaleDownX.duration = 100
+        scaleDownY.duration = 100
+
+        val scaleUpX = ObjectAnimator.ofFloat(view, "scaleX", 0.9f, 1f)
+        val scaleUpY = ObjectAnimator.ofFloat(view, "scaleY", 0.9f, 1f)
+        scaleUpX.duration = 150
+        scaleUpY.duration = 150
+        scaleUpX.interpolator = OvershootInterpolator()
+        scaleUpY.interpolator = OvershootInterpolator()
+
+        val set = AnimatorSet()
+        set.play(scaleDownX).with(scaleDownY)
+        set.play(scaleUpX).with(scaleUpY).after(scaleDownX)
+        set.start()
+    }
+
+    /**
+     * Entrance animation: fade in + slide up.
+     */
+    private fun animateEntrance(view: View) {
+        view.alpha = 0f
+        view.translationY = 50f
+        view.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setInterpolator(OvershootInterpolator(0.5f))
+            .start()
     }
 
     /**
      * Load ad content into WebView.
-     * If a URL is provided, load it directly.
-     * Otherwise, render a default HTML template with the ad info.
      */
     private fun loadAdContent() {
         if (!adContentUrl.isNullOrEmpty()) {
             webView.loadUrl(adContentUrl!!)
         } else {
-            // Default HTML template — fullscreen image with gradient overlay
             val html = """
                 <!DOCTYPE html>
                 <html>
@@ -268,38 +433,70 @@ class LockScreenAdActivity : Activity() {
                             align-items: center; justify-content: center;
                             font-family: -apple-system, sans-serif;
                             color: white; overflow: hidden;
+                            -webkit-user-select: none;
+                            user-select: none;
+                            touch-action: none;
+                        }
+                        .logo-container {
+                            position: relative;
+                            margin-bottom: 32px;
                         }
                         .logo {
-                            width: 80px; height: 80px;
-                            border-radius: 20px;
+                            width: 100px; height: 100px;
+                            border-radius: 24px;
                             background: linear-gradient(135deg, #e94560, #533483);
                             display: flex; align-items: center; justify-content: center;
-                            font-size: 36px; font-weight: bold;
-                            margin-bottom: 24px;
-                            box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+                            font-size: 42px; font-weight: bold;
+                            box-shadow: 0 12px 40px rgba(233, 69, 96, 0.4);
+                            animation: pulse 2s ease-in-out infinite;
+                        }
+                        .glow {
+                            position: absolute;
+                            top: -10px; left: -10px; right: -10px; bottom: -10px;
+                            border-radius: 34px;
+                            background: linear-gradient(135deg, rgba(233, 69, 96, 0.3), rgba(83, 52, 131, 0.3));
+                            filter: blur(15px);
+                            animation: glowPulse 2s ease-in-out infinite;
                         }
                         h1 {
-                            font-size: 24px; font-weight: 700;
+                            font-size: 26px; font-weight: 700;
                             text-align: center; padding: 0 32px;
                             margin-bottom: 12px;
+                            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
                         }
                         p {
-                            font-size: 16px; opacity: 0.7;
+                            font-size: 16px; opacity: 0.6;
                             text-align: center; padding: 0 48px;
                         }
-                        .pulse {
-                            animation: pulse 2s ease-in-out infinite;
+                        .badge {
+                            display: inline-block;
+                            background: rgba(255, 215, 0, 0.15);
+                            border: 1px solid rgba(255, 215, 0, 0.3);
+                            color: #FFD700;
+                            padding: 6px 16px;
+                            border-radius: 20px;
+                            font-size: 13px;
+                            margin-top: 24px;
+                            font-weight: 600;
                         }
                         @keyframes pulse {
                             0%, 100% { transform: scale(1); }
                             50% { transform: scale(1.05); }
                         }
+                        @keyframes glowPulse {
+                            0%, 100% { opacity: 0.5; }
+                            50% { opacity: 1; }
+                        }
                     </style>
                 </head>
                 <body>
-                    <div class="logo pulse">DP</div>
+                    <div class="logo-container">
+                        <div class="glow"></div>
+                        <div class="logo">DP</div>
+                    </div>
                     <h1>${adTitle.replace("\"", "&quot;")}</h1>
                     <p>${adBrandName.replace("\"", "&quot;")}</p>
+                    <div class="badge">SWIPE-TO-EARN</div>
                 </body>
                 </html>
             """.trimIndent()
@@ -308,15 +505,14 @@ class LockScreenAdActivity : Activity() {
     }
 
     /**
-     * Swipe RIGHT — User skips ad to unlock phone.
-     * Awards +5 points.
+     * Swipe RIGHT / Tap "Unlock" — User skips ad to unlock phone.
+     * Awards +0.2 pts (daily cap: 3 pts total from lockscreen).
      */
     private fun onSwipeRight() {
         setResult(RESULT_SKIPPED)
-        // Send broadcast to React Native
         val intent = Intent("com.deeppulse.LOCKSCREEN_SWIPE").apply {
             putExtra("action", "skip")
-            putExtra("points", 5)
+            putExtra("points_x10", 2) // 0.2 pts (sent as x10 integer to avoid float)
             putExtra("ad_index", currentAdIndex)
         }
         sendBroadcast(intent)
@@ -324,16 +520,14 @@ class LockScreenAdActivity : Activity() {
     }
 
     /**
-     * Swipe LEFT — User wants to learn more about the ad.
-     * Awards +10 points.
-     * Opens the brand URL in the main app or browser.
+     * Swipe LEFT / Tap "Learn More" — User wants to learn more.
+     * Awards +0.5 pts (daily cap: 3 pts total from lockscreen).
      */
     private fun onSwipeLeft() {
         setResult(RESULT_ENGAGED)
-        // Send broadcast to React Native
         val broadcastIntent = Intent("com.deeppulse.LOCKSCREEN_SWIPE").apply {
             putExtra("action", "engage")
-            putExtra("points", 10)
+            putExtra("points_x10", 5) // 0.5 pts (sent as x10 integer)
             putExtra("ad_index", currentAdIndex)
         }
         sendBroadcast(broadcastIntent)
@@ -344,26 +538,19 @@ class LockScreenAdActivity : Activity() {
                 val browseIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(adClickUrl))
                 browseIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(browseIntent)
-            } catch (_: Exception) {
-                // Ignore if no browser available
-            }
+            } catch (_: Exception) {}
         }
 
         finishAndRemoveTask()
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(event)
-        return super.onTouchEvent(event)
-    }
-
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        // Let the gesture detector also process events that go to buttons
         gestureDetector.onTouchEvent(ev)
         return super.dispatchTouchEvent(ev)
     }
 
     override fun onBackPressed() {
-        // Back button = dismiss without extra points
         setResult(RESULT_DISMISSED)
         val intent = Intent("com.deeppulse.LOCKSCREEN_SWIPE").apply {
             putExtra("action", "dismiss")
@@ -377,5 +564,9 @@ class LockScreenAdActivity : Activity() {
     override fun onDestroy() {
         webView.destroy()
         super.onDestroy()
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 }

@@ -96,54 +96,118 @@ export const isAdmin = (walletAddress) => {
 };
 
 // ========================================
-// SCORING ALGORITHM (TOP 100 LEADERBOARD)
+// DEEP SCORE ALGORITHM v2 (TOP 100 LEADERBOARD)
 // ========================================
+// Principe : les actions ON-CHAIN et à haute valeur ajoutée
+// rapportent beaucoup plus que les actions passives.
+// Des caps quotidiens empêchent le farming facile.
 
 export const SCORING_COEFFICIENTS = {
-  DAO_BOOST: 10.0,        // MAXIMUM - DAO contribution
-  TALENT_SUBMIT: 7.0,     // TRÈS ÉLEVÉ - Talent submission
-  SEND_FEEDBACK: 5.0,     // ÉLEVÉ - Send feedback
-  SUBSCRIBE_HUB: 3.0,     // MOYEN - Subscribe to hub
-  READ_NOTIFICATION: 1.0, // BAS - Read notification
-  CLICK_AD: 0.5,          // MINIMAL - Click on ad
+  // --- Actions ON-CHAIN (haute valeur) ---
+  DAO_BOOST: 50,          // MAXIMUM — contribution financière directe au DAO
+  HUB_CREATION: 40,       // TRÈS ÉLEVÉ — crée de la valeur pour l'écosystème
+  TALENT_SUBMIT: 25,      // ÉLEVÉ — démontre une expertise
+  SEND_FEEDBACK: 15,      // MOYEN-HAUT — engagement réel avec un hub
+
+  // --- Actions SOCIALES (valeur moyenne) ---
+  SUBSCRIBE_HUB: 5,       // MOYEN — engagement mais facile
+  PROPOSAL_VOTE: 8,       // MOYEN — participation DAO
+
+  // --- Actions PASSIVES (faible valeur, capées) ---
+  READ_NOTIFICATION: 0.5, // BAS — passif, capé à 10/jour = 5 pts max
+  CLICK_AD: 0.3,          // TRÈS BAS — passif
+
+  // --- Swipe-to-Earn (très faible, capé) ---
+  SWIPE_SKIP: 0.2,        // MINIMAL — juste déverrouiller le téléphone
+  SWIPE_ENGAGE: 0.5,      // BAS — engagement léger avec le contenu
 };
 
-export const TIME_WEIGHT = {
-  VERY_ACTIVE: 1.2,  // ≤7 days
-  ACTIVE: 1.0,       // ≤30 days
-  LESS_ACTIVE: 0.8,  // ≤90 days
-  INACTIVE: 0.6,     // >90 days
+// Caps quotidiens pour éviter le farming
+export const DAILY_CAPS = {
+  SWIPE_POINTS: 3,           // Max 3 pts/jour de swipe (vs 150 avant!)
+  READ_NOTIFICATION: 5,      // Max 5 pts/jour de lectures
+  CLICK_AD: 3,               // Max 3 pts/jour de clics pub
+  SUBSCRIBE_HUB: 15,         // Max 3 hubs/jour = 15 pts
 };
 
-export const QUALITY_MULTIPLIER = {
-  COMPLETE_USER: 1.3,  // 5+ action types
-  GOOD_ENGAGEMENT: 1.1, // 3+ action types
-  BASIC: 1.0,          // <3 action types
+// Bonus streak (jours consécutifs d'activité on-chain)
+export const STREAK_BONUS = {
+  NONE: 1.0,       // 0-2 jours
+  WEEK: 1.1,       // 3-6 jours
+  BIWEEK: 1.15,    // 7-13 jours
+  MONTH: 1.25,     // 14-29 jours
+  VETERAN: 1.4,    // 30+ jours
 };
 
-// Calculate user score
-export const calculateUserScore = (actions, recentActivityDays, actionTypesCount) => {
+export const TIME_DECAY = {
+  VERY_ACTIVE: 1.0,  // ≤7 jours depuis dernière action on-chain
+  ACTIVE: 0.85,      // ≤30 jours
+  LESS_ACTIVE: 0.6,  // ≤90 jours
+  INACTIVE: 0.3,     // >90 jours — score s'effondre si inactif
+};
+
+export const DIVERSITY_MULTIPLIER = {
+  COMPLETE_USER: 1.2,   // 5+ types d'actions différentes
+  GOOD_ENGAGEMENT: 1.1, // 3-4 types
+  BASIC: 1.0,           // <3 types
+};
+
+// Diminishing returns: au-delà de N actions du même type,
+// chaque action suivante rapporte de moins en moins
+export const DIMINISHING_RETURNS = {
+  DAO_BOOST: { threshold: 5, decay: 0.85 },       // -15% par boost après le 5e
+  TALENT_SUBMIT: { threshold: 3, decay: 0.80 },   // -20% après le 3e
+  SEND_FEEDBACK: { threshold: 10, decay: 0.90 },   // -10% après le 10e
+  SUBSCRIBE_HUB: { threshold: 8, decay: 0.75 },    // -25% après le 8e
+};
+
+/**
+ * Calculate DEEP Score v2
+ * Plus dur à farmer, récompense les vrais contributeurs.
+ */
+export const calculateUserScore = (actions, recentActivityDays, actionTypesCount, streakDays = 0) => {
   let baseScore = 0;
-  
-  // Sum all action points
+
+  // Sum all action points avec diminishing returns
   Object.keys(actions).forEach(actionType => {
     const count = actions[actionType] || 0;
     const coefficient = SCORING_COEFFICIENTS[actionType] || 0;
-    baseScore += count * coefficient;
+    const dr = DIMINISHING_RETURNS[actionType];
+
+    if (dr && count > dr.threshold) {
+      // Points normaux jusqu'au threshold
+      baseScore += dr.threshold * coefficient;
+      // Points réduits après le threshold
+      const extra = count - dr.threshold;
+      let reducedPoints = 0;
+      for (let i = 0; i < extra; i++) {
+        reducedPoints += coefficient * Math.pow(dr.decay, i + 1);
+      }
+      baseScore += reducedPoints;
+    } else {
+      baseScore += count * coefficient;
+    }
   });
-  
-  // Apply time weight
-  let timeWeight = TIME_WEIGHT.INACTIVE;
-  if (recentActivityDays <= 7) timeWeight = TIME_WEIGHT.VERY_ACTIVE;
-  else if (recentActivityDays <= 30) timeWeight = TIME_WEIGHT.ACTIVE;
-  else if (recentActivityDays <= 90) timeWeight = TIME_WEIGHT.LESS_ACTIVE;
-  
-  // Apply quality multiplier
-  let qualityMult = QUALITY_MULTIPLIER.BASIC;
-  if (actionTypesCount >= 5) qualityMult = QUALITY_MULTIPLIER.COMPLETE_USER;
-  else if (actionTypesCount >= 3) qualityMult = QUALITY_MULTIPLIER.GOOD_ENGAGEMENT;
-  
-  const finalScore = Math.round(baseScore * timeWeight * qualityMult);
+
+  // Apply time decay (inactivité pénalisante)
+  let timeDecay = TIME_DECAY.INACTIVE;
+  if (recentActivityDays <= 7) timeDecay = TIME_DECAY.VERY_ACTIVE;
+  else if (recentActivityDays <= 30) timeDecay = TIME_DECAY.ACTIVE;
+  else if (recentActivityDays <= 90) timeDecay = TIME_DECAY.LESS_ACTIVE;
+
+  // Apply diversity multiplier
+  let diversityMult = DIVERSITY_MULTIPLIER.BASIC;
+  if (actionTypesCount >= 5) diversityMult = DIVERSITY_MULTIPLIER.COMPLETE_USER;
+  else if (actionTypesCount >= 3) diversityMult = DIVERSITY_MULTIPLIER.GOOD_ENGAGEMENT;
+
+  // Apply streak bonus
+  let streakBonus = STREAK_BONUS.NONE;
+  if (streakDays >= 30) streakBonus = STREAK_BONUS.VETERAN;
+  else if (streakDays >= 14) streakBonus = STREAK_BONUS.MONTH;
+  else if (streakDays >= 7) streakBonus = STREAK_BONUS.BIWEEK;
+  else if (streakDays >= 3) streakBonus = STREAK_BONUS.WEEK;
+
+  const finalScore = Math.round(baseScore * timeDecay * diversityMult * streakBonus);
   return finalScore;
 };
 
@@ -152,11 +216,11 @@ export const calculateUserScore = (actions, recentActivityDays, actionTypesCount
 // ========================================
 
 export const USER_TIERS = {
-  LEGEND: { min: 901, max: 1000, icon: 'trophy', color: '#FFD700', name: 'Legend' },
-  DIAMOND: { min: 751, max: 900, icon: 'diamond', color: '#B9F2FF', name: 'Diamond' },
-  GOLD: { min: 501, max: 750, icon: 'medal', color: '#FFA500', name: 'Gold' },
-  SILVER: { min: 251, max: 500, icon: 'shield-half', color: '#C0C0C0', name: 'Silver' },
-  BRONZE: { min: 0, max: 250, icon: 'star', color: '#CD7F32', name: 'Bronze' },
+  LEGEND:  { min: 5000, max: 10000, icon: 'trophy',      color: '#FFD700', name: 'Legend' },
+  DIAMOND: { min: 2500, max: 4999,  icon: 'diamond',     color: '#B9F2FF', name: 'Diamond' },
+  GOLD:    { min: 1000, max: 2499,  icon: 'medal',       color: '#FFA500', name: 'Gold' },
+  SILVER:  { min: 300,  max: 999,   icon: 'shield-half', color: '#C0C0C0', name: 'Silver' },
+  BRONZE:  { min: 0,    max: 299,   icon: 'star',        color: '#CD7F32', name: 'Bronze' },
 };
 
 export const getTierFromScore = (score) => {
@@ -266,10 +330,11 @@ export const MOCK_ENABLED = __DEV__;
 export const MOCK_USER = {
   wallet: '7xKL...9Qz',
   balance: 2450,
-  score: 715,
+  score: 1340,
   tier: 'GOLD',
   subscriptions: 5,
   notifications: 127,
+  streakDays: 12,
 };
 
 export const MOCK_HUBS = [

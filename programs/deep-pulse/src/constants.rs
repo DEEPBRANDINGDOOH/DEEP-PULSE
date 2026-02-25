@@ -49,8 +49,20 @@ pub const MAX_HUB_DESCRIPTION_LEN: usize = 256;
 pub const MAX_VAULT_TITLE_LEN: usize = 64;
 pub const MAX_VAULT_DESCRIPTION_LEN: usize = 256;
 
-/// Scoring coefficients
-pub const SCORE_SUBSCRIBE: u32 = 10;
-pub const SCORE_FEEDBACK: u32 = 25;
-pub const SCORE_TALENT: u32 = 30;
-pub const SCORE_DAO_BOOST: u32 = 50;
+/// Scoring coefficients v2 — harder to farm, rewards real engagement
+/// On-chain actions (high value)
+pub const SCORE_DAO_BOOST: u32 = 50;       // Direct financial contribution to DAO
+pub const SCORE_HUB_CREATION: u32 = 40;    // Creates ecosystem value
+pub const SCORE_TALENT: u32 = 25;          // Demonstrates expertise
+pub const SCORE_FEEDBACK: u32 = 15;        // Real engagement with hub
+/// Social actions (medium value)
+pub const SCORE_SUBSCRIBE: u32 = 5;        // Easy action, low reward
+pub const SCORE_PROPOSAL_VOTE: u32 = 8;    // DAO participation
+/// Daily caps (prevent farming)
+pub const DAILY_CAP_SWIPE_SCORE: u32 = 3;  // Max 3 pts/day from lockscreen
+pub const DAILY_CAP_READ_SCORE: u32 = 5;   // Max 5 pts/day from reading
+pub const DAILY_CAP_AD_CLICK_SCORE: u32 = 3; // Max 3 pts/day from ad clicks
+/// Diminishing returns threshold
+pub const DIMINISHING_THRESHOLD_DAO: u16 = 5;
+pub const DIMINISHING_THRESHOLD_TALENT: u16 = 3;
+pub const DIMINISHING_THRESHOLD_FEEDBACK: u16 = 10;

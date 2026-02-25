@@ -114,7 +114,7 @@ const lockScreenService = {
    */
   async requestPermissionAndStart() {
     if (!this.isAvailable()) {
-      Alert.alert('Non disponible', 'Cette fonctionnalité est disponible uniquement sur Android.');
+      Alert.alert('Not Available', 'This feature is only available on Android.');
       return false;
     }
 
@@ -124,21 +124,21 @@ const lockScreenService = {
       return new Promise((resolve) => {
         Alert.alert(
           'Swipe-to-Earn 🔓',
-          'DEEP Pulse affiche du contenu sponsorisé sur votre écran de verrouillage.\n\n' +
-          '• Max 15 contenus/jour\n' +
-          '• Swipez pour gagner des points $SKR\n' +
-          '• Désactivable à tout moment\n\n' +
-          'Autorisez l\'affichage par-dessus les autres apps pour activer cette fonctionnalité.',
+          'DEEP Pulse displays sponsored content on your lock screen.\n\n' +
+          '• Max 15 contents/day\n' +
+          '• Swipe to earn $SKR points\n' +
+          '• Can be disabled anytime\n\n' +
+          'Allow display over other apps to enable this feature.',
           [
-            { text: 'Plus tard', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Later', style: 'cancel', onPress: () => resolve(false) },
             {
-              text: 'Autoriser',
+              text: 'Allow',
               onPress: async () => {
                 await this.requestPermission();
                 // User needs to toggle manually in settings, then come back
                 Alert.alert(
-                  'Permission requise',
-                  'Activez "Autoriser l\'affichage par-dessus d\'autres applis" dans les paramètres, puis revenez ici.',
+                  'Permission Required',
+                  'Enable "Allow display over other apps" in settings, then come back here.',
                   [{ text: 'OK', onPress: () => resolve(false) }]
                 );
               },
@@ -153,7 +153,7 @@ const lockScreenService = {
       await this.start();
       return true;
     } catch (e) {
-      Alert.alert('Erreur', 'Impossible de démarrer le service Swipe-to-Earn.');
+      Alert.alert('Error', 'Failed to start the Swipe-to-Earn service.');
       return false;
     }
   },

@@ -81,12 +81,12 @@ export default function SwipeEarnScreen({ navigation }) {
     } else {
       // Disable
       Alert.alert(
-        'Désactiver Swipe-to-Earn ?',
-        'Vous ne gagnerez plus de points sur l\'écran de verrouillage.',
+        'Disable Swipe-to-Earn?',
+        'You will no longer earn points from the lock screen.',
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Désactiver',
+            text: 'Disable',
             style: 'destructive',
             onPress: async () => {
               await lockScreenService.stop();
@@ -105,11 +105,11 @@ export default function SwipeEarnScreen({ navigation }) {
         <View className="flex-1 items-center justify-center px-6">
           <Ionicons name="phone-portrait-outline" size={64} color="#666" />
           <Text className="text-text text-lg font-bold mt-4 text-center">
-            Disponible uniquement sur Android
+            Available on Android only
           </Text>
           <Text className="text-text-secondary text-sm mt-2 text-center">
-            Le Swipe-to-Earn utilise l'écran de verrouillage Android pour afficher
-            du contenu sponsorisé et vous récompenser en points $SKR.
+            Swipe-to-Earn uses the Android lock screen to display
+            sponsored content and reward you with $SKR points.
           </Text>
         </View>
       </SafeAreaView>
@@ -141,9 +141,9 @@ export default function SwipeEarnScreen({ navigation }) {
                 <Ionicons name="swap-horizontal" size={24} color="#FF9F66" />
               </View>
               <View className="flex-1">
-                <Text className="text-text font-bold text-base">Écran de verrouillage</Text>
+                <Text className="text-text font-bold text-base">Lock Screen</Text>
                 <Text className="text-text-secondary text-xs mt-1">
-                  {isEnabled ? 'Actif — vous gagnez des points' : 'Inactif'}
+                  {isEnabled ? 'Active — earning points' : 'Inactive'}
                 </Text>
               </View>
             </View>
@@ -158,7 +158,7 @@ export default function SwipeEarnScreen({ navigation }) {
           {isEnabled && (
             <View className="bg-background/50 rounded-xl p-3">
               <Text className="text-text-secondary text-xs">
-                Max {stats.maxAdsPerDay} contenus/jour • Max {stats.maxAdsPerHour}/heure • Désactivable à tout moment
+                Max {stats.maxAdsPerDay} contents/day • Max {stats.maxAdsPerHour}/hour • Can be disabled anytime
               </Text>
             </View>
           )}
@@ -172,7 +172,7 @@ export default function SwipeEarnScreen({ navigation }) {
             <Text className="text-primary font-black text-2xl mt-2">
               {loading ? '...' : stats.totalPoints}
             </Text>
-            <Text className="text-text-secondary text-xs mt-1">Points gagnés</Text>
+            <Text className="text-text-secondary text-xs mt-1">Points Earned</Text>
           </View>
 
           {/* Ads Today */}
@@ -181,14 +181,14 @@ export default function SwipeEarnScreen({ navigation }) {
             <Text className="text-text font-black text-2xl mt-2">
               {loading ? '...' : `${stats.adsToday}/${stats.maxAdsPerDay}`}
             </Text>
-            <Text className="text-text-secondary text-xs mt-1">Aujourd'hui</Text>
+            <Text className="text-text-secondary text-xs mt-1">Today</Text>
           </View>
         </View>
 
         {/* Progress Bar */}
         <View className="bg-background-card rounded-2xl p-4 mb-4 border border-border">
           <View className="flex-row justify-between mb-2">
-            <Text className="text-text-secondary text-xs">Progression du jour</Text>
+            <Text className="text-text-secondary text-xs">Today's Progress</Text>
             <Text className="text-text text-xs font-bold">{Math.round(progressPercent)}%</Text>
           </View>
           <View className="h-3 bg-background rounded-full overflow-hidden">
@@ -199,14 +199,14 @@ export default function SwipeEarnScreen({ navigation }) {
           </View>
           <Text className="text-text-secondary text-xs mt-2">
             {stats.adsToday >= stats.maxAdsPerDay
-              ? '✅ Limite quotidienne atteinte — revenez demain !'
-              : `${stats.maxAdsPerDay - stats.adsToday} contenus restants aujourd'hui`}
+              ? '✅ Daily limit reached — come back tomorrow!'
+              : `${stats.maxAdsPerDay - stats.adsToday} contents remaining today`}
           </Text>
         </View>
 
         {/* How it Works */}
         <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">
-          <Text className="text-text font-bold text-base mb-4">Comment ça marche ?</Text>
+          <Text className="text-text font-bold text-base mb-4">How it works</Text>
 
           <View className="mb-4">
             <View className="flex-row items-center mb-2">
@@ -214,7 +214,7 @@ export default function SwipeEarnScreen({ navigation }) {
                 <Text className="text-green-400 font-bold">1</Text>
               </View>
               <Text className="text-text text-sm flex-1">
-                Du contenu sponsorisé s'affiche quand vous allumez l'écran
+                Sponsored content appears when you turn on your screen
               </Text>
             </View>
           </View>
@@ -225,10 +225,10 @@ export default function SwipeEarnScreen({ navigation }) {
                 <Text className="text-blue-400 font-bold">2</Text>
               </View>
               <View className="flex-1">
-                <Text className="text-text text-sm">Swipez pour interagir</Text>
+                <Text className="text-text text-sm">Swipe to interact</Text>
                 <Text className="text-text-secondary text-xs mt-1">
-                  → Droite = Déverrouiller (+5 pts){'\n'}
-                  ← Gauche = En savoir plus (+10 pts)
+                  → Right = Unlock (+0.2 pts){'\n'}
+                  ← Left = Learn more (+0.5 pts)
                 </Text>
               </View>
             </View>
@@ -240,7 +240,7 @@ export default function SwipeEarnScreen({ navigation }) {
                 <Text className="text-yellow-400 font-bold">3</Text>
               </View>
               <Text className="text-text text-sm flex-1">
-                Vos points augmentent votre score et votre tier
+                Your points increase your DEEP Score and tier rank
               </Text>
             </View>
           </View>
@@ -248,30 +248,39 @@ export default function SwipeEarnScreen({ navigation }) {
 
         {/* Points Breakdown */}
         <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">
-          <Text className="text-text font-bold text-base mb-3">Barème de points</Text>
+          <Text className="text-text font-bold text-base mb-3">Points Breakdown</Text>
 
           <View className="flex-row justify-between py-2 border-b border-border">
             <View className="flex-row items-center">
               <Ionicons name="arrow-forward" size={16} color="#4CAF50" />
-              <Text className="text-text text-sm ml-2">Swipe droite (skip)</Text>
+              <Text className="text-text text-sm ml-2">Swipe right (skip)</Text>
             </View>
-            <Text className="text-green-400 font-bold">+5 pts</Text>
+            <Text className="text-green-400 font-bold">+0.2 pts</Text>
           </View>
 
           <View className="flex-row justify-between py-2 border-b border-border">
             <View className="flex-row items-center">
               <Ionicons name="arrow-back" size={16} color="#2196F3" />
-              <Text className="text-text text-sm ml-2">Swipe gauche (engage)</Text>
+              <Text className="text-text text-sm ml-2">Swipe left (engage)</Text>
             </View>
-            <Text className="text-blue-400 font-bold">+10 pts</Text>
+            <Text className="text-blue-400 font-bold">+0.5 pts</Text>
+          </View>
+
+          <View className="flex-row justify-between py-2 border-b border-border">
+            <View className="flex-row items-center">
+              <Ionicons name="alert-circle" size={16} color="#FF9F66" />
+              <Text className="text-text text-sm ml-2">Daily lockscreen cap</Text>
+            </View>
+            <Text className="text-primary font-bold">3 pts max</Text>
           </View>
 
           <View className="flex-row justify-between py-2">
             <View className="flex-row items-center">
-              <Ionicons name="trophy" size={16} color="#FFD700" />
-              <Text className="text-text text-sm ml-2">Max/jour (15 × engage)</Text>
+              <Ionicons name="information-circle" size={16} color="#999" />
+              <Text className="text-text-secondary text-xs ml-2 flex-1">
+                To rank up, contribute to DAO (+50), submit talent (+25) or send feedback (+15)
+              </Text>
             </View>
-            <Text className="text-yellow-400 font-bold">150 pts</Text>
           </View>
         </View>
 
@@ -280,9 +289,9 @@ export default function SwipeEarnScreen({ navigation }) {
           <View className="flex-row items-start">
             <Ionicons name="shield-checkmark" size={20} color="#4CAF50" style={{ marginTop: 2 }} />
             <Text className="text-text-secondary text-xs ml-3 flex-1">
-              Vos données restent privées. Le contenu est ciblé par catégorie de hub,
-              pas par données personnelles. Vous pouvez désactiver cette fonctionnalité
-              à tout moment depuis cet écran.
+              Your data stays private. Content is targeted by hub category,
+              not personal data. You can disable this feature
+              anytime from this screen.
             </Text>
           </View>
         </View>
