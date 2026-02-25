@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import GradientButton from '../components/ui/GradientButton';
+import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 
 export default function NotificationDetailScreen({ navigation, route }) {
   const notification = route.params?.notification || {};
@@ -35,17 +36,29 @@ export default function NotificationDetailScreen({ navigation, route }) {
     setFeedbackModalVisible(true);
   };
 
-  const submitFeedback = () => {
+  const submitFeedback = async () => {
     if (!feedbackText.trim()) {
       Alert.alert('Error', 'Please write your feedback before submitting.');
       return;
     }
-    Alert.alert(
-      'Feedback Sent!',
-      `Your feedback for "${notification.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`
-    );
-    setFeedbackText('');
-    setFeedbackModalVisible(false);
+
+    // Use real on-chain transaction if hub has a PDA
+    if (notification.hubPda) {
+      const depositIndex = Date.now() % 100000;
+      const result = await submitFeedbackTx(notification.hubPda, feedbackText, depositIndex);
+      if (result.success) {
+        setFeedbackText('');
+        setFeedbackModalVisible(false);
+      }
+    } else {
+      // Mock fallback for demo hubs
+      Alert.alert(
+        'Feedback Sent!',
+        `Your feedback for "${notification.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`
+      );
+      setFeedbackText('');
+      setFeedbackModalVisible(false);
+    }
   };
 
   const handleShare = () => {

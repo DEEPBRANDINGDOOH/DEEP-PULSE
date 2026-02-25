@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { MOCK_USER, getTierFromScore, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
-import { setWalletState } from '../services/transactionHelper';
+import { setWalletState, getWalletPublicKey } from '../services/transactionHelper';
 
 const MOCK_LEADERBOARD = [
   { rank: 1, wallet: '7xK...9Qz', score: 6820, tier: 'LEGEND', boost: 45, talent: 12, feedback: 28, streak: 47 },
@@ -15,14 +15,36 @@ const MOCK_LEADERBOARD = [
   { rank: 5, wallet: '3fR...8Kp', score: 1890, tier: 'GOLD', boost: 12, talent: 5, feedback: 15, streak: 9 },
 ];
 
+/**
+ * Format a public key for display: "7xKL...9Qz"
+ */
+function formatWallet(pubkey) {
+  if (!pubkey) return 'Not connected';
+  const str = typeof pubkey === 'string' ? pubkey : pubkey.toString();
+  if (str.length <= 10) return str;
+  return `${str.slice(0, 4)}...${str.slice(-3)}`;
+}
+
 export default function ProfileScreen({ navigation }) {
   const clearWallet = useAppStore((state) => state.clearWallet);
+  const storeWallet = useAppStore((state) => state.wallet);
+  const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const user = MOCK_USER;
+
+  // Use real wallet if connected, otherwise fall back to mock
+  const connectedPubkey = getWalletPublicKey();
+  const walletDisplay = connectedPubkey ? formatWallet(connectedPubkey) : MOCK_USER.wallet;
+  const fullWalletAddress = connectedPubkey ? connectedPubkey.toString() : MOCK_USER.wallet;
+  const user = {
+    ...MOCK_USER,
+    wallet: walletDisplay,
+    subscriptions: subscribedProjects.length || MOCK_USER.subscriptions,
+  };
   const tier = getTierFromScore(user.score);
 
   const handleCopyWallet = () => {
-    Alert.alert('Copied!', `Wallet address ${user.wallet} copied to clipboard.`);
+    Clipboard.setString(fullWalletAddress);
+    Alert.alert('Copied!', `Wallet address copied to clipboard.`);
   };
 
   const renderProfileView = () => (

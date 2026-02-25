@@ -1,43 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
-import { MOCK_ADS } from '../config/constants';
+import { MOCK_ADS, MOCK_HUBS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
+import { useAppStore } from '../store/appStore';
 
-const MOCK_MY_HUBS = [
-  {
-    id: '1',
-    name: 'Solana Gaming',
-    icon: 'game-controller',
-    subscribers: 12500,
-    unreadCount: 3,
-    lastNotification: 'New game launch tomorrow!',
-    lastNotificationTime: '2 hours ago',
-  },
-  {
-    id: '2',
-    name: 'NFT Artists',
-    icon: 'color-palette',
-    subscribers: 8200,
-    unreadCount: 1,
-    lastNotification: 'Artist spotlight: @solartist',
-    lastNotificationTime: '5 hours ago',
-  },
-  {
-    id: '3',
-    name: 'DeFi Alerts',
-    icon: 'trending-up',
-    subscribers: 15700,
-    unreadCount: 0,
-    lastNotification: 'New yield farm launched',
-    lastNotificationTime: '1 day ago',
-  },
-];
+// Extra hub metadata not in MOCK_HUBS (for display in My Hubs)
+const HUB_EXTRA = {
+  '1': { unreadCount: 3, lastNotification: 'New game launch tomorrow!', lastNotificationTime: '2 hours ago' },
+  '2': { unreadCount: 1, lastNotification: 'Artist spotlight: @solartist', lastNotificationTime: '5 hours ago' },
+  '3': { unreadCount: 0, lastNotification: 'New yield farm launched', lastNotificationTime: '1 day ago' },
+};
 
 export default function MyHubsScreen({ navigation }) {
-  const [myHubs, setMyHubs] = useState(MOCK_MY_HUBS);
+  const subscribedProjects = useAppStore((state) => state.subscribedProjects);
+  const unsubscribeFromProject = useAppStore((state) => state.unsubscribeFromProject);
+
+  // Build myHubs from the store subscriptions + MOCK_HUBS data
+  const myHubs = useMemo(() => {
+    return subscribedProjects
+      .map(id => {
+        const hub = MOCK_HUBS.find(h => h.id === id);
+        if (!hub) return null;
+        const extra = HUB_EXTRA[id] || { unreadCount: 0, lastNotification: 'No notifications yet', lastNotificationTime: '' };
+        return { ...hub, ...extra };
+      })
+      .filter(Boolean);
+  }, [subscribedProjects]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -70,11 +61,11 @@ export default function MyHubsScreen({ navigation }) {
             if (hub?.hubPda) {
               const result = await unsubscribeFromHub(hub.hubPda);
               if (result.success) {
-                setMyHubs(myHubs.filter(h => h.id !== hubId));
+                unsubscribeFromProject(hubId); // Remove from Zustand store
               }
             } else {
-              // Mock fallback
-              setMyHubs(myHubs.filter(h => h.id !== hubId));
+              // Mock fallback — remove from store (auto-updates myHubs via useMemo)
+              unsubscribeFromProject(hubId);
             }
           },
         },

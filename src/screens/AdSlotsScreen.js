@@ -244,10 +244,22 @@ export default function AdSlotsScreen({ route, navigation }) {
           text: 'Purchase & Submit',
           onPress: async () => {
             try {
-              // Real on-chain ad purchase (hash URLs for on-chain storage)
-              const imageHash = Array.from(new Uint8Array(32)); // placeholder hash
-              const landingHash = Array.from(new Uint8Array(32)); // placeholder hash
-              // TODO: Use programService.hashContent for real hashes when hub PDAs are available
+              // Attempt real on-chain ad purchase if hubId is available
+              if (hubId) {
+                const slotIndex = Date.now() % 100000;
+                const result = await purchaseAdSlotTx(
+                  hubId,
+                  selectedSlot,
+                  slotIndex,
+                  Array.from(new Uint8Array(32)), // imageUrl hash placeholder
+                  Array.from(new Uint8Array(32)), // landingUrl hash placeholder
+                  duration
+                );
+                if (!result.success) {
+                  setIsPurchasing(false);
+                  return; // Error already shown by transactionHelper
+                }
+              }
 
               Alert.alert(
                 'Ad Submitted for Review',

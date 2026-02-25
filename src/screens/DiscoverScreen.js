@@ -9,9 +9,10 @@ import { useAppStore } from '../store/appStore';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [hubs, setHubs] = useState(MOCK_HUBS.map(h => ({ ...h, subscribed: false })));
+  const storeSubscribed = useAppStore((state) => state.subscribedProjects);
+  const [hubs, setHubs] = useState(MOCK_HUBS.map(h => ({ ...h, subscribed: storeSubscribed.includes(h.id) })));
   const [subscribing, setSubscribing] = useState(null); // hubId currently subscribing
-  const { wallet } = useAppStore();
+  const { wallet, subscribeToProject, unsubscribeFromProject, isSubscribed } = useAppStore();
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -35,12 +36,14 @@ export default function DiscoverScreen({ navigation }) {
           setHubs(hubs.map(h =>
             h.id === hubId ? { ...h, subscribed: false } : h
           ));
+          unsubscribeFromProject(hubId); // Persist in store
         }
       } else {
         // Mock mode fallback
         setHubs(hubs.map(h =>
           h.id === hubId ? { ...h, subscribed: false } : h
         ));
+        unsubscribeFromProject(hubId); // Persist in store
       }
       return;
     }
@@ -55,12 +58,14 @@ export default function DiscoverScreen({ navigation }) {
         setHubs(hubs.map(h =>
           h.id === hubId ? { ...h, subscribed: true } : h
         ));
+        subscribeToProject(hubId); // Persist in store
       }
     } else {
       // Mock mode — toggle locally
       setHubs(hubs.map(h =>
         h.id === hubId ? { ...h, subscribed: true } : h
       ));
+      subscribeToProject(hubId); // Persist in store
       Alert.alert('Subscribed!', `You are now subscribed to ${hub.name}. Check My Hubs for updates.`);
     }
   };
