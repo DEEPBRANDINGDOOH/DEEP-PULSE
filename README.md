@@ -543,7 +543,17 @@ The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 18) — **
 ```bash
 cd functions && npm install
 firebase deploy --only functions,firestore
+firebase deploy --only hosting
 ```
+
+### Live URLs
+
+| Service | URL |
+|---------|-----|
+| **Landing Page** | [https://deep-pulse.web.app](https://deep-pulse.web.app) |
+| **Cloud Functions** | `https://us-central1-deep-pulse.cloudfunctions.net` |
+| **MWA Verification** | `https://deep-pulse.web.app/.well-known/solana/dapp-address` |
+| **GitHub** | [github.com/DEEPBRANDINGDOOH/DEEP-PULSE](https://github.com/DEEPBRANDINGDOOH/DEEP-PULSE) |
 
 ---
 
@@ -574,6 +584,8 @@ firebase deploy --only functions,firestore
 |---------|-------------|------------|
 | RPC Endpoint | `https://api.devnet.solana.com` | `https://api.mainnet-beta.solana.com` |
 | MWA Cluster | `solana:devnet` | `solana:mainnet-beta` |
+| API Backend | `http://localhost:3000/api` | `https://us-central1-deep-pulse.cloudfunctions.net` |
+| App Identity | — | `https://deep-pulse.web.app` |
 | Mock Data | Enabled (`__DEV__`) | Disabled |
 
 ---
