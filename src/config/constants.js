@@ -98,86 +98,85 @@ export const isAdmin = (walletAddress) => {
 // ========================================
 // DEEP SCORE ALGORITHM v2 (TOP 100 LEADERBOARD)
 // ========================================
-// Principe : les actions ON-CHAIN et à haute valeur ajoutée
-// rapportent beaucoup plus que les actions passives.
-// Des caps quotidiens empêchent le farming facile.
+// Principle: ON-CHAIN and high-value actions yield much more
+// than passive actions. Daily caps prevent easy farming.
 
 export const SCORING_COEFFICIENTS = {
-  // --- Actions ON-CHAIN (haute valeur) ---
-  DAO_BOOST: 50,          // MAXIMUM — contribution financière directe au DAO
-  HUB_CREATION: 40,       // TRÈS ÉLEVÉ — crée de la valeur pour l'écosystème
-  TALENT_SUBMIT: 25,      // ÉLEVÉ — démontre une expertise
-  SEND_FEEDBACK: 15,      // MOYEN-HAUT — engagement réel avec un hub
+  // --- ON-CHAIN actions (high value) ---
+  DAO_BOOST: 50,          // MAXIMUM — direct financial contribution to DAO
+  HUB_CREATION: 40,       // VERY HIGH — creates value for the ecosystem
+  TALENT_SUBMIT: 25,      // HIGH — demonstrates expertise
+  SEND_FEEDBACK: 15,      // MEDIUM-HIGH — real engagement with a hub
 
-  // --- Actions SOCIALES (valeur moyenne) ---
-  SUBSCRIBE_HUB: 5,       // MOYEN — engagement mais facile
-  PROPOSAL_VOTE: 8,       // MOYEN — participation DAO
+  // --- SOCIAL actions (medium value) ---
+  SUBSCRIBE_HUB: 5,       // MEDIUM — engagement but easy
+  PROPOSAL_VOTE: 8,       // MEDIUM — DAO participation
 
-  // --- Actions PASSIVES (faible valeur, capées) ---
-  READ_NOTIFICATION: 0.5, // BAS — passif, capé à 10/jour = 5 pts max
-  CLICK_AD: 0.3,          // TRÈS BAS — passif
+  // --- PASSIVE actions (low value, capped) ---
+  READ_NOTIFICATION: 0.5, // LOW — passive, capped at 10/day = 5 pts max
+  CLICK_AD: 0.3,          // VERY LOW — passive
 
-  // --- Swipe-to-Earn (très faible, capé) ---
-  SWIPE_SKIP: 0.2,        // MINIMAL — juste déverrouiller le téléphone
-  SWIPE_ENGAGE: 0.5,      // BAS — engagement léger avec le contenu
+  // --- Swipe-to-Earn (very low, capped) ---
+  SWIPE_SKIP: 0.2,        // MINIMAL — just unlocking the phone
+  SWIPE_ENGAGE: 0.5,      // LOW — light engagement with content
 };
 
-// Caps quotidiens pour éviter le farming
+// Daily caps to prevent farming
 export const DAILY_CAPS = {
-  SWIPE_POINTS: 3,           // Max 3 pts/jour de swipe (vs 150 avant!)
-  READ_NOTIFICATION: 5,      // Max 5 pts/jour de lectures
-  CLICK_AD: 3,               // Max 3 pts/jour de clics pub
-  SUBSCRIBE_HUB: 15,         // Max 3 hubs/jour = 15 pts
+  SWIPE_POINTS: 3,           // Max 3 pts/day from swipe
+  READ_NOTIFICATION: 5,      // Max 5 pts/day from reads
+  CLICK_AD: 3,               // Max 3 pts/day from ad clicks
+  SUBSCRIBE_HUB: 15,         // Max 3 hubs/day = 15 pts
 };
 
-// Bonus streak (jours consécutifs d'activité on-chain)
+// Streak bonus (consecutive days of on-chain activity)
 export const STREAK_BONUS = {
-  NONE: 1.0,       // 0-2 jours
-  WEEK: 1.1,       // 3-6 jours
-  BIWEEK: 1.15,    // 7-13 jours
-  MONTH: 1.25,     // 14-29 jours
-  VETERAN: 1.4,    // 30+ jours
+  NONE: 1.0,       // 0-2 days
+  WEEK: 1.1,       // 3-6 days
+  BIWEEK: 1.15,    // 7-13 days
+  MONTH: 1.25,     // 14-29 days
+  VETERAN: 1.4,    // 30+ days
 };
 
 export const TIME_DECAY = {
-  VERY_ACTIVE: 1.0,  // ≤7 jours depuis dernière action on-chain
-  ACTIVE: 0.85,      // ≤30 jours
-  LESS_ACTIVE: 0.6,  // ≤90 jours
-  INACTIVE: 0.3,     // >90 jours — score s'effondre si inactif
+  VERY_ACTIVE: 1.0,  // ≤7 days since last on-chain action
+  ACTIVE: 0.85,      // ≤30 days
+  LESS_ACTIVE: 0.6,  // ≤90 days
+  INACTIVE: 0.3,     // >90 days — score collapses if inactive
 };
 
 export const DIVERSITY_MULTIPLIER = {
-  COMPLETE_USER: 1.2,   // 5+ types d'actions différentes
+  COMPLETE_USER: 1.2,   // 5+ different action types
   GOOD_ENGAGEMENT: 1.1, // 3-4 types
   BASIC: 1.0,           // <3 types
 };
 
-// Diminishing returns: au-delà de N actions du même type,
-// chaque action suivante rapporte de moins en moins
+// Diminishing returns: beyond N actions of the same type,
+// each subsequent action yields less and less
 export const DIMINISHING_RETURNS = {
-  DAO_BOOST: { threshold: 5, decay: 0.85 },       // -15% par boost après le 5e
-  TALENT_SUBMIT: { threshold: 3, decay: 0.80 },   // -20% après le 3e
-  SEND_FEEDBACK: { threshold: 10, decay: 0.90 },   // -10% après le 10e
-  SUBSCRIBE_HUB: { threshold: 8, decay: 0.75 },    // -25% après le 8e
+  DAO_BOOST: { threshold: 5, decay: 0.85 },       // -15% per boost after the 5th
+  TALENT_SUBMIT: { threshold: 3, decay: 0.80 },   // -20% after the 3rd
+  SEND_FEEDBACK: { threshold: 10, decay: 0.90 },   // -10% after the 10th
+  SUBSCRIBE_HUB: { threshold: 8, decay: 0.75 },    // -25% after the 8th
 };
 
 /**
  * Calculate DEEP Score v2
- * Plus dur à farmer, récompense les vrais contributeurs.
+ * Harder to farm, rewards real contributors.
  */
 export const calculateUserScore = (actions, recentActivityDays, actionTypesCount, streakDays = 0) => {
   let baseScore = 0;
 
-  // Sum all action points avec diminishing returns
+  // Sum all action points with diminishing returns
   Object.keys(actions).forEach(actionType => {
     const count = actions[actionType] || 0;
     const coefficient = SCORING_COEFFICIENTS[actionType] || 0;
     const dr = DIMINISHING_RETURNS[actionType];
 
     if (dr && count > dr.threshold) {
-      // Points normaux jusqu'au threshold
+      // Normal points up to threshold
       baseScore += dr.threshold * coefficient;
-      // Points réduits après le threshold
+      // Reduced points after threshold
       const extra = count - dr.threshold;
       let reducedPoints = 0;
       for (let i = 0; i < extra; i++) {
@@ -189,7 +188,7 @@ export const calculateUserScore = (actions, recentActivityDays, actionTypesCount
     }
   });
 
-  // Apply time decay (inactivité pénalisante)
+  // Apply time decay (inactivity penalty)
   let timeDecay = TIME_DECAY.INACTIVE;
   if (recentActivityDays <= 7) timeDecay = TIME_DECAY.VERY_ACTIVE;
   else if (recentActivityDays <= 30) timeDecay = TIME_DECAY.ACTIVE;

@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions requises -->
+    <!-- Required permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -11,7 +11,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     
-    <!-- CRITIQUE: MWA Queries - Sans ça, MWA ne fonctionne pas! -->
+    <!-- CRITICAL: MWA Queries - Required for Mobile Wallet Adapter to work -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <queries>
         <intent>
             <action android:name="solana.mobilewalletadapter.privileged.HANDLE_ACTION"/>
@@ -43,7 +44,7 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
         
-        <!-- Deep Links pour notifications -->
+        <!-- Deep Links for notifications -->
         <intent-filter>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
@@ -55,7 +56,7 @@
       <!-- LockScreen Ad Overlay Activity -->
       <activity
         android:name=".lockscreen.LockScreenAdActivity"
-        android:exported="true"
+        android:exported="false"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
         android:screenOrientation="portrait"
         android:showWhenLocked="true"

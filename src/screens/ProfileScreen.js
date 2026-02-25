@@ -69,10 +69,10 @@ export default function ProfileScreen({ navigation }) {
           <Ionicons name="flame" size={20} color="#FF6B35" />
           <Text className="text-text font-semibold ml-2">{user.streakDays || 0} days</Text>
           <Text className="text-text-secondary text-xs ml-2">active streak</Text>
-          {(user.streakDays || 0) >= 7 && (
+          {(user.streakDays || 0) >= 3 && (
             <View className="ml-auto bg-green-500/20 rounded-full px-2 py-1">
               <Text className="text-green-400 text-xs font-bold">
-                {user.streakDays >= 30 ? '+40%' : user.streakDays >= 14 ? '+25%' : '+10%'} bonus
+                {user.streakDays >= 30 ? '+40%' : user.streakDays >= 14 ? '+25%' : user.streakDays >= 7 ? '+15%' : '+10%'} bonus
               </Text>
             </View>
           )}

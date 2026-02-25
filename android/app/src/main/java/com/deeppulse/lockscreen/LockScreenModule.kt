@@ -242,6 +242,20 @@ class LockScreenModule(private val reactContext: ReactApplicationContext) :
     }
 
     // ========================================
+    // EVENT EMITTER STUBS (required by NativeEventEmitter)
+    // ========================================
+
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // No-op: required by NativeEventEmitter
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // No-op: required by NativeEventEmitter
+    }
+
+    // ========================================
     // CLEANUP
     // ========================================
 

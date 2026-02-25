@@ -34,8 +34,8 @@ import kotlin.math.abs
  * User can:
  *   - Tap "Unlock" button → skip (+0.2 pts)
  *   - Tap "Learn More" button → learn more (+0.5 pts)
- *   - Swipe RIGHT → skip (+5 pts)
- *   - Swipe LEFT → learn more (+10 pts)
+ *   - Swipe RIGHT → skip (+0.2 pts)
+ *   - Swipe LEFT → learn more (+0.5 pts)
  *
  * Content is loaded from a URL passed via Intent extra "ad_content_url".
  * Fallback to a default HTML template if no URL is provided.
@@ -66,8 +66,8 @@ class LockScreenAdActivity : Activity() {
         private const val SWIPE_THRESHOLD = 100
         private const val SWIPE_VELOCITY_THRESHOLD = 150
 
-        const val RESULT_SKIPPED = 1     // Skip (+5 pts)
-        const val RESULT_ENGAGED = 2     // Learn more (+10 pts)
+        const val RESULT_SKIPPED = 1     // Skip (+0.2 pts)
+        const val RESULT_ENGAGED = 2     // Learn more (+0.5 pts)
         const val RESULT_DISMISSED = 3   // Back button
     }
 
@@ -494,8 +494,8 @@ class LockScreenAdActivity : Activity() {
                         <div class="glow"></div>
                         <div class="logo">DP</div>
                     </div>
-                    <h1>${adTitle.replace("\"", "&quot;")}</h1>
-                    <p>${adBrandName.replace("\"", "&quot;")}</p>
+                    <h1>${adTitle.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")}</h1>
+                    <p>${adBrandName.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")}</p>
                     <div class="badge">SWIPE-TO-EARN</div>
                 </body>
                 </html>
@@ -554,7 +554,7 @@ class LockScreenAdActivity : Activity() {
         setResult(RESULT_DISMISSED)
         val intent = Intent("com.deeppulse.LOCKSCREEN_SWIPE").apply {
             putExtra("action", "dismiss")
-            putExtra("points", 0)
+            putExtra("points_x10", 0)
             putExtra("ad_index", currentAdIndex)
         }
         sendBroadcast(intent)
@@ -562,7 +562,7 @@ class LockScreenAdActivity : Activity() {
     }
 
     override fun onDestroy() {
-        webView.destroy()
+        if (::webView.isInitialized) webView.destroy()
         super.onDestroy()
     }
 

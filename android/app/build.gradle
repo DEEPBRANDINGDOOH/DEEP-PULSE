@@ -1,5 +1,5 @@
 // android/app/build.gradle
-// Configuration complète pour Solana Mobile Seeker
+// Complete configuration for Solana Mobile Seeker
 
 plugins {
     id "com.android.application"
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "com.deeppulse"
-        minSdk 26  // CRITIQUE: Solana Mobile minimum requirement
+        minSdk 26  // CRITICAL: Solana Mobile minimum requirement
         targetSdk 34
         versionCode 1
         versionName "2.0.0"
@@ -97,7 +97,7 @@ dependencies {
     implementation project(':react-native-firebase_app')
     implementation project(':react-native-firebase_messaging')
 
-    // CRITIQUE: Solana Mobile Wallet Adapter (native Kotlin lib)
+    // CRITICAL: Solana Mobile Wallet Adapter (native Kotlin lib)
     implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.0.3'
 
     // Firebase (managed by @react-native-firebase packages above)

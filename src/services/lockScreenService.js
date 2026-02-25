@@ -17,7 +17,7 @@
  *
  *   // Listen for swipes
  *   lockScreenService.onSwipe((event) => {
- *     console.log(event.action, event.points); // "skip" 5 or "engage" 10
+ *     console.log(event.action, event.points); // "skip" 0.2 or "engage" 0.5
  *   });
  *
  *   // Get stats

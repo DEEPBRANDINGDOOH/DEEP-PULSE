@@ -390,8 +390,8 @@ describe("DEEP Pulse — Platform Initialization", () => {
     assert.equal(hub.subscriberCount, 1);
 
     const score: any = await program.account.userScore.fetch(userScorePda);
-    console.log(`   Score after subscribe: ${score.totalScore} (should be 10)`);
-    assert.equal(score.totalScore, 10);
+    console.log(`   Score after subscribe: ${score.totalScore} (should be 5)`);
+    assert.equal(score.totalScore, 5);
     console.log("");
   });
 

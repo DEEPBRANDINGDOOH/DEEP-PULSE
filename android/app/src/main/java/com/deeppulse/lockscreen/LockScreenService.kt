@@ -106,7 +106,7 @@ class LockScreenService : Service() {
             Notification.Builder(this)
         }.apply {
             setContentTitle("DEEP Pulse")
-            setContentText("Swipe-to-Earn actif \u2022 $adsToday/$MAX_ADS_PER_DAY aujourd'hui \u2022 $totalPoints pts")
+            setContentText("Swipe-to-Earn active \u2022 $adsToday/$MAX_ADS_PER_DAY today \u2022 $totalPoints pts")
             setSmallIcon(android.R.drawable.ic_dialog_info) // TODO: Replace with app icon
             setContentIntent(pendingIntent)
             setOngoing(true)
@@ -140,8 +140,9 @@ class LockScreenService : Service() {
             addAction(Intent.ACTION_USER_PRESENT)
         }
 
+        // RECEIVER_EXPORTED required for system broadcasts (ACTION_SCREEN_ON)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(screenReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(screenReceiver, filter, Context.RECEIVER_EXPORTED)
         } else {
             registerReceiver(screenReceiver, filter)
         }
@@ -154,14 +155,14 @@ class LockScreenService : Service() {
         swipeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.getStringExtra("action") ?: return
-                val points = intent.getIntExtra("points", 0)
+                val pointsX10 = intent.getIntExtra("points_x10", 0)
 
-                Log.d(TAG, "Swipe result: action=$action, points=$points")
+                Log.d(TAG, "Swipe result: action=$action, pointsX10=$pointsX10")
 
-                if (points > 0) {
-                    val totalPoints = prefs.getInt(KEY_TOTAL_POINTS, 0) + points
+                if (pointsX10 > 0) {
+                    val totalPoints = prefs.getInt(KEY_TOTAL_POINTS, 0) + pointsX10
                     prefs.edit().putInt(KEY_TOTAL_POINTS, totalPoints).apply()
-                    Log.d(TAG, "Points updated: $totalPoints total")
+                    Log.d(TAG, "Points updated: $totalPoints total (x10)")
 
                     // Update notification
                     updateNotification()
@@ -181,7 +182,6 @@ class LockScreenService : Service() {
      * Check rate limits and show an ad if allowed.
      */
     private fun showAdIfAllowed() {
-        val now = System.currentTimeMillis()
         val calendar = java.util.Calendar.getInstance()
         val currentDay = calendar.get(java.util.Calendar.DAY_OF_YEAR)
         val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
@@ -300,7 +300,7 @@ class LockScreenService : Service() {
             Notification.Builder(this)
         }.apply {
             setContentTitle("DEEP Pulse")
-            setContentText("Swipe-to-Earn actif \u2022 $adsToday/$MAX_ADS_PER_DAY aujourd'hui \u2022 $totalPoints pts")
+            setContentText("Swipe-to-Earn active \u2022 $adsToday/$MAX_ADS_PER_DAY today \u2022 $totalPoints pts")
             setSmallIcon(android.R.drawable.ic_dialog_info)
             setContentIntent(pendingIntent)
             setOngoing(true)

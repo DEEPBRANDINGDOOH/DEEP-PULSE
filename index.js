@@ -8,8 +8,9 @@
  */
 
 // Polyfills required for @solana/web3.js on React Native
-import 'react-native-url-polyfill/auto';
+// IMPORTANT: react-native-get-random-values MUST be first (before any Solana imports)
 import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 
