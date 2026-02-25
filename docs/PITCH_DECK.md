@@ -68,7 +68,7 @@ Hackathon Submission — March 2026
 |                    DEEP PULSE PLATFORM                     |
 +---------------------------+-------------------------------+
 |   React Native App        |   Anchor Program (Solana)     |
-|   17 screens              |   24 instructions             |
+|   17 screens              |   23 instructions             |
 |   MWA 2.0                 |   8 account types             |
 |   NativeWind UI           |   19 events                   |
 |   Firebase (FCM + Storage)|   30 error codes              |
@@ -130,7 +130,7 @@ Hackathon Submission — March 2026
 
 ### SLIDE 8 — SWIPE-TO-EARN (Lock Screen)
 
-**Users earn $SKR by interacting with lock screen ads.**
+**Users earn DEEP Score points by interacting with lock screen ads.**
 
 - Full-screen ad overlay on Android lock screen
 - Swipe right = skip (+0.2 pts)
@@ -211,7 +211,7 @@ Hackathon Submission — March 2026
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 17 screens, 24 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage |
+| **v2.0 (Current)** | March 2026 | 17 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage |
 | **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |
@@ -228,7 +228,7 @@ Hackathon Submission — March 2026
 - Smart Contract Docs: /SMART_CONTRACTS.md
 
 **Tech Stats:**
-- 24 smart contract instructions
+- 23 smart contract instructions
 - 17 mobile screens
 - 8 on-chain account types
 - 30 custom error codes
