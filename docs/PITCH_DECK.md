@@ -34,7 +34,7 @@ Hackathon Submission — March 2026
 | For Users | For Brands | For Advertisers |
 |-----------|-----------|-----------------|
 | Subscribe to hubs for FREE | Create notification hubs (2,000 $SKR/month) | Purchase rotating ad slots |
-| Earn $SKR via Swipe-to-Earn | Moderate content & manage community | Upload creatives directly from device |
+| Earn DEEP Score points via Swipe-to-Earn | Moderate content & manage community | Upload creatives directly from device |
 | Submit feedback (300 $SKR deposit) | Receive DAO boost funding (95/5 split) | Duration-based discounts (up to 40% off) |
 | Vote on DAO proposals | Analytics dashboard | Lock screen premium ads |
 | DEEP Score ranks real contributors | Admin review for quality control | Impression & click tracking |
@@ -71,7 +71,7 @@ Hackathon Submission — March 2026
 |   17 screens              |   23 instructions             |
 |   MWA 2.0                 |   8 account types             |
 |   NativeWind UI           |   19 events                   |
-|   Firebase (FCM + Storage)|   30 error codes              |
+|   Firebase (FCM + Storage)|   33 error codes              |
 |   Zustand persistence     |   SPL Token ($SKR)            |
 +---------------------------+-------------------------------+
 |          $SKR Token (existing SPL mint on mainnet)         |
@@ -175,7 +175,7 @@ Hackathon Submission — March 2026
 5. Notifications (push notification list)
 6. Notification Detail (feedback submission)
 7. Profile (wallet, DEEP Score, tier badge)
-8. Hub Dashboard (brand management)
+8. Hub Dashboard (brand management + Discord integration)
 9. Brand Moderation (approve/reject deposits)
 10. Brand Boost (DAO proposal management)
 11. DAO Boost (community vault funding)
@@ -204,6 +204,7 @@ Hackathon Submission — March 2026
 | Brand ad marketplace | YES | No | No | No |
 | DAO boost vaults | YES | No | No | No |
 | Image upload for ads | YES | No | No | No |
+| Discord → Hub pipeline | YES | No | No | No |
 
 ---
 
@@ -211,8 +212,8 @@ Hackathon Submission — March 2026
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 17 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage |
-| **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
+| **v2.0 (Current)** | March 2026 | 17 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline |
+| **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, rich notification lock screen (no overlay permission), backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |
 

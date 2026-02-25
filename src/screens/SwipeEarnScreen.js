@@ -145,7 +145,7 @@ export default function SwipeEarnScreen({ navigation }) {
           </Text>
           <Text className="text-text-secondary text-sm mt-2 text-center">
             Swipe-to-Earn uses the Android lock screen to display
-            sponsored content and reward you with $SKR points.
+            sponsored content and reward you with DEEP Score points.
           </Text>
         </View>
       </SafeAreaView>
@@ -168,6 +168,43 @@ export default function SwipeEarnScreen({ navigation }) {
       </View>
 
       <ScrollView className="flex-1 px-6 py-4">
+
+        {/* Security & Privacy Reassurance */}
+        {!isEnabled && (
+          <View className="bg-green-500/10 rounded-2xl p-5 mb-4 border border-green-500/30">
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="shield-checkmark" size={24} color="#4CAF50" />
+              <Text className="text-green-400 font-bold text-base ml-3">Your data is safe</Text>
+            </View>
+            <View className="mb-2">
+              <View className="flex-row items-start mb-2">
+                <Text className="text-green-400 mr-2">✅</Text>
+                <Text className="text-text text-xs flex-1">Only displays sponsored content on your lock screen</Text>
+              </View>
+              <View className="flex-row items-start mb-2">
+                <Text className="text-green-400 mr-2">✅</Text>
+                <Text className="text-text text-xs flex-1">Counts your swipes to earn DEEP Score points</Text>
+              </View>
+              <View className="flex-row items-start mb-2">
+                <Text className="text-red-400 mr-2">❌</Text>
+                <Text className="text-text text-xs flex-1">Cannot read your passwords or personal data</Text>
+              </View>
+              <View className="flex-row items-start mb-2">
+                <Text className="text-red-400 mr-2">❌</Text>
+                <Text className="text-text text-xs flex-1">Cannot access your wallet or sign transactions</Text>
+              </View>
+              <View className="flex-row items-start">
+                <Text className="text-red-400 mr-2">❌</Text>
+                <Text className="text-text text-xs flex-1">Cannot modify or interact with other apps</Text>
+              </View>
+            </View>
+            <View className="bg-green-500/10 rounded-xl p-3 mt-2">
+              <Text className="text-text-secondary text-xs">
+                🔐 Your wallet is protected by SeedVault — no app can access it without your biometric approval. DEEP Pulse code is 100% open source on GitHub.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Main Toggle Card */}
         <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">

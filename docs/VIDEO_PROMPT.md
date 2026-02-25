@@ -52,9 +52,13 @@ Import recordings, add transitions, captions, and music.
 **[Show DAO Boost screen -> Contribute flow]**
 "Community-funded DAO boost proposals let users collectively support their favorite brands. 95% goes to the brand, 5% to the platform treasury. If the vault expires unfunded, contributors get automatic refunds."
 
-### OUTRO (2:25 - 2:40)
+### SCREEN 8: DISCORD INTEGRATION (2:25 - 2:40)
+**[Show Hub Dashboard -> Scroll to Integrations -> Discord section]**
+"Brands can connect their Discord server's announcement channel directly to their hub. Major announcements are auto-forwarded as push notifications to all subscribers — bridging Web2 communities with Web3 notifications."
+
+### OUTRO (2:40 - 2:55)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 17 screens, Swipe-to-Earn, DEEP Score v2, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 17 screens, Swipe-to-Earn, DEEP Score v2, Discord integration, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 

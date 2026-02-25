@@ -126,7 +126,7 @@ const lockScreenService = {
           'Swipe-to-Earn 🔓',
           'DEEP Pulse displays sponsored content on your lock screen.\n\n' +
           '• Max 15 contents/day\n' +
-          '• Swipe to earn $SKR points\n' +
+          '• Swipe to earn DEEP Score points\n' +
           '• Can be disabled anytime\n\n' +
           'Allow display over other apps to enable this feature.',
           [

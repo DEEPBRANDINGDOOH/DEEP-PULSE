@@ -52,6 +52,9 @@
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
 - **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)
 - **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
+- **Discord integration** — Brands connect their Discord #announcements channel to auto-forward major announcements as push notifications to hub subscribers
+- **Solscan integration** — Transaction history links directly to Solscan filtered by wallet address
+- **Global notification mute** — Users can mute all push notifications with a single toggle
 
 ---
 
@@ -95,7 +98,7 @@
 | **Styling** | NativeWind (Tailwind) | 2.x |
 | **Navigation** | React Navigation | 6.x |
 | **Push Notifications** | Firebase Cloud Messaging | latest |
-| **Backend** | Firebase Cloud Functions (Node.js 18) | v2 (gen2) |
+| **Backend** | Firebase Cloud Functions (Node.js 20) | v2 (gen2) |
 | **Database** | Cloud Firestore | latest |
 | **Ad Creative Storage** | Firebase Storage | latest |
 | **Image Upload** | react-native-image-picker | 7.x |
@@ -108,7 +111,7 @@
 ### Prerequisites
 
 ```bash
-# Node.js 18+
+# Node.js 20+
 node --version
 
 # Rust toolchain
@@ -257,7 +260,7 @@ deep-pulse-complete/
 |   +-- patch-nativewind.js             # NativeWind postinstall fix
 |-- functions/                           # === FIREBASE CLOUD FUNCTIONS BACKEND ===
 |   |-- index.js                        # 10 serverless functions (939 lines)
-|   |-- package.json                    # Node.js 18, firebase-functions v5
+|   |-- package.json                    # Node.js 20, firebase-functions v5
 |   +-- .eslintrc.js                    # ESLint config
 |
 |-- Anchor.toml                         # Anchor config (cluster, wallet, scripts)
@@ -295,7 +298,7 @@ A single monolithic Anchor program handles all on-chain logic. No CPI between mo
 | **DAO Vault** | 5 | Contribute, complete, cancel, expire, refund |
 | **Ad Slots** | 3 | Purchase, update creative, expire |
 | **Scoring** | 1 | Initialize user score account |
-| **Total** | **24** | (including renew_hub_subscription) |
+| **Total** | **23** | (including renew_hub_subscription) |
 
 ### On-Chain Accounts (PDAs)
 
@@ -509,7 +512,7 @@ await walletAdapter.disconnect(authToken);
 
 ## Backend API (Firebase Cloud Functions)
 
-The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 18) — **$0/month** on the free tier. No traditional server required.
+The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 20) — **$0/month** on the free tier. No traditional server required.
 
 ### 10 Serverless Functions
 
@@ -566,11 +569,11 @@ firebase deploy --only hosting
 | **Program ID** | `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` | `lib.rs`, `Anchor.toml`, `constants.js`, `programService.js` |
 | **$SKR Mint** | `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` | `constants.rs`, `constants.js`, `programService.js` |
 | Hub Subscription | 2,000 $SKR/month | `constants.rs`, `constants.js` |
-| Feedback Deposit | 300 $SKR | `constants.js` (overrides default 400 in `constants.rs`) |
+| Feedback Deposit | 300 $SKR | `constants.rs`, `constants.js` |
 | DAO Proposal Deposit | 100 $SKR | `constants.rs`, `constants.js` |
 | Talent Deposit | 50 $SKR | `constants.rs`, `constants.js` |
-| Top Ad Price | 1,500 $SKR/week | `constants.js` |
-| Bottom Ad Price | 800 $SKR/week | `constants.js` |
+| Top Ad Price | 1,500 $SKR/week | `constants.rs`, `constants.js` |
+| Bottom Ad Price | 800 $SKR/week | `constants.rs`, `constants.js` |
 | Lock Screen Ad | 2,000 $SKR/week | `constants.js` |
 | Global Notification | 1,000 $SKR | `constants.js` |
 | DAO Brand Share | 95% (9500 bps) | `constants.rs` |
@@ -686,10 +689,8 @@ The init script (`scripts/init-devnet.ts`) does:
 4. Creates a test hub "Solana Gaming" (if admin has $SKR tokens)
 5. Prints a full devnet status summary
 
-> **Pricing overrides vs Rust defaults:**
-> Feedback deposit: **300** $SKR (Rust default = 400)
-> Top ad/week: **1,500** $SKR (Rust default = 500)
-> Bottom ad/week: **800** $SKR (Rust default = 250)
+> **Pricing:** Smart contract defaults and frontend constants are aligned:
+> Feedback deposit: **300** $SKR | Top ad/week: **1,500** $SKR | Bottom ad/week: **800** $SKR
 
 ### Step 4 — Deploy to Local Validator (for testing)
 
@@ -904,4 +905,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions backend (10 functions) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Firestore DB + security rules ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Image Picker (brand ad creatives) ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions backend (10 functions, Node.js 20) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Firestore DB + security rules ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
