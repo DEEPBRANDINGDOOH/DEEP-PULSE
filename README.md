@@ -96,6 +96,8 @@
 | **Styling** | NativeWind (Tailwind) | 2.x |
 | **Navigation** | React Navigation | 6.x |
 | **Push Notifications** | Firebase Cloud Messaging | latest |
+| **Ad Creative Storage** | Firebase Storage | latest |
+| **Image Upload** | react-native-image-picker | 7.x |
 | **Admin** | Platform admin panel | Built-in |
 
 ---
@@ -231,7 +233,8 @@ deep-pulse-complete/
 |   |   |-- walletAdapter.js           # MWA 2.0 (authorize, sign, SIWS, error handling)
 |   |   |-- transactionHelper.js       # UI ↔ chain bridge (wallet state, error handling, alerts)
 |   |   |-- lockScreenService.js       # Swipe-to-Earn JS bridge (native Android LockScreen module)
-|   |   +-- notificationService.js     # Firebase Cloud Messaging (FCM) push notifications
+|   |   |-- notificationService.js     # Firebase Cloud Messaging (FCM) push notifications
+|   |   +-- storageService.js          # Firebase Storage — ad creative upload (image picker + progress)
 |   |-- store/
 |   |   +-- appStore.js                # Zustand + AsyncStorage persist
 |   |-- config/
@@ -259,6 +262,10 @@ deep-pulse-complete/
 |-- index.js                            # Entry point (polyfills loaded first)
 |-- tsconfig.json                       # TypeScript config (tests)
 |-- SMART_CONTRACTS.md                  # Detailed smart contract docs (French)
+|-- firebase.json                       # Firebase config (Storage rules)
+|-- storage.rules                       # Firebase Storage security rules
+|-- docs/
+|   +-- PRIVACY_POLICY.md              # Privacy policy (required for dApp Store)
 +-- README.md                           # This file
 ```
 
@@ -414,6 +421,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 | `walletAdapter.js` | MWA 2.0 — authorize, reauthorize, SIWS (Sign In With Solana), `signAndSendTransactions`, full error handling |
 | `lockScreenService.js` | Swipe-to-Earn — JS bridge to native Android LockScreen overlay (start/stop, permissions, ad queue, swipe events) |
 | `notificationService.js` | Firebase Cloud Messaging (FCM) — push notification token registration and channel setup |
+| `storageService.js` | Firebase Storage — ad creative image upload with validation, progress tracking, and download URL retrieval |
 
 ### State Management
 
@@ -819,4 +827,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Image Picker (brand ad creatives) ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓

@@ -11,6 +11,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     
+    <!-- Image Picker (Ad Creative Upload) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- CRITICAL: MWA Queries - Required for Mobile Wallet Adapter to work -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <queries>

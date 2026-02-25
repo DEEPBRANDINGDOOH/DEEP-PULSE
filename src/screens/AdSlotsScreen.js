@@ -4,11 +4,14 @@
  * Allows brands to purchase ad slots on their hubs
  * - Top Ad Slot: 1,500 $SKR/week (8 max, rotates every 15s)
  * - Bottom Ad Slot: 800 $SKR/week (8 max, rotates every 15s)
+ * - Lockscreen Ad: 2,000 $SKR/week (4 max, full-screen Swipe-to-Earn)
  *
  * Features:
  * - View available slots
  * - Purchase slots with $SKR (submitted for admin review)
- * - Image validation (format, URL)
+ * - Upload ad creative from gallery/camera (Firebase Storage)
+ * - OR paste hosted image URL (for brands with their own CDN)
+ * - Image preview before submission
  * - Edit creative in active campaign (re-submits for review)
  * - View rotation schedule
  * - Analytics dashboard
@@ -24,10 +27,14 @@ import {
   TextInput,
   Alert,
   Modal,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { uploadAdCreative, validateImageFile } from '../services/storageService';
 
 // Ad Slot Configuration
 const AD_CONFIG = {
@@ -166,6 +173,10 @@ export default function AdSlotsScreen({ route, navigation }) {
 
   // Purchase form state
   const [imageUrl, setImageUrl] = useState('');
+  const [imageAsset, setImageAsset] = useState(null); // Selected image from picker
+  const [imageMode, setImageMode] = useState('upload'); // 'upload' or 'url'
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const [landingUrl, setLandingUrl] = useState('');
   const [duration, setDuration] = useState(1);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -173,6 +184,10 @@ export default function AdSlotsScreen({ route, navigation }) {
 
   // Edit form state
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageAsset, setEditImageAsset] = useState(null);
+  const [editImageMode, setEditImageMode] = useState('upload');
+  const [editUploadProgress, setEditUploadProgress] = useState(0);
+  const [editIsUploading, setEditIsUploading] = useState(false);
   const [editLandingUrl, setEditLandingUrl] = useState('');
   const [editValidationErrors, setEditValidationErrors] = useState([]);
 
@@ -216,17 +231,89 @@ export default function AdSlotsScreen({ route, navigation }) {
     }
     setSelectedSlot(slotType);
     setImageUrl('');
+    setImageAsset(null);
+    setImageMode('upload');
+    setUploadProgress(0);
+    setIsUploading(false);
     setLandingUrl('');
     setDuration(1);
     setValidationErrors([]);
     setShowPurchaseModal(true);
   };
 
+  /**
+   * Launch image picker for ad creative selection
+   */
+  const handlePickImage = (forEdit = false) => {
+    const slotType = forEdit ? editingAd?.slotType : selectedSlot;
+    const config = slotType === 'top' ? AD_CONFIG.TOP_SLOT : slotType === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT : AD_CONFIG.BOTTOM_SLOT;
+
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.9,
+        maxWidth: config.width * 2,   // Allow 2x for retina
+        maxHeight: config.height * 2,
+        includeBase64: false,
+      },
+      (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert('Error', response.errorMessage || 'Failed to pick image');
+          return;
+        }
+
+        const asset = response.assets?.[0];
+        if (!asset) return;
+
+        // Validate immediately
+        const validation = validateImageFile(asset, slotType);
+        if (!validation.valid) {
+          Alert.alert('Invalid Image', validation.errors.join('\n'));
+          return;
+        }
+
+        if (forEdit) {
+          setEditImageAsset(asset);
+          setEditImageUrl(''); // Clear URL since we're using upload
+          setEditValidationErrors([]);
+        } else {
+          setImageAsset(asset);
+          setImageUrl(''); // Clear URL since we're using upload
+          setValidationErrors([]);
+        }
+      }
+    );
+  };
+
   const handleConfirmPurchase = async () => {
-    // Run validation
-    const validation = validateAdCreative(imageUrl, landingUrl, selectedSlot);
-    if (!validation.valid) {
-      setValidationErrors(validation.errors);
+    const errors = [];
+
+    // Validate image — either uploaded file or URL required
+    if (imageMode === 'upload') {
+      if (!imageAsset) {
+        errors.push('Please select an image for your ad creative');
+      }
+    } else {
+      // URL mode — run URL validation
+      const validation = validateAdCreative(imageUrl, landingUrl, selectedSlot);
+      if (!validation.valid) {
+        // Only take image-related errors if in URL mode
+        validation.errors.forEach(e => {
+          if (!e.includes('Landing')) errors.push(e);
+        });
+      }
+    }
+
+    // Validate landing URL (required in both modes)
+    if (!landingUrl || !landingUrl.trim()) {
+      errors.push('Landing page URL is required');
+    } else if (!landingUrl.startsWith('https://')) {
+      errors.push('Landing URL must start with https:// for security');
+    }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
       return;
     }
     setValidationErrors([]);
@@ -244,6 +331,26 @@ export default function AdSlotsScreen({ route, navigation }) {
           text: 'Purchase & Submit',
           onPress: async () => {
             try {
+              let finalImageUrl = imageUrl.trim();
+
+              // Upload image to Firebase Storage if using upload mode
+              if (imageMode === 'upload' && imageAsset) {
+                setIsUploading(true);
+                setUploadProgress(0);
+                const uploadResult = await uploadAdCreative(
+                  imageAsset,
+                  selectedSlot,
+                  (progress) => setUploadProgress(progress)
+                );
+                setIsUploading(false);
+
+                if (!uploadResult.success) {
+                  setIsPurchasing(false);
+                  return;
+                }
+                finalImageUrl = uploadResult.url;
+              }
+
               // Attempt real on-chain ad purchase if hubId is available
               if (hubId) {
                 const slotIndex = Date.now() % 100000;
@@ -276,7 +383,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               setMyAds(prev => [...prev, {
                 id: `my_ad_${Date.now()}`,
                 slotType: selectedSlot,
-                imageUrl: imageUrl.trim(),
+                imageUrl: finalImageUrl,
                 landingUrl: landingUrl.trim(),
                 status: 'PENDING_REVIEW',
                 remainingDays: duration * 7,
@@ -286,12 +393,14 @@ export default function AdSlotsScreen({ route, navigation }) {
               }]);
 
               setImageUrl('');
+              setImageAsset(null);
               setLandingUrl('');
               setDuration(1);
             } catch (error) {
               Alert.alert('Error', 'Failed to purchase ad slot. Please try again.');
             } finally {
               setIsPurchasing(false);
+              setIsUploading(false);
             }
           },
         },
@@ -302,15 +411,36 @@ export default function AdSlotsScreen({ route, navigation }) {
   const handleEditCreative = (ad) => {
     setEditingAd(ad);
     setEditImageUrl(ad.imageUrl);
+    setEditImageAsset(null);
+    setEditImageMode(ad.imageUrl.startsWith('https://') ? 'url' : 'upload');
+    setEditUploadProgress(0);
+    setEditIsUploading(false);
     setEditLandingUrl(ad.landingUrl);
     setEditValidationErrors([]);
     setShowEditModal(true);
   };
 
-  const handleSubmitEdit = () => {
-    const validation = validateAdCreative(editImageUrl, editLandingUrl, editingAd.slotType);
-    if (!validation.valid) {
-      setEditValidationErrors(validation.errors);
+  const handleSubmitEdit = async () => {
+    const errors = [];
+
+    if (editImageMode === 'upload' && !editImageAsset && !editImageUrl) {
+      errors.push('Please select a new image or keep the current URL');
+    } else if (editImageMode === 'url') {
+      if (!editImageUrl || !editImageUrl.trim()) {
+        errors.push('Image URL is required');
+      } else if (!editImageUrl.startsWith('https://')) {
+        errors.push('Image URL must start with https://');
+      }
+    }
+
+    if (!editLandingUrl || !editLandingUrl.trim()) {
+      errors.push('Landing page URL is required');
+    } else if (!editLandingUrl.startsWith('https://')) {
+      errors.push('Landing URL must start with https://');
+    }
+
+    if (errors.length > 0) {
+      setEditValidationErrors(errors);
       return;
     }
     setEditValidationErrors([]);
@@ -322,10 +452,27 @@ export default function AdSlotsScreen({ route, navigation }) {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Submit Update',
-          onPress: () => {
+          onPress: async () => {
+            let finalImageUrl = editImageUrl.trim();
+
+            // Upload new image if selected
+            if (editImageMode === 'upload' && editImageAsset) {
+              setEditIsUploading(true);
+              setEditUploadProgress(0);
+              const uploadResult = await uploadAdCreative(
+                editImageAsset,
+                editingAd.slotType,
+                (progress) => setEditUploadProgress(progress)
+              );
+              setEditIsUploading(false);
+
+              if (!uploadResult.success) return;
+              finalImageUrl = uploadResult.url;
+            }
+
             setMyAds(prev => prev.map(a =>
               a.id === editingAd.id
-                ? { ...a, imageUrl: editImageUrl.trim(), landingUrl: editLandingUrl.trim(), status: 'PENDING_REVIEW' }
+                ? { ...a, imageUrl: finalImageUrl, landingUrl: editLandingUrl.trim(), status: 'PENDING_REVIEW' }
                 : a
             ));
             setShowEditModal(false);
@@ -685,17 +832,128 @@ export default function AdSlotsScreen({ route, navigation }) {
 
               {/* Form */}
               <View className="space-y-4">
-                <View>
-                  <Text className="text-text-secondary text-sm mb-2 mt-4">Ad Image URL</Text>
-                  <TextInput
-                    value={imageUrl}
-                    onChangeText={(text) => { setImageUrl(text); setValidationErrors([]); }}
-                    placeholder={`https://cdn.example.com/ad-${selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
-                    placeholderTextColor="#666"
-                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
-                    autoCapitalize="none"
-                    keyboardType="url"
-                  />
+                {/* Image Source Toggle */}
+                <View className="mt-4">
+                  <Text className="text-text font-bold text-sm mb-3">Ad Creative</Text>
+                  <View className="flex-row mb-3">
+                    <TouchableOpacity
+                      onPress={() => { setImageMode('upload'); setValidationErrors([]); }}
+                      className={`flex-1 mr-2 rounded-xl py-3 border ${imageMode === 'upload' ? 'bg-primary/15 border-primary' : 'bg-background-secondary border-border'}`}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Ionicons name="cloud-upload" size={18} color={imageMode === 'upload' ? '#FF9F66' : '#666'} />
+                        <Text className={`font-semibold text-sm ml-2 ${imageMode === 'upload' ? 'text-primary' : 'text-text-secondary'}`}>
+                          Upload Image
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => { setImageMode('url'); setValidationErrors([]); }}
+                      className={`flex-1 ml-2 rounded-xl py-3 border ${imageMode === 'url' ? 'bg-primary/15 border-primary' : 'bg-background-secondary border-border'}`}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Ionicons name="link" size={18} color={imageMode === 'url' ? '#FF9F66' : '#666'} />
+                        <Text className={`font-semibold text-sm ml-2 ${imageMode === 'url' ? 'text-primary' : 'text-text-secondary'}`}>
+                          Paste URL
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
+                  {imageMode === 'upload' ? (
+                    <View>
+                      {/* Upload area */}
+                      {imageAsset ? (
+                        <View className="rounded-xl overflow-hidden border border-primary/30 mb-3">
+                          {/* Image Preview */}
+                          <Image
+                            source={{ uri: imageAsset.uri }}
+                            style={{
+                              width: '100%',
+                              height: selectedSlot === 'lockscreen' ? 200 : 120,
+                              resizeMode: 'cover',
+                            }}
+                          />
+                          <View className="bg-background-secondary p-3 flex-row items-center justify-between">
+                            <View className="flex-1">
+                              <Text className="text-text text-xs font-semibold" numberOfLines={1}>
+                                {imageAsset.fileName || 'Selected image'}
+                              </Text>
+                              <Text className="text-text-secondary text-xs">
+                                {imageAsset.fileSize ? `${(imageAsset.fileSize / 1024).toFixed(0)} KB` : ''}
+                                {imageAsset.width ? ` \u2022 ${imageAsset.width}x${imageAsset.height}` : ''}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() => handlePickImage(false)}
+                              className="bg-primary/15 rounded-lg px-3 py-2 ml-3"
+                            >
+                              <Text className="text-primary font-semibold text-xs">Change</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => handlePickImage(false)}
+                          className="border-2 border-dashed border-primary/40 rounded-xl py-8 items-center mb-3"
+                          style={{ backgroundColor: 'rgba(255,159,102,0.05)' }}
+                        >
+                          <Ionicons name="cloud-upload-outline" size={40} color="#FF9F66" />
+                          <Text className="text-primary font-bold text-base mt-3">
+                            Tap to Upload Image
+                          </Text>
+                          <Text className="text-text-secondary text-xs mt-1">
+                            PNG, JPG, GIF or WebP
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Upload progress */}
+                      {isUploading && (
+                        <View className="bg-primary/10 rounded-xl p-4 mb-3 border border-primary/20">
+                          <View className="flex-row items-center mb-2">
+                            <ActivityIndicator size="small" color="#FF9F66" />
+                            <Text className="text-primary font-semibold text-sm ml-2">
+                              Uploading... {uploadProgress}%
+                            </Text>
+                          </View>
+                          <View className="bg-background-secondary rounded-full h-2 overflow-hidden">
+                            <View
+                              className="bg-primary h-2 rounded-full"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  ) : (
+                    <View>
+                      <TextInput
+                        value={imageUrl}
+                        onChangeText={(text) => { setImageUrl(text); setValidationErrors([]); }}
+                        placeholder={`https://cdn.example.com/ad-${selectedSlot === 'lockscreen' ? '1080x1920' : selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
+                        placeholderTextColor="#666"
+                        className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                        autoCapitalize="none"
+                        keyboardType="url"
+                      />
+                      {/* URL Preview */}
+                      {imageUrl.startsWith('https://') && (
+                        <View className="rounded-xl overflow-hidden border border-border mt-2 mb-1">
+                          <Image
+                            source={{ uri: imageUrl }}
+                            style={{
+                              width: '100%',
+                              height: selectedSlot === 'lockscreen' ? 200 : 120,
+                              resizeMode: 'cover',
+                              backgroundColor: '#1a1a20',
+                            }}
+                          />
+                        </View>
+                      )}
+                    </View>
+                  )}
+
                   {/* Image specs */}
                   <View className="bg-primary/10 rounded-lg p-3 mt-2 border border-primary/20">
                     <View className="flex-row items-center mb-1">
@@ -703,13 +961,13 @@ export default function AdSlotsScreen({ route, navigation }) {
                       <Text className="text-primary font-semibold text-xs ml-1">Image Specifications</Text>
                     </View>
                     <Text className="text-text-secondary text-xs">
-                      Dimensions: {selectedSlot === 'top' ? '390 x 120 px' : '390 x 100 px'}
+                      Dimensions: {selectedSlot === 'lockscreen' ? '1080 x 1920 px (full screen)' : selectedSlot === 'top' ? '390 x 120 px' : '390 x 100 px'}
                     </Text>
                     <Text className="text-text-secondary text-xs">
-                      Formats: PNG, JPG, or GIF (animated supported)
+                      Formats: PNG, JPG, GIF, or WebP
                     </Text>
                     <Text className="text-text-secondary text-xs">
-                      Max file size: 2 MB | HTTPS only
+                      Max file size: {selectedSlot === 'lockscreen' ? '5 MB' : '2 MB'}
                     </Text>
                   </View>
                 </View>
@@ -827,34 +1085,134 @@ export default function AdSlotsScreen({ route, navigation }) {
               {/* Validation Errors */}
               <ValidationErrors errors={editValidationErrors} />
 
-              {/* Form */}
+              {/* Edit Form — Image */}
               <View className="mt-4">
-                <Text className="text-text-secondary text-sm mb-2">New Image URL</Text>
-                <TextInput
-                  value={editImageUrl}
-                  onChangeText={(text) => { setEditImageUrl(text); setEditValidationErrors([]); }}
-                  placeholder={`https://cdn.example.com/ad-${editingAd?.slotType === 'top' ? '390x120' : '390x100'}.png`}
-                  placeholderTextColor="#666"
-                  className="bg-background-secondary text-text rounded-xl p-4 border border-border"
-                  autoCapitalize="none"
-                  keyboardType="url"
-                />
+                <Text className="text-text font-bold text-sm mb-3">Update Creative</Text>
+                <View className="flex-row mb-3">
+                  <TouchableOpacity
+                    onPress={() => { setEditImageMode('upload'); setEditValidationErrors([]); }}
+                    className={`flex-1 mr-2 rounded-xl py-3 border ${editImageMode === 'upload' ? 'bg-primary/15 border-primary' : 'bg-background-secondary border-border'}`}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Ionicons name="cloud-upload" size={16} color={editImageMode === 'upload' ? '#FF9F66' : '#666'} />
+                      <Text className={`font-semibold text-xs ml-2 ${editImageMode === 'upload' ? 'text-primary' : 'text-text-secondary'}`}>
+                        Upload New
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => { setEditImageMode('url'); setEditValidationErrors([]); }}
+                    className={`flex-1 ml-2 rounded-xl py-3 border ${editImageMode === 'url' ? 'bg-primary/15 border-primary' : 'bg-background-secondary border-border'}`}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Ionicons name="link" size={16} color={editImageMode === 'url' ? '#FF9F66' : '#666'} />
+                      <Text className={`font-semibold text-xs ml-2 ${editImageMode === 'url' ? 'text-primary' : 'text-text-secondary'}`}>
+                        Paste URL
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                {editImageMode === 'upload' ? (
+                  <View>
+                    {editImageAsset ? (
+                      <View className="rounded-xl overflow-hidden border border-primary/30 mb-3">
+                        <Image
+                          source={{ uri: editImageAsset.uri }}
+                          style={{
+                            width: '100%',
+                            height: editingAd?.slotType === 'lockscreen' ? 200 : 120,
+                            resizeMode: 'cover',
+                          }}
+                        />
+                        <View className="bg-background-secondary p-3 flex-row items-center justify-between">
+                          <View className="flex-1">
+                            <Text className="text-text text-xs font-semibold" numberOfLines={1}>
+                              {editImageAsset.fileName || 'Selected image'}
+                            </Text>
+                            <Text className="text-text-secondary text-xs">
+                              {editImageAsset.fileSize ? `${(editImageAsset.fileSize / 1024).toFixed(0)} KB` : ''}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => handlePickImage(true)}
+                            className="bg-primary/15 rounded-lg px-3 py-2 ml-3"
+                          >
+                            <Text className="text-primary font-semibold text-xs">Change</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => handlePickImage(true)}
+                        className="border-2 border-dashed border-primary/40 rounded-xl py-6 items-center mb-3"
+                        style={{ backgroundColor: 'rgba(255,159,102,0.05)' }}
+                      >
+                        <Ionicons name="cloud-upload-outline" size={32} color="#FF9F66" />
+                        <Text className="text-primary font-bold text-sm mt-2">Tap to Upload</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {editIsUploading && (
+                      <View className="bg-primary/10 rounded-xl p-4 mb-3 border border-primary/20">
+                        <View className="flex-row items-center mb-2">
+                          <ActivityIndicator size="small" color="#FF9F66" />
+                          <Text className="text-primary font-semibold text-sm ml-2">
+                            Uploading... {editUploadProgress}%
+                          </Text>
+                        </View>
+                        <View className="bg-background-secondary rounded-full h-2 overflow-hidden">
+                          <View
+                            className="bg-primary h-2 rounded-full"
+                            style={{ width: `${editUploadProgress}%` }}
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View>
+                    <TextInput
+                      value={editImageUrl}
+                      onChangeText={(text) => { setEditImageUrl(text); setEditValidationErrors([]); }}
+                      placeholder={`https://cdn.example.com/ad.png`}
+                      placeholderTextColor="#666"
+                      className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                      autoCapitalize="none"
+                      keyboardType="url"
+                    />
+                    {editImageUrl.startsWith('https://') && (
+                      <View className="rounded-xl overflow-hidden border border-border mt-2 mb-1">
+                        <Image
+                          source={{ uri: editImageUrl }}
+                          style={{
+                            width: '100%',
+                            height: editingAd?.slotType === 'lockscreen' ? 200 : 120,
+                            resizeMode: 'cover',
+                            backgroundColor: '#1a1a20',
+                          }}
+                        />
+                      </View>
+                    )}
+                  </View>
+                )}
+
                 <View className="bg-primary/10 rounded-lg p-3 mt-2 border border-primary/20">
                   <View className="flex-row items-center mb-1">
                     <Ionicons name="image" size={14} color="#FF9F66" />
                     <Text className="text-primary font-semibold text-xs ml-1">Required Specifications</Text>
                   </View>
                   <Text className="text-text-secondary text-xs">
-                    Dimensions: {editingAd?.slotType === 'top' ? '390 x 120 px' : '390 x 100 px'}
+                    Dimensions: {editingAd?.slotType === 'lockscreen' ? '1080 x 1920 px' : editingAd?.slotType === 'top' ? '390 x 120 px' : '390 x 100 px'}
                   </Text>
                   <Text className="text-text-secondary text-xs">
-                    Formats: PNG, JPG, or GIF | Max: 2 MB | HTTPS only
+                    Formats: PNG, JPG, GIF, or WebP | Max: {editingAd?.slotType === 'lockscreen' ? '5 MB' : '2 MB'}
                   </Text>
                 </View>
               </View>
 
               <View className="mt-4">
-                <Text className="text-text-secondary text-sm mb-2">New Landing Page URL</Text>
+                <Text className="text-text-secondary text-sm mb-2">Landing Page URL</Text>
                 <TextInput
                   value={editLandingUrl}
                   onChangeText={(text) => { setEditLandingUrl(text); setEditValidationErrors([]); }}
@@ -869,12 +1227,13 @@ export default function AdSlotsScreen({ route, navigation }) {
               {/* Submit Button */}
               <TouchableOpacity
                 onPress={handleSubmitEdit}
-                className="bg-primary rounded-xl p-4 mt-6"
+                disabled={editIsUploading}
+                className={`rounded-xl p-4 mt-6 ${editIsUploading ? 'bg-gray-500' : 'bg-primary'}`}
               >
                 <View className="flex-row items-center justify-center">
-                  <Ionicons name="shield-checkmark" size={18} color="#fff" />
+                  <Ionicons name={editIsUploading ? 'hourglass' : 'shield-checkmark'} size={18} color="#fff" />
                   <Text className="text-white font-bold text-center text-lg ml-2">
-                    Submit for Review
+                    {editIsUploading ? 'Uploading...' : 'Submit for Review'}
                   </Text>
                 </View>
               </TouchableOpacity>

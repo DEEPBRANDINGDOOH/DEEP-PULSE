@@ -50,6 +50,8 @@ web-build/
 *.pem
 credentials.json
 google-services.json
+android/keystore.properties
+devnet-temp-wallet.json
 
 # === Logs ===
 npm-debug.log*

@@ -15,6 +15,13 @@ react {
     codegenDir = file("../../node_modules/@react-native/codegen")
 }
 
+// Load keystore credentials from local file (not committed to git)
+def keystorePropertiesFile = rootProject.file("app/keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.deeppulse"
     compileSdk 36
@@ -25,7 +32,7 @@ android {
         targetSdk 34
         versionCode 1
         versionName "2.0.0"
-        
+
         // Solana Mobile Wallet Adapter
         manifestPlaceholders = [
             'walletAuthenticationUrl': 'https://deeppulse.app/auth'
@@ -40,10 +47,10 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('deep-pulse-release.keystore')
-            storePassword 'DeepPulse2026!'
-            keyAlias 'deep-pulse'
-            keyPassword 'DeepPulse2026!'
+            storeFile file(keystoreProperties['storeFile'] ?: 'deep-pulse-release.keystore')
+            storePassword keystoreProperties['storePassword'] ?: ''
+            keyAlias keystoreProperties['keyAlias'] ?: 'deep-pulse'
+            keyPassword keystoreProperties['keyPassword'] ?: ''
         }
     }
 
@@ -96,6 +103,8 @@ dependencies {
     implementation project(':solana-mobile_mobile-wallet-adapter-walletlib')
     implementation project(':react-native-firebase_app')
     implementation project(':react-native-firebase_messaging')
+    implementation project(':react-native-firebase_storage')
+    implementation project(':react-native-image-picker')
 
     // CRITICAL: Solana Mobile Wallet Adapter (native Kotlin lib)
     implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.0.3'

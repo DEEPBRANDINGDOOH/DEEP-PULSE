@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import lockScreenService from '../services/lockScreenService';
+import { MOCK_ADS } from '../config/constants';
 
 /**
  * SwipeEarnScreen — Dashboard for the Swipe-to-Earn (LockScreen Overlay) feature.
@@ -22,6 +23,9 @@ import lockScreenService from '../services/lockScreenService';
  * - Progress bar (ads today / max)
  * - How it works explanation
  * - Points history (mock for now)
+ *
+ * On service start, pushes the lockscreen ad queue to the native module.
+ * In production, this would fetch approved ads from the blockchain/backend.
  */
 export default function SwipeEarnScreen({ navigation }) {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -55,17 +59,48 @@ export default function SwipeEarnScreen({ navigation }) {
     return () => unsubscribe();
   }, []);
 
+  /**
+   * Push lockscreen ad creatives to the native Android module.
+   * In production: fetches approved lockscreen ads from blockchain/backend.
+   * In dev: uses MOCK_ADS.LOCKSCREEN data.
+   */
+  const pushLockscreenAds = useCallback(async () => {
+    if (!lockScreenService.isAvailable()) return;
+
+    try {
+      // Transform ads to the format expected by the native module
+      const lockscreenAds = (MOCK_ADS.LOCKSCREEN || []).map(ad => ({
+        contentUrl: ad.contentUrl || ad.imageUrl,
+        title: ad.title || 'Sponsored',
+        brand: ad.brand || ad.advertiserId || 'Brand',
+        clickUrl: ad.clickUrl || ad.landingUrl || '',
+      }));
+
+      if (lockscreenAds.length > 0) {
+        const queued = await lockScreenService.pushAdQueue(lockscreenAds);
+        console.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module`);
+      }
+    } catch (e) {
+      console.warn('[SwipeEarn] Failed to push ad queue:', e);
+    }
+  }, []);
+
   const loadStats = useCallback(async () => {
     try {
       const currentStats = await lockScreenService.getStats();
       setStats(currentStats);
       setIsEnabled(currentStats.enabled);
+
+      // If service is running, make sure ad queue is populated
+      if (currentStats.enabled) {
+        pushLockscreenAds();
+      }
     } catch (e) {
       console.warn('Failed to load stats:', e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pushLockscreenAds]);
 
   /**
    * Toggle the Swipe-to-Earn feature ON/OFF.
@@ -76,6 +111,7 @@ export default function SwipeEarnScreen({ navigation }) {
       const started = await lockScreenService.requestPermissionAndStart();
       if (started) {
         setIsEnabled(true);
+        await pushLockscreenAds(); // Push ad queue to native module
         loadStats();
       }
     } else {

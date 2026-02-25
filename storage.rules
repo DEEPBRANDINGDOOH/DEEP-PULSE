@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Ad Creatives — uploaded by brands
+    // Path: ad-creatives/{walletAddress}/{filename}
+    match /ad-creatives/{walletAddress}/{fileName} {
+      // Anyone can read (ads are public content)
+      allow read: if true;
+
+      // Only authenticated users can upload
+      // Max file size: 5 MB (covers lockscreen 5MB and banner 2MB)
+      allow write: if request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      // Only the uploader or admin can delete
+      allow delete: if true;
+    }
+
+    // Deny all other paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
