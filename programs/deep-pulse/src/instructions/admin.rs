@@ -24,7 +24,10 @@ pub struct InitializePlatform<'info> {
     )]
     pub platform_config: Account<'info, PlatformConfig>,
 
-    /// The existing $SKR token mint (SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3)
+    /// The existing $SKR token mint [H-01 FIX] Hardcoded validation
+    #[account(
+        constraint = skr_mint.key() == SKR_MINT @ DeepPulseError::InvalidSkrMint,
+    )]
     pub skr_mint: Account<'info, Mint>,
 
     /// Treasury token account (ATA owned by treasury PDA)
@@ -202,6 +205,8 @@ pub fn update_platform_config(
         config.bottom_ad_price_per_week = v;
     }
     if let Some(v) = min_vault_contribution {
+        // [M-01 FIX] Prevent zero minimum contribution (enables griefing)
+        require!(v > 0, DeepPulseError::MinContributionZero);
         config.min_vault_contribution = v;
     }
 

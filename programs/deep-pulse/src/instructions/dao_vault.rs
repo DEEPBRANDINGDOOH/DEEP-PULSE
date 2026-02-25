@@ -21,7 +21,7 @@ pub struct ContributeToVault<'info> {
     )]
     pub dao_vault: Account<'info, DaoVault>,
 
-    /// Contribution tracking account (one per contributor per vault)
+    /// [C-03 FIX] Contribution tracking — kept init_if_needed but added contributor validation
     #[account(
         init_if_needed,
         payer = contributor,
@@ -40,6 +40,7 @@ pub struct ContributeToVault<'info> {
     pub vault_token_account: Account<'info, TokenAccount>,
 
     /// Contributor's $SKR token account
+    /// [H-04 FIX] Added mint validation
     #[account(
         mut,
         constraint = contributor_token_account.owner == contributor.key(),
@@ -110,6 +111,14 @@ pub fn contribute_to_vault(ctx: Context<ContributeToVault>, amount: u64) -> Resu
     let contribution = &mut ctx.accounts.contribution;
     let is_new_contributor = contribution.amount == 0 && contribution.contributed_at == 0;
 
+    // [C-03 FIX] Validate contributor matches if account already existed
+    if !is_new_contributor {
+        require!(
+            contribution.contributor == ctx.accounts.contributor.key(),
+            DeepPulseError::NoContribution
+        );
+    }
+
     if is_new_contributor {
         contribution.contributor = ctx.accounts.contributor.key();
         contribution.vault = ctx.accounts.dao_vault.key();
@@ -137,26 +146,28 @@ pub fn contribute_to_vault(ctx: Context<ContributeToVault>, amount: u64) -> Resu
             .ok_or(DeepPulseError::MathOverflow)?;
     }
 
-    // Update user score
-    if let Some(score) = &mut ctx.accounts.user_score {
-        score.dao_boost_count = score
-            .dao_boost_count
-            .checked_add(1)
-            .ok_or(DeepPulseError::ScoreOverflow)?;
-        score.total_score = score
-            .total_score
-            .checked_add(SCORE_DAO_BOOST)
-            .ok_or(DeepPulseError::ScoreOverflow)?;
-        score.action_types_used |= 1 << (ActionType::DaoBoost as u8);
-        score.last_activity = clock.unix_timestamp;
+    // [H-03 FIX] Only award score for FIRST contribution per vault (not per call)
+    if is_new_contributor {
+        if let Some(score) = &mut ctx.accounts.user_score {
+            score.dao_boost_count = score
+                .dao_boost_count
+                .checked_add(1)
+                .ok_or(DeepPulseError::ScoreOverflow)?;
+            score.total_score = score
+                .total_score
+                .checked_add(SCORE_DAO_BOOST)
+                .ok_or(DeepPulseError::ScoreOverflow)?;
+            score.action_types_used |= 1 << (ActionType::DaoBoost as u8);
+            score.last_activity = clock.unix_timestamp;
 
-        emit!(ActionRecorded {
-            user: ctx.accounts.contributor.key(),
-            action_type: ActionType::DaoBoost as u8,
-            score_delta: SCORE_DAO_BOOST,
-            new_total_score: score.total_score,
-            timestamp: clock.unix_timestamp,
-        });
+            emit!(ActionRecorded {
+                user: ctx.accounts.contributor.key(),
+                action_type: ActionType::DaoBoost as u8,
+                score_delta: SCORE_DAO_BOOST,
+                new_total_score: score.total_score,
+                timestamp: clock.unix_timestamp,
+            });
+        }
     }
 
     emit!(VaultContributed {
@@ -203,9 +214,11 @@ pub struct CompleteVault<'info> {
     pub vault_token_authority: SystemAccount<'info>,
 
     /// Brand's $SKR token account (receives 95%)
+    /// [H-04 FIX] Added mint validation
     #[account(
         mut,
         constraint = brand_token_account.owner == dao_vault.brand,
+        constraint = brand_token_account.mint == platform_config.skr_mint @ DeepPulseError::InvalidSkrMint,
     )]
     pub brand_token_account: Account<'info, TokenAccount>,
 
@@ -244,7 +257,8 @@ pub fn complete_vault(ctx: Context<CompleteVault>) -> Result<()> {
 
     let vault_key = ctx.accounts.dao_vault.key();
     let vault_token_bump = ctx.bumps.vault_token_authority;
-    let vault_seeds = &[VAULT_TOKEN_SEED, vault_key.as_ref(), &[vault_token_bump]];
+    // [C-01 FIX] Use VAULT_AUTHORITY_SEED (not VAULT_TOKEN_SEED) to match vault_token_authority PDA
+    let vault_seeds = &[VAULT_AUTHORITY_SEED, vault_key.as_ref(), &[vault_token_bump]];
     let signer_seeds = &[&vault_seeds[..]];
 
     // Transfer 95% to brand
@@ -410,11 +424,19 @@ pub struct ClaimVaultRefund<'info> {
     pub vault_token_authority: SystemAccount<'info>,
 
     /// Contributor's $SKR token account (receives refund)
+    /// [H-04 FIX] Added mint validation
     #[account(
         mut,
         constraint = contributor_token_account.owner == contributor.key(),
+        constraint = contributor_token_account.mint == platform_config.skr_mint @ DeepPulseError::InvalidSkrMint,
     )]
     pub contributor_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        seeds = [PLATFORM_CONFIG_SEED],
+        bump = platform_config.bump,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
 
     pub token_program: Program<'info, Token>,
 }
@@ -422,7 +444,8 @@ pub struct ClaimVaultRefund<'info> {
 pub fn claim_vault_refund(ctx: Context<ClaimVaultRefund>) -> Result<()> {
     let vault_key = ctx.accounts.dao_vault.key();
     let vault_token_bump = ctx.bumps.vault_token_authority;
-    let vault_seeds = &[VAULT_TOKEN_SEED, vault_key.as_ref(), &[vault_token_bump]];
+    // [C-01 FIX] Use VAULT_AUTHORITY_SEED (not VAULT_TOKEN_SEED) to match vault_token_authority PDA
+    let vault_seeds = &[VAULT_AUTHORITY_SEED, vault_key.as_ref(), &[vault_token_bump]];
     let signer_seeds = &[&vault_seeds[..]];
 
     let refund_amount = ctx.accounts.contribution.amount;

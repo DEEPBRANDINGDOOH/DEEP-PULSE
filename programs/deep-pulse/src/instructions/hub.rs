@@ -294,7 +294,11 @@ pub struct UnsubscribeFromHub<'info> {
 
 pub fn unsubscribe_from_hub(ctx: Context<UnsubscribeFromHub>) -> Result<()> {
     let hub = &mut ctx.accounts.hub;
-    hub.subscriber_count = hub.subscriber_count.saturating_sub(1);
+    // [L-04 FIX] Use checked_sub instead of saturating_sub to catch logic errors
+    hub.subscriber_count = hub
+        .subscriber_count
+        .checked_sub(1)
+        .ok_or(DeepPulseError::MathOverflow)?;
 
     let clock = Clock::get()?;
     emit!(UserUnsubscribed {

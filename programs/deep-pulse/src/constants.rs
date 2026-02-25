@@ -1,3 +1,6 @@
+use anchor_lang::prelude::Pubkey;
+use anchor_lang::solana_program::pubkey;
+
 /// PDA Seeds
 pub const PLATFORM_CONFIG_SEED: &[u8] = b"platform_config";
 pub const TREASURY_SEED: &[u8] = b"treasury";
@@ -5,6 +8,7 @@ pub const HUB_SEED: &[u8] = b"hub";
 pub const SUBSCRIPTION_SEED: &[u8] = b"subscription";
 pub const DEPOSIT_SEED: &[u8] = b"deposit";
 pub const ESCROW_SEED: &[u8] = b"escrow";
+pub const ESCROW_AUTHORITY_SEED: &[u8] = b"escrow_auth"; // [C-02 FIX] Distinct seed for escrow authority
 pub const VAULT_SEED: &[u8] = b"vault";
 pub const VAULT_TOKEN_SEED: &[u8] = b"vault_token";
 pub const VAULT_AUTHORITY_SEED: &[u8] = b"vault_authority";
@@ -12,9 +16,12 @@ pub const CONTRIBUTION_SEED: &[u8] = b"contribution";
 pub const AD_SLOT_SEED: &[u8] = b"ad_slot";
 pub const USER_SCORE_SEED: &[u8] = b"user_score";
 
-/// $SKR Token — EXISTING mint on Solana
-/// Mint address: SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
+/// $SKR Token — EXISTING mint on Solana [H-01 FIX] Hardcoded for on-chain validation
+pub const SKR_MINT: Pubkey = pubkey!("SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3");
 pub const SKR_DECIMALS: u8 = 6;
+
+/// Ad slot limits [L-01 FIX]
+pub const MAX_AD_SLOTS_PER_TYPE: u8 = 20;
 
 /// Default pricing (in $SKR smallest unit = 10^-6)
 /// 2000 $SKR = 2_000_000_000 smallest units

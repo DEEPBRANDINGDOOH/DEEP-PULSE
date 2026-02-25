@@ -77,6 +77,16 @@ cmdline-tools/
 # === Claude metadata ===
 .claude/
 
+# === Firebase Cloud Functions ===
+functions/node_modules/
+functions/package-lock.json
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+firestore-debug.log
+pubsub-debug.log
+.firebase/
+
 # === Temporary ===
 *.tmp
 *.temp

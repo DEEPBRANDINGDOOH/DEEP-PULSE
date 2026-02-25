@@ -64,6 +64,8 @@ pub fn purchase_ad_slot(
 ) -> Result<()> {
     require!(duration_weeks >= 1, DeepPulseError::InvalidAdDuration);
     require!(duration_weeks <= 52, DeepPulseError::InvalidAdDuration); // Max 1 year
+    // [L-01 FIX] Limit number of ad slots per type
+    require!(slot_index < MAX_AD_SLOTS_PER_TYPE, DeepPulseError::AdSlotIndexExceeded);
 
     let config = &ctx.accounts.platform_config;
     let clock = Clock::get()?;
@@ -193,6 +195,10 @@ pub struct ExpireAdSlot<'info> {
     )]
     pub ad_slot: Account<'info, AdSlot>,
 
+    /// [H-02 FIX] Validate hub matches the ad slot's hub
+    #[account(
+        constraint = hub.key() == ad_slot.hub,
+    )]
     pub hub: Account<'info, Hub>,
 }
 

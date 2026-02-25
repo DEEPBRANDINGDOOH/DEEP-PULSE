@@ -120,4 +120,15 @@ pub enum DeepPulseError {
     // === Scoring ===
     #[msg("Score calculation overflow")]
     ScoreOverflow,
+
+    // === Platform [M-05 FIX] ===
+    #[msg("Platform is currently paused")]
+    PlatformPaused,
+
+    // === Validation [M-01, L-01 FIX] ===
+    #[msg("Minimum vault contribution must be greater than zero")]
+    MinContributionZero,
+
+    #[msg("Ad slot index exceeds maximum allowed")]
+    AdSlotIndexExceeded,
 }

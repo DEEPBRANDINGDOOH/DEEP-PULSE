@@ -43,7 +43,7 @@ pub struct CreateDeposit<'info> {
 
     /// CHECK: Escrow PDA authority (same seeds as escrow_token_account for signing)
     #[account(
-        seeds = [ESCROW_SEED, deposit.key().as_ref()],
+        seeds = [ESCROW_AUTHORITY_SEED, deposit.key().as_ref()],
         bump,
     )]
     pub escrow_authority: SystemAccount<'info>,
@@ -129,49 +129,15 @@ pub fn create_deposit(
     deposit.deposit_index = deposit_index;
     deposit.bump = ctx.bumps.deposit;
 
-    // Update user score if present
+    // [H-03 FIX] Only increment action count on deposit creation (no score yet).
+    // Score is awarded on APPROVAL, preventing farming via spam deposits.
     if let Some(score) = &mut ctx.accounts.user_score {
-        let (action_type, score_delta) = match deposit_type {
-            DepositType::Feedback => (ActionType::Feedback, SCORE_FEEDBACK),
-            DepositType::Talent => (ActionType::TalentSubmit, SCORE_TALENT),
-            DepositType::DaoProposal => (ActionType::DaoBoost, SCORE_DAO_BOOST),
-        };
-
-        match deposit_type {
-            DepositType::Feedback => {
-                score.feedback_count = score
-                    .feedback_count
-                    .checked_add(1)
-                    .ok_or(DeepPulseError::ScoreOverflow)?;
-            }
-            DepositType::Talent => {
-                score.talent_submit_count = score
-                    .talent_submit_count
-                    .checked_add(1)
-                    .ok_or(DeepPulseError::ScoreOverflow)?;
-            }
-            DepositType::DaoProposal => {
-                score.dao_boost_count = score
-                    .dao_boost_count
-                    .checked_add(1)
-                    .ok_or(DeepPulseError::ScoreOverflow)?;
-            }
-        }
-
-        score.total_score = score
-            .total_score
-            .checked_add(score_delta)
-            .ok_or(DeepPulseError::ScoreOverflow)?;
-        score.action_types_used |= 1 << (action_type as u8);
+        score.action_types_used |= 1 << (match deposit_type {
+            DepositType::Feedback => ActionType::Feedback,
+            DepositType::Talent => ActionType::TalentSubmit,
+            DepositType::DaoProposal => ActionType::DaoBoost,
+        } as u8);
         score.last_activity = clock.unix_timestamp;
-
-        emit!(ActionRecorded {
-            user: ctx.accounts.depositor.key(),
-            action_type: action_type as u8,
-            score_delta,
-            new_total_score: score.total_score,
-            timestamp: clock.unix_timestamp,
-        });
     }
 
     emit!(DepositCreated {
@@ -221,7 +187,7 @@ pub struct ApproveFeedback<'info> {
 
     /// CHECK: Escrow PDA authority for signing
     #[account(
-        seeds = [ESCROW_SEED, deposit.key().as_ref()],
+        seeds = [ESCROW_AUTHORITY_SEED, deposit.key().as_ref()],
         bump,
     )]
     pub escrow_authority: SystemAccount<'info>,
@@ -243,7 +209,8 @@ pub struct ApproveFeedback<'info> {
 pub fn approve_feedback(ctx: Context<ApproveFeedback>) -> Result<()> {
     let deposit_key = ctx.accounts.deposit.key();
     let escrow_bump = ctx.bumps.escrow_authority;
-    let escrow_seeds = &[ESCROW_SEED, deposit_key.as_ref(), &[escrow_bump]];
+    // [C-02 FIX] Use ESCROW_AUTHORITY_SEED to match escrow_authority PDA
+    let escrow_seeds = &[ESCROW_AUTHORITY_SEED, deposit_key.as_ref(), &[escrow_bump]];
     let signer_seeds = &[&escrow_seeds[..]];
 
     // Transfer escrow → depositor (refund)
@@ -324,7 +291,7 @@ pub struct ApproveDaoProposal<'info> {
 
     /// CHECK: Escrow PDA authority — validated by seeds
     #[account(
-        seeds = [ESCROW_SEED, deposit.key().as_ref()],
+        seeds = [ESCROW_AUTHORITY_SEED, deposit.key().as_ref()],
         bump,
     )]
     pub escrow_authority: UncheckedAccount<'info>,
@@ -408,7 +375,8 @@ pub fn approve_dao_proposal(
 
     let deposit_key = ctx.accounts.deposit.key();
     let escrow_bump = ctx.bumps.escrow_authority;
-    let escrow_seeds = &[ESCROW_SEED, deposit_key.as_ref(), &[escrow_bump]];
+    // [C-02 FIX] Use ESCROW_AUTHORITY_SEED to match escrow_authority PDA
+    let escrow_seeds = &[ESCROW_AUTHORITY_SEED, deposit_key.as_ref(), &[escrow_bump]];
     let signer_seeds = &[&escrow_seeds[..]];
 
     // Refund escrow → depositor
@@ -557,7 +525,7 @@ pub struct ApproveTalent<'info> {
 
     /// CHECK: Escrow PDA authority
     #[account(
-        seeds = [ESCROW_SEED, deposit.key().as_ref()],
+        seeds = [ESCROW_AUTHORITY_SEED, deposit.key().as_ref()],
         bump,
     )]
     pub escrow_authority: SystemAccount<'info>,
@@ -578,7 +546,8 @@ pub struct ApproveTalent<'info> {
 pub fn approve_talent(ctx: Context<ApproveTalent>) -> Result<()> {
     let deposit_key = ctx.accounts.deposit.key();
     let escrow_bump = ctx.bumps.escrow_authority;
-    let escrow_seeds = &[ESCROW_SEED, deposit_key.as_ref(), &[escrow_bump]];
+    // [C-02 FIX] Use ESCROW_AUTHORITY_SEED to match escrow_authority PDA
+    let escrow_seeds = &[ESCROW_AUTHORITY_SEED, deposit_key.as_ref(), &[escrow_bump]];
     let signer_seeds = &[&escrow_seeds[..]];
 
     // Refund escrow → depositor
@@ -656,7 +625,7 @@ pub struct RejectDeposit<'info> {
 
     /// CHECK: Escrow PDA authority
     #[account(
-        seeds = [ESCROW_SEED, deposit.key().as_ref()],
+        seeds = [ESCROW_AUTHORITY_SEED, deposit.key().as_ref()],
         bump,
     )]
     pub escrow_authority: SystemAccount<'info>,
@@ -685,7 +654,8 @@ pub struct RejectDeposit<'info> {
 pub fn reject_deposit(ctx: Context<RejectDeposit>) -> Result<()> {
     let deposit_key = ctx.accounts.deposit.key();
     let escrow_bump = ctx.bumps.escrow_authority;
-    let escrow_seeds = &[ESCROW_SEED, deposit_key.as_ref(), &[escrow_bump]];
+    // [C-02 FIX] Use ESCROW_AUTHORITY_SEED to match escrow_authority PDA
+    let escrow_seeds = &[ESCROW_AUTHORITY_SEED, deposit_key.as_ref(), &[escrow_bump]];
     let signer_seeds = &[&escrow_seeds[..]];
 
     // Transfer escrow → treasury (platform keeps the deposit)
