@@ -17,6 +17,10 @@ global.Buffer = Buffer;
 import { AppRegistry } from 'react-native';
 import App from './App';
 
+// Setup Firebase background message handler (must be at root level, outside components)
+import { notificationService } from './src/services/notificationService';
+notificationService.setupBackgroundHandler();
+
 // Register as 'main' for Expo Go compatibility, and also with app name
 AppRegistry.registerComponent('main', () => App);
 AppRegistry.registerComponent('DeepPulse', () => App);

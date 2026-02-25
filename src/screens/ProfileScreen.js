@@ -186,9 +186,10 @@ export default function ProfileScreen({ navigation }) {
           Alert.alert('Disconnect Wallet', 'Are you sure you want to disconnect your wallet?', [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Disconnect', style: 'destructive', onPress: () => {
+              const authToken = useAppStore.getState().wallet?.authToken;
               clearWallet();
               setWalletState(null, null); // Clear transaction helper state
-              try { walletAdapter.disconnect(); } catch(e) {}
+              try { walletAdapter.disconnect(authToken); } catch(e) {}
               navigation.replace('Onboarding');
             }},
           ]);

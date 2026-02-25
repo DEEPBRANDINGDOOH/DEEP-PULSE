@@ -9,6 +9,7 @@
 import { Alert } from 'react-native';
 import { programService } from './programService';
 import { walletAdapter } from './walletAdapter';
+import { notificationService } from './notificationService';
 import { PRICING, DEPOSITS } from '../config/constants';
 
 // ============================================
@@ -88,6 +89,12 @@ export const executeTransaction = async (actionName, txFn, options = {}) => {
 export const subscribeToHub = async (hubPda) => {
   return executeTransaction('Subscribe', async () => {
     const result = await programService.subscribeToHub(hubPda);
+    // Subscribe to FCM topic for push notifications
+    try {
+      await notificationService.subscribeToHub(hubPda.toString());
+    } catch (e) {
+      console.warn('[FCM] Topic subscribe failed (non-blocking):', e.message);
+    }
     return result;
   }, {
     onSuccess: () => {
@@ -102,6 +109,12 @@ export const subscribeToHub = async (hubPda) => {
 export const unsubscribeFromHub = async (hubPda) => {
   return executeTransaction('Unsubscribe', async () => {
     const result = await programService.unsubscribeFromHub(hubPda);
+    // Unsubscribe from FCM topic
+    try {
+      await notificationService.unsubscribeFromHub(hubPda.toString());
+    } catch (e) {
+      console.warn('[FCM] Topic unsubscribe failed (non-blocking):', e.message);
+    }
     return result;
   }, {
     onSuccess: () => {

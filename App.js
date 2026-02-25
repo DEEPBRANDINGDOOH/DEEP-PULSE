@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { notificationService } from './src/services/notificationService';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -120,6 +121,40 @@ function MainTabs() {
 
 // Main App with Stack Navigator
 const App = () => {
+  // Bootstrap Firebase push notification listeners
+  useEffect(() => {
+    const bootstrapNotifications = async () => {
+      try {
+        // Request permission + get FCM token
+        await notificationService.registerForPushNotifications();
+
+        // Listen for foreground notifications
+        notificationService.addForegroundListener((notification) => {
+          console.log('[App] Foreground notification:', notification.title);
+        });
+
+        // Handle notifications that opened the app
+        notificationService.getInitialNotification((data) => {
+          console.log('[App] Notification opened app:', data);
+          // TODO: Navigate to relevant screen based on data
+        });
+
+        // Listen for token refresh
+        notificationService.onTokenRefresh((newToken) => {
+          console.log('[App] FCM token refreshed');
+        });
+      } catch (e) {
+        console.warn('[App] Notification bootstrap failed:', e.message);
+      }
+    };
+
+    bootstrapNotifications();
+
+    return () => {
+      notificationService.removeForegroundListener();
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#0c0c0e" />

@@ -445,13 +445,11 @@ class ProgramService {
         connection: this.connection,
       });
 
-      // Check if user score exists
+      // Check if user score account exists (getAccountInfo returns null, doesn't throw)
       let userScore = null;
-      try {
-        await this.connection.getAccountInfo(userScorePda);
+      const userScoreInfo = await this.connection.getAccountInfo(userScorePda);
+      if (userScoreInfo) {
         userScore = userScorePda;
-      } catch {
-        userScore = null;
       }
 
       const ix = await program.methods
@@ -519,13 +517,11 @@ class ProgramService {
       // Map string type to enum
       const typeEnum = { [depositType]: {} };
 
-      // Check if user score exists
+      // Check if user score account exists (getAccountInfo returns null, doesn't throw)
       let userScore = null;
-      try {
-        await this.connection.getAccountInfo(userScorePda);
+      const userScoreInfo = await this.connection.getAccountInfo(userScorePda);
+      if (userScoreInfo) {
         userScore = userScorePda;
-      } catch {
-        userScore = null;
       }
 
       const ix = await program.methods
@@ -736,13 +732,11 @@ class ProgramService {
         connection: this.connection,
       });
 
-      // Check if user score exists
+      // Check if user score account exists (getAccountInfo returns null, doesn't throw)
       let userScore = null;
-      try {
-        await this.connection.getAccountInfo(userScorePda);
+      const userScoreInfo = await this.connection.getAccountInfo(userScorePda);
+      if (userScoreInfo) {
         userScore = userScorePda;
-      } catch {
-        userScore = null;
       }
 
       const ix = await program.methods
