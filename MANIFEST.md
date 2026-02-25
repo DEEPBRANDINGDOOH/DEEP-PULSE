@@ -285,7 +285,7 @@ Ces fichiers seront générés automatiquement:
 ## ✅ CHECKLIST UTILISATION
 
 ### Avant de commencer:
-- [ ] Node.js 18+ installé
+- [ ] Node.js 20+ installé
 - [ ] Android Studio + SDK installés
 - [ ] ANDROID_HOME configuré
 - [ ] Java JDK 17 installé

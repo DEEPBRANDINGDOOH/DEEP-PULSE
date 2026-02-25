@@ -232,7 +232,7 @@ Hackathon Submission — March 2026
 - 23 smart contract instructions
 - 17 mobile screens
 - 8 on-chain account types
-- 30 custom error codes
+- 33 custom error codes
 - 19 on-chain events
 - 6 services (program, wallet, transaction, notification, lockscreen, storage)
 
