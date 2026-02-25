@@ -151,7 +151,7 @@ dependencies {
 - Discover hubs (FREE)
 - Subscribe (0 $SKR)
 - My Hubs notifications
-- Send feedback (400 $SKR)
+- Send feedback (300 $SKR)
 - Profile + wallet
 - Transaction history
 
@@ -160,6 +160,7 @@ dependencies {
 - Send notifications
 - Moderation approve/reject
 - Ad slots purchase (2K/1.5K)
+- Discord → Hub notification pipeline (auto-forward announcements)
 - Analytics dashboard
 - Subscription billing
 

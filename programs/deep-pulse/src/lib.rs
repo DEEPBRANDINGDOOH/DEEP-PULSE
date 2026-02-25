@@ -123,7 +123,7 @@ pub mod deep_pulse {
     // DEPOSIT / ESCROW INSTRUCTIONS
     // ============================================
 
-    /// Create a deposit (feedback=400, dao_proposal=100, talent=50 $SKR)
+    /// Create a deposit (feedback=300, dao_proposal=100, talent=50 $SKR)
     /// Tokens locked in escrow PDA until brand moderates
     pub fn create_deposit(
         ctx: Context<CreateDeposit>,

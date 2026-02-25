@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
 pub enum DepositType {
-    /// Feedback deposit — 400 $SKR
+    /// Feedback deposit — 300 $SKR
     Feedback = 0,
     /// DAO Boost Proposal deposit — 100 $SKR
     DaoProposal = 1,

@@ -66,7 +66,7 @@ Quand un annonceur achete un ad slot (AdSlotsScreen), au lieu de "Your ad will s
   - Header: hub icon + hub name + subscriber count
   - Liste des notifications du hub (filtrees par hubName)
   - Chaque notif = card clickable (ouvre detail, voir Feature 6)
-  - Bouton "Send Feedback" sur chaque notif (400 $SKR)
+  - Bouton "Send Feedback" sur chaque notif (300 $SKR)
   - Bouton "Hub Dashboard" en haut (pour les brand owners)
 - Mock data: MOCK_HUB_NOTIFICATIONS filtre par hubId
 - Navigation: nouveau Stack.Screen "HubNotifications" dans App.js
@@ -83,7 +83,7 @@ Quand un annonceur achete un ad slot (AdSlotsScreen), au lieu de "Your ad will s
   - Message complet (texte integral)
   - Lien de redirection si disponible (TouchableOpacity avec Linking.openURL)
   - Stats: reactions, comments
-  - Bouton "Send Feedback" (400 $SKR) en bas avec modal
+  - Bouton "Send Feedback" (300 $SKR) en bas avec modal
   - Bouton "Share"
 - Navigation: nouveau Stack.Screen "NotificationDetail" dans App.js
 

@@ -13,7 +13,7 @@
 - [Architecture du programme](#architecture-du-programme)
 - [Token $SKR](#token-skr)
 - [Comptes on-chain (State)](#comptes-on-chain-state)
-- [Instructions (20)](#instructions-20)
+- [Instructions (23)](#instructions-23)
 - [Événements](#événements)
 - [Codes d'erreur](#codes-derreur)
 - [Sécurité](#sécurité)
@@ -45,7 +45,7 @@ Ce document couvre le **programme Anchor on-chain** qui remplace toute la logiqu
 | Atomicité | Pas de CPI entre modules = transactions atomiques garanties |
 | Simplicité | Un seul Program ID à gérer côté frontend |
 | Déploiement | Une seule commande `anchor deploy` |
-| Maintenance | ~20 instructions, taille modérée |
+| Maintenance | ~23 instructions, taille modérée |
 
 ---
 
@@ -78,9 +78,9 @@ deep-pulse-complete/
 ├── programs/deep-pulse/
 │   ├── Cargo.toml                       # Dépendances (anchor-lang 0.30.1, anchor-spl)
 │   └── src/
-│       ├── lib.rs                       # declare_id!, #[program], 20 instructions
+│       ├── lib.rs                       # declare_id!, #[program], 23 instructions
 │       ├── constants.rs                 # Seeds PDA, pricing, scoring, limites
-│       ├── errors.rs                    # 25 codes d'erreur
+│       ├── errors.rs                    # 33 codes d'erreur
 │       ├── events.rs                    # 18 événements on-chain
 │       ├── instructions/
 │       │   ├── mod.rs
@@ -163,11 +163,11 @@ admin: Pubkey                    // Administrateur plateforme
 treasury: Pubkey                 // PDA Treasury (reçoit les fees)
 skr_mint: Pubkey                 // Mint $SKR existant
 hub_subscription_price: u64      // 2,000 $SKR (défaut)
-feedback_deposit: u64            // 400 $SKR
+feedback_deposit: u64            // 300 $SKR
 dao_proposal_deposit: u64        // 100 $SKR
 talent_deposit: u64              // 50 $SKR
-top_ad_price_per_week: u64       // 500 $SKR
-bottom_ad_price_per_week: u64    // 250 $SKR
+top_ad_price_per_week: u64       // 1,500 $SKR
+bottom_ad_price_per_week: u64    // 800 $SKR
 dao_brand_share_bps: u16         // 9500 (95%)
 dao_platform_share_bps: u16      // 500 (5%)
 min_vault_contribution: u64      // 10 $SKR
@@ -216,7 +216,7 @@ bump: u8
 ```
 depositor: Pubkey
 hub: Pubkey
-deposit_type: DepositType        // Feedback (400), DaoProposal (100), Talent (50)
+deposit_type: DepositType        // Feedback (300), DaoProposal (100), Talent (50)
 amount: u64
 status: DepositStatus            // Pending → Approved | Rejected
 content_hash: [u8; 32]           // SHA-256 du contenu soumis
@@ -335,7 +335,7 @@ bump: u8
 
 | Instruction | Description | Coût $SKR | Signataire |
 |-------------|-------------|-----------|------------|
-| `create_deposit` | Verrouille les $SKR dans un escrow PDA. Type : Feedback (400), DaoProposal (100), Talent (50). | Variable | User |
+| `create_deposit` | Verrouille les $SKR dans un escrow PDA. Type : Feedback (300), DaoProposal (100), Talent (50). | Variable | User |
 | `approve_feedback` | Rembourse l'escrow au déposant. Ferme le compte escrow. | 0 | Brand |
 | `approve_dao_proposal` | Rembourse + crée un DaoVault avec les paramètres fournis. | 0 | Brand |
 | `approve_talent` | Rembourse l'escrow au déposant. Ferme le compte escrow. | 0 | Brand |
@@ -468,7 +468,7 @@ Conformément aux bonnes pratiques de [`solana-foundation/solana-dev-skill`](htt
 |--------|---------|-------|
 | Création de hub | 2,000 $SKR | Brand crée un hub |
 | Renouvellement hub | 2,000 $SKR/mois | Brand renouvelle |
-| Feedback rejeté | 400 $SKR | Brand rejette un feedback |
+| Feedback rejeté | 300 $SKR | Brand rejette un feedback |
 | Proposal rejeté | 100 $SKR | Brand rejette une proposal |
 | Talent rejeté | 50 $SKR | Brand rejette un talent |
 | Fee DAO Vault | 5% du total | Vault atteint son objectif |
@@ -645,10 +645,10 @@ await programService.contributeToVault(vaultPda, 500_000_000); // 500 $SKR
 
 ```
 1. User ouvre un hub
-2. User soumet un feedback → create_deposit(Feedback) → 400 $SKR en escrow
+2. User soumet un feedback → create_deposit(Feedback) → 300 $SKR en escrow
 3. Brand voit le feedback dans l'onglet modération
-4a. Brand approuve → approve_feedback() → 400 $SKR retournés au user
-4b. Brand rejette → reject_deposit() → 400 $SKR vers treasury
+4a. Brand approuve → approve_feedback() → 300 $SKR retournés au user
+4b. Brand rejette → reject_deposit() → 300 $SKR vers treasury
 ```
 
 ### Flux DAO Boost

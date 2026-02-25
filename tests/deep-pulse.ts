@@ -59,7 +59,7 @@ describe("deep-pulse", () => {
   // === Constants (match Rust) ===
   const SKR_DECIMALS = 6;
   const HUB_SUBSCRIPTION_PRICE = 2_000_000_000; // 2000 $SKR
-  const FEEDBACK_DEPOSIT = 400_000_000; // 400 $SKR
+  const FEEDBACK_DEPOSIT = 300_000_000; // 300 $SKR
   const DAO_PROPOSAL_DEPOSIT = 100_000_000; // 100 $SKR
   const TALENT_DEPOSIT = 50_000_000; // 50 $SKR
   const MINT_AMOUNT = 100_000_000_000; // 100,000 $SKR per wallet

@@ -168,7 +168,7 @@ export default function BrandBoostScreen({ navigation }) {
         
         <View className="flex-row items-start mb-3">
           <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-          <Text className="text-text ml-2 flex-1">Receive user feedback (500 $SKR each)</Text>
+          <Text className="text-text ml-2 flex-1">Receive user feedback (300 $SKR each)</Text>
         </View>
         
         <View className="flex-row items-start">
@@ -242,7 +242,7 @@ export default function BrandBoostScreen({ navigation }) {
           <FeatureCard
             icon="chatbubbles"
             title="Valuable Feedback"
-            description="Receive direct feedback from your community. Users pay 500 $SKR per feedback, ensuring quality insights."
+            description="Receive direct feedback from your community. Users pay 300 $SKR per feedback, ensuring quality insights."
           />
 
           <FeatureCard

@@ -35,14 +35,14 @@ log_error() {
 echo "1️⃣  Checking Node.js..."
 if ! command -v node &> /dev/null; then
     log_error "Node.js not found!"
-    echo "Install Node.js 18+ from: https://nodejs.org"
+    echo "Install Node.js 20+ from: https://nodejs.org"
     exit 1
 fi
 
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
 if [ "$NODE_VERSION" -lt 18 ]; then
     log_error "Node.js version too old: $(node -v)"
-    echo "Require Node.js 18+. Install from: https://nodejs.org"
+    echo "Require Node.js 20+. Install from: https://nodejs.org"
     exit 1
 fi
 log_success "Node.js $(node -v) ✓"
