@@ -291,7 +291,6 @@ exports.sendPushToSubscribers = onCall(async (request) => {
  * The filename encodes: {timestamp}_{slotType}.{ext}
  */
 exports.onAdCreativeUploaded = onObjectFinalized(
-  { bucket: undefined }, // default bucket
   async (event) => {
     const filePath = event.data.name;
     const contentType = event.data.contentType;
@@ -337,7 +336,8 @@ exports.onAdCreativeUploaded = onObjectFinalized(
       downloadUrl = signedUrl;
     } catch (err) {
       // Fallback: construct public URL (requires public access or client getDownloadURL)
-      downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${event.data.bucket}/o/${encodeURIComponent(filePath)}?alt=media`;
+      downloadUrl = "https://firebasestorage.googleapis.com/v0/b/" +
+        `${event.data.bucket}/o/${encodeURIComponent(filePath)}?alt=media`;
       logger.warn("Signed URL failed, using public URL fallback:", err.message);
     }
 
