@@ -65,7 +65,7 @@
 |  React Native App |  Firebase Backend   |  Anchor Program         |
 |  (Solana Mobile)  |  (Cloud Functions)  |  (Solana Blockchain)    |
 |                   |                     |                         |
-|  17 screens       |  10 serverless      |  24 instructions        |
+|  17 screens       |  10 serverless      |  23 instructions        |
 |  MWA 2.0          |  functions          |  8 account types        |
 |  NativeWind UI    |  FCM push delivery  |  19 events              |
 |  Zustand store    |  Analytics engine   |  33 error codes         |
@@ -182,7 +182,7 @@ deep-pulse-complete/
 |-- programs/deep-pulse/               # === SOLANA PROGRAM (Anchor / Rust) ===
 |   |-- Cargo.toml                     # Rust deps: anchor-lang 0.30.1, anchor-spl
 |   +-- src/
-|       |-- lib.rs                     # Program entry point — 24 instructions
+|       |-- lib.rs                     # Program entry point — 23 instructions
 |       |-- constants.rs               # PDA seeds, pricing defaults, scoring
 |       |-- errors.rs                  # 33 error codes
 |       |-- events.rs                  # 19 on-chain events for indexing
@@ -240,7 +240,7 @@ deep-pulse-complete/
 |   |   +-- appStore.js                # Zustand + AsyncStorage persist
 |   |-- config/
 |   |   |-- constants.js               # App config, pricing, $SKR mint, scoring
-|   |   +-- deep_pulse_idl.json        # Anchor IDL (24 instructions, imported locally)
+|   |   +-- deep_pulse_idl.json        # Anchor IDL (23 instructions, imported locally)
 |   |-- data/
 |   |   +-- mockData.js                # Development mock data
 |   +-- utils/
@@ -250,7 +250,7 @@ deep-pulse-complete/
 |-- android-config/                     # Pre-configured Android files (MWA ready)
 |-- web-preview/                        # Browser preview (no emulator needed)
 |-- idl/
-|   +-- deep_pulse.json                # Anchor IDL (24 instructions, auto-generated)
+|   +-- deep_pulse.json                # Anchor IDL (23 instructions, auto-generated)
 |-- scripts/
 |   |-- deploy-devnet.sh                # Automated devnet deploy (balance check + airdrop + deploy)
 |   |-- init-devnet.ts                  # Platform initialization (custom pricing + test hub)
