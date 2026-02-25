@@ -13,8 +13,8 @@
  */
 export const APP_IDENTITY = {
   name: 'Deep Pulse',
-  uri: 'https://deeppulse.app', // Replace with your actual domain
-  icon: 'favicon.ico', // Relative to uri, or absolute URL
+  uri: 'https://deep-pulse.web.app',
+  icon: 'favicon.ico',
 };
 
 // ========================================
@@ -279,9 +279,9 @@ export const DAO_SPLIT = {
 // API ENDPOINTS
 // ========================================
 
-export const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:3000/api' 
-  : 'https://api.deeppulse.app/api';
+export const API_BASE_URL = __DEV__
+  ? 'http://localhost:3000/api'
+  : 'https://us-central1-deep-pulse.cloudfunctions.net';
 
 export const API_ENDPOINTS = {
   // Users

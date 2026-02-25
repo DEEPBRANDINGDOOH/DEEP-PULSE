@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEEP Pulse — Web3 Notification Hub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+    }
+    .logo {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(90deg, #9945FF, #14F195);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .tagline {
+      font-size: 1.2rem;
+      color: #888;
+      margin-bottom: 2rem;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .feature {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(153,69,255,0.3);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .feature-title { font-weight: 600; font-size: 0.9rem; }
+    .badges {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .badge {
+      background: rgba(153,69,255,0.2);
+      border: 1px solid rgba(153,69,255,0.4);
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      color: #c4a0ff;
+    }
+    .cta {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .cta a { color: #14F195; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🔔</div>
+    <h1>DEEP Pulse</h1>
+    <p class="tagline">Decentralized Web3 Notification Hub for Solana Mobile</p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">📡</div>
+        <div class="feature-title">Smart Hubs</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🏛️</div>
+        <div class="feature-title">DAO Governance</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">💎</div>
+        <div class="feature-title">DEEP Score</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Ad Marketplace</div>
+      </div>
+    </div>
+
+    <div class="badges">
+      <span class="badge">Solana Seeker</span>
+      <span class="badge">SeedVault</span>
+      <span class="badge">MWA 2.0</span>
+      <span class="badge">Anchor</span>
+    </div>
+
+    <p class="cta">
+      Built for <a href="https://solanamobile.com/seeker" target="_blank">Solana Mobile Seeker</a>
+    </p>
+  </div>
+</body>
+</html>
