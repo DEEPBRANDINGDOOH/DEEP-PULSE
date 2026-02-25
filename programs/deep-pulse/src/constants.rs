@@ -26,16 +26,16 @@ pub const MAX_AD_SLOTS_PER_TYPE: u8 = 20;
 /// Default pricing (in $SKR smallest unit = 10^-6)
 /// 2000 $SKR = 2_000_000_000 smallest units
 pub const DEFAULT_HUB_SUBSCRIPTION_PRICE: u64 = 2_000_000_000;
-/// 400 $SKR
-pub const DEFAULT_FEEDBACK_DEPOSIT: u64 = 400_000_000;
+/// 300 $SKR — aligned with frontend PRICING.FEEDBACK
+pub const DEFAULT_FEEDBACK_DEPOSIT: u64 = 300_000_000;
 /// 100 $SKR
 pub const DEFAULT_DAO_PROPOSAL_DEPOSIT: u64 = 100_000_000;
 /// 50 $SKR
 pub const DEFAULT_TALENT_DEPOSIT: u64 = 50_000_000;
 
-/// Default ad slot prices per week
-pub const DEFAULT_TOP_AD_PRICE_PER_WEEK: u64 = 500_000_000; // 500 $SKR
-pub const DEFAULT_BOTTOM_AD_PRICE_PER_WEEK: u64 = 250_000_000; // 250 $SKR
+/// Default ad slot prices per week — aligned with frontend PRICING
+pub const DEFAULT_TOP_AD_PRICE_PER_WEEK: u64 = 1_500_000_000; // 1500 $SKR
+pub const DEFAULT_BOTTOM_AD_PRICE_PER_WEEK: u64 = 800_000_000; // 800 $SKR
 
 /// DAO Vault split (basis points, total must = 10000)
 pub const DEFAULT_DAO_BRAND_SHARE_BPS: u16 = 9500; // 95%

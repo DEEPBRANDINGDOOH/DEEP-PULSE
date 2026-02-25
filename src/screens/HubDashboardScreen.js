@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
@@ -9,6 +9,9 @@ export default function HubDashboardScreen({ navigation, route }) {
   const { wallet } = useAppStore();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [discordWebhook, setDiscordWebhook] = useState('');
+  const [discordConnected, setDiscordConnected] = useState(false);
+  const [discordChannel, setDiscordChannel] = useState('');
 
   const stats = {
     sent: 342,
@@ -163,6 +166,104 @@ export default function HubDashboardScreen({ navigation, route }) {
               <Ionicons name="chevron-forward" size={20} color="#FF9F66" />
             </View>
           </TouchableOpacity>
+
+          {/* Discord Integration */}
+          <Text className="text-text font-bold text-xl mb-4 mt-2">Integrations</Text>
+
+          <View className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
+            <View className="flex-row items-center mb-3">
+              <View className="w-10 h-10 rounded-full bg-indigo-500/20 items-center justify-center">
+                <Ionicons name="logo-discord" size={22} color="#5865F2" />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-text font-bold text-base">Connect Discord</Text>
+                <Text className="text-text-secondary text-xs">
+                  Auto-forward your Discord announcements to hub subscribers
+                </Text>
+              </View>
+              {discordConnected && (
+                <View className="bg-green-500/20 rounded-full px-2 py-1">
+                  <Text className="text-green-400 text-xs font-bold">LIVE</Text>
+                </View>
+              )}
+            </View>
+
+            {!discordConnected ? (
+              <>
+                <Text className="text-text-secondary text-xs mb-2">
+                  Connect your Discord server's <Text className="text-text font-bold">#major-announcements</Text> channel. Only important news from this channel will be forwarded as push notifications to your hub subscribers.
+                </Text>
+                <TextInput
+                  value={discordWebhook}
+                  onChangeText={setDiscordWebhook}
+                  placeholder="https://discord.com/api/webhooks/..."
+                  placeholderTextColor="#666"
+                  className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border text-xs"
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  value={discordChannel}
+                  onChangeText={setDiscordChannel}
+                  placeholder="#major-announcements"
+                  placeholderTextColor="#666"
+                  className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border"
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  className="bg-indigo-600 rounded-xl py-3"
+                  onPress={() => {
+                    if (!discordWebhook.trim() || !discordWebhook.includes('discord.com/api/webhooks')) {
+                      Alert.alert('Invalid Webhook', 'Please paste a valid Discord webhook URL.\n\nTo get one: Discord Server Settings → Integrations → Webhooks → New Webhook → Copy URL');
+                      return;
+                    }
+                    Alert.alert(
+                      'Connect Discord',
+                      `Connect ${discordChannel || '#major-announcements'} to "${hubName}"?\n\nOnly major announcements from this channel will be forwarded as push notifications to your ${stats.subscribers.toLocaleString()} subscribers.`,
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Connect', onPress: () => {
+                          setDiscordConnected(true);
+                          Alert.alert('Connected!', `Discord → ${hubName} pipeline is now live.\n\nYour subscribers will receive push notifications for major announcements from ${discordChannel || '#major-announcements'}.`);
+                        }},
+                      ]
+                    );
+                  }}
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="logo-discord" size={18} color="#fff" />
+                    <Text className="text-white font-bold ml-2">Connect Channel</Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View>
+                <View className="flex-row items-center bg-green-500/10 rounded-xl p-3 mb-3">
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text className="text-green-400 font-semibold ml-2 flex-1">
+                    {discordChannel || 'Discord'} → {hubName} is live
+                  </Text>
+                </View>
+                <Text className="text-text-secondary text-xs mb-3">
+                  Major announcements from {discordChannel || '#major-announcements'} are automatically forwarded as push notifications to your {stats.subscribers.toLocaleString()} subscribers.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert('Disconnect Discord', 'Stop forwarding Discord messages to this hub?', [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Disconnect', style: 'destructive', onPress: () => {
+                        setDiscordConnected(false);
+                        setDiscordWebhook('');
+                        setDiscordChannel('');
+                      }},
+                    ]);
+                  }}
+                  className="bg-red-500/10 rounded-xl py-2 border border-red-500/30"
+                >
+                  <Text className="text-red-400 font-semibold text-center text-sm">Disconnect</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           <TouchableOpacity
             onPress={() => Alert.alert('Billing', `Current subscription: 2,000 $SKR/month\nNext renewal in 23 days`, [

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { MOCK_USER, getTierFromScore, isAdmin } from '../config/constants';
+import { MOCK_USER, SOLANA_CONFIG, getTierFromScore, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState, getWalletPublicKey } from '../services/transactionHelper';
@@ -13,6 +13,21 @@ const MOCK_LEADERBOARD = [
   { rank: 3, wallet: '8vN...4Wp', score: 4150, tier: 'DIAMOND', boost: 28, talent: 15, feedback: 18, streak: 22 },
   { rank: 4, wallet: '5tY...2Lm', score: 3200, tier: 'DIAMOND', boost: 18, talent: 10, feedback: 22, streak: 14 },
   { rank: 5, wallet: '3fR...8Kp', score: 1890, tier: 'GOLD', boost: 12, talent: 5, feedback: 15, streak: 9 },
+  { rank: 6, wallet: '9mT...3Jx', score: 1750, tier: 'GOLD', boost: 10, talent: 7, feedback: 12, streak: 8 },
+  { rank: 7, wallet: '4wB...6Rn', score: 1620, tier: 'GOLD', boost: 9, talent: 6, feedback: 14, streak: 11 },
+  { rank: 8, wallet: '6hD...1Ys', score: 1480, tier: 'GOLD', boost: 8, talent: 4, feedback: 11, streak: 7 },
+  { rank: 9, wallet: '1kF...5Vq', score: 1310, tier: 'GOLD', boost: 7, talent: 3, feedback: 13, streak: 6 },
+  { rank: 10, wallet: '8nG...2Tz', score: 1190, tier: 'GOLD', boost: 6, talent: 5, feedback: 9, streak: 5 },
+  { rank: 11, wallet: '3qH...7Wx', score: 980, tier: 'SILVER', boost: 5, talent: 4, feedback: 8, streak: 4 },
+  { rank: 12, wallet: '5sJ...4Pu', score: 870, tier: 'SILVER', boost: 4, talent: 3, feedback: 7, streak: 3 },
+  { rank: 13, wallet: '2vL...9Nr', score: 760, tier: 'SILVER', boost: 3, talent: 2, feedback: 10, streak: 5 },
+  { rank: 14, wallet: '7yM...1Kp', score: 650, tier: 'SILVER', boost: 3, talent: 2, feedback: 6, streak: 2 },
+  { rank: 15, wallet: '4bN...8Hm', score: 540, tier: 'SILVER', boost: 2, talent: 1, feedback: 5, streak: 3 },
+  { rank: 16, wallet: '9eP...3Fk', score: 430, tier: 'SILVER', boost: 2, talent: 1, feedback: 4, streak: 2 },
+  { rank: 17, wallet: '1gQ...6Dj', score: 320, tier: 'SILVER', boost: 1, talent: 1, feedback: 3, streak: 1 },
+  { rank: 18, wallet: '6jR...2Bh', score: 250, tier: 'BRONZE', boost: 1, talent: 0, feedback: 2, streak: 1 },
+  { rank: 19, wallet: '3lS...5Ag', score: 180, tier: 'BRONZE', boost: 0, talent: 1, feedback: 2, streak: 0 },
+  { rank: 20, wallet: '8oT...9Zf', score: 90, tier: 'BRONZE', boost: 0, talent: 0, feedback: 1, streak: 0 },
 ];
 
 /**
@@ -30,6 +45,7 @@ export default function ProfileScreen({ navigation }) {
   const storeWallet = useAppStore((state) => state.wallet);
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [notifMuted, setNotifMuted] = useState(false);
 
   // Use real wallet if connected, otherwise fall back to mock
   const connectedPubkey = getWalletPublicKey();
@@ -143,37 +159,63 @@ export default function ProfileScreen({ navigation }) {
       {/* Settings */}
       <Text className="text-text font-semibold text-lg mb-3">Settings</Text>
 
-      <TouchableOpacity
-        onPress={() => Alert.alert('Theme', 'Dark mode is enabled by default. Light mode coming soon!')}
+      <View
         className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
       >
-        <View className="flex-row items-center">
-          <Ionicons name="moon" size={20} color="#FF9F66" />
-          <Text className="text-text font-semibold ml-3">Toggle Theme</Text>
+        <View className="flex-row items-center flex-1">
+          <Ionicons name={notifMuted ? 'notifications-off' : 'notifications'} size={20} color={notifMuted ? '#666' : '#FF9F66'} />
+          <View className="ml-3 flex-1">
+            <Text className="text-text font-semibold">Notifications</Text>
+            <Text className="text-text-secondary text-xs">
+              {notifMuted ? 'All notifications muted' : 'Notifications enabled'}
+            </Text>
+          </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </TouchableOpacity>
+        <Switch
+          value={!notifMuted}
+          onValueChange={(value) => {
+            setNotifMuted(!value);
+            Alert.alert(
+              value ? 'Notifications Enabled' : 'Notifications Muted',
+              value
+                ? 'You will receive push notifications from your subscribed hubs.'
+                : 'All push notifications have been muted. You can re-enable them anytime.'
+            );
+          }}
+          trackColor={{ false: '#444', true: '#FF9F66' }}
+          thumbColor="#fff"
+        />
+      </View>
 
       <TouchableOpacity
-        onPress={() => Alert.alert('Notifications', 'Push notifications are enabled.\nManage notification preferences for each hub in My Hubs.')}
-        className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
-      >
-        <View className="flex-row items-center">
-          <Ionicons name="notifications" size={20} color="#FF9F66" />
-          <Text className="text-text font-semibold ml-3">Notification Settings</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => Alert.alert('Transaction History', 'Recent transactions:\n\n- Subscribe to Solana Gaming: FREE\n- Feedback deposit: 300 $SKR\n- DAO contribution: 500 $SKR\n\nFull on-chain history available on Solscan.')}
+        onPress={() => {
+          const walletAddr = connectedPubkey ? connectedPubkey.toString() : null;
+          if (!walletAddr) {
+            Alert.alert('Wallet Required', 'Connect your wallet to view transaction history on Solscan.');
+            return;
+          }
+          const programId = SOLANA_CONFIG.PROGRAM_ID;
+          const network = __DEV__ ? '?cluster=devnet' : '';
+          const url = `https://solscan.io/account/${walletAddr}${network}#defiactivities`;
+          Alert.alert(
+            'Transaction History',
+            'View all your DEEP Pulse transactions on Solscan?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Solscan', onPress: () => Linking.openURL(url) },
+            ]
+          );
+        }}
         className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
       >
         <View className="flex-row items-center">
           <Ionicons name="receipt" size={20} color="#FF9F66" />
           <Text className="text-text font-semibold ml-3">Transaction History</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
+        <View className="flex-row items-center">
+          <Ionicons name="open-outline" size={16} color="#666" />
+          <Ionicons name="chevron-forward" size={20} color="#666" className="ml-1" />
+        </View>
       </TouchableOpacity>
 
       {/* Brand Hub Access */}
