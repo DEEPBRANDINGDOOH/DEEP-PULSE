@@ -18,6 +18,7 @@
 - [Project Structure](#project-structure)
 - [Smart Contracts](#smart-contracts)
 - [Frontend](#frontend)
+- [Backend API](#backend-api-firebase-cloud-functions)
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Deployment](#deployment)
@@ -43,8 +44,9 @@
 
 ### Key Differentiators
 
-- **Fully on-chain** — All business logic enforced by a Solana program, no backend required
-- **Solana Mobile native** — Built for MWA 2.0, targets Solana Seeker / Saga
+- **Fully on-chain** — All business logic enforced by a Solana program
+- **Serverless backend** — Firebase Cloud Functions (10 functions) for push notifications, analytics, moderation, ad processing — $0/month on free tier
+- **Solana Mobile native** — Built for MWA 2.0, compatible with Solana Seeker SeedVault + Phantom + Solflare
 - **Existing token** — Uses the $SKR SPL token (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`), no new token creation
 - **Escrow-based deposits** — Tokens locked in PDA escrows until brand moderation resolves
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
@@ -56,28 +58,25 @@
 ## Architecture
 
 ```
-+-----------------------------------------------------------+
-|                    DEEP PULSE PLATFORM                     |
-+---------------------------+-------------------------------+
-|                           |                               |
-|   React Native App        |   Anchor Program (Solana)     |
-|   (Solana Mobile)         |   Single Anchor program       |
-|                           |   24 instructions             |
-|   17 screens              |   8 account types             |
-|   MWA 2.0                 |   19 events                   |
-|   NativeWind UI           |   30 error codes              |
-|   Firebase Cloud Messaging|                               |
-|   Zustand store           |                               |
-|                           |   +-------------------------+ |
-|   programService.js  <----+-->|  deep_pulse program     | |
-|   transactionHelper       |   |                         | |
-|   walletAdapter           |   |  Admin | Hub | Deposit  | |
-|                           |   |  Vault | Ads | Scoring  | |
-|                           |   +-------------------------+ |
-+---------------------------+-------------------------------+
-|          $SKR Token (existing SPL mint on Solana)          |
-|          SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3     |
-+-----------------------------------------------------------+
++-------------------------------------------------------------------+
+|                      DEEP PULSE PLATFORM                           |
++-------------------+---------------------+-------------------------+
+|                   |                     |                         |
+|  React Native App |  Firebase Backend   |  Anchor Program         |
+|  (Solana Mobile)  |  (Cloud Functions)  |  (Solana Blockchain)    |
+|                   |                     |                         |
+|  17 screens       |  10 serverless      |  24 instructions        |
+|  MWA 2.0          |  functions          |  8 account types        |
+|  NativeWind UI    |  FCM push delivery  |  19 events              |
+|  Zustand store    |  Analytics engine   |  33 error codes         |
+|  LockScreen       |  Auto-moderation    |  Security-audited       |
+|                   |  Score sync         |                         |
+|  programService   |  Firestore DB       |  Admin | Hub | Deposit  |
+|  walletAdapter    |  Storage (ads)      |  Vault | Ads | Scoring  |
++-------------------+---------------------+-------------------------+
+|            $SKR Token (existing SPL mint on Solana)                |
+|            SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3           |
++-------------------------------------------------------------------+
 ```
 
 ---
@@ -96,6 +95,8 @@
 | **Styling** | NativeWind (Tailwind) | 2.x |
 | **Navigation** | React Navigation | 6.x |
 | **Push Notifications** | Firebase Cloud Messaging | latest |
+| **Backend** | Firebase Cloud Functions (Node.js 18) | v2 (gen2) |
+| **Database** | Cloud Firestore | latest |
 | **Ad Creative Storage** | Firebase Storage | latest |
 | **Image Upload** | react-native-image-picker | 7.x |
 | **Admin** | Platform admin panel | Built-in |
@@ -183,7 +184,7 @@ deep-pulse-complete/
 |   +-- src/
 |       |-- lib.rs                     # Program entry point — 24 instructions
 |       |-- constants.rs               # PDA seeds, pricing defaults, scoring
-|       |-- errors.rs                  # 30 error codes
+|       |-- errors.rs                  # 33 error codes
 |       |-- events.rs                  # 19 on-chain events for indexing
 |       |-- instructions/
 |       |   |-- admin.rs               # initialize_platform, update_config, transfer_admin
@@ -254,6 +255,11 @@ deep-pulse-complete/
 |   |-- deploy-devnet.sh                # Automated devnet deploy (balance check + airdrop + deploy)
 |   |-- init-devnet.ts                  # Platform initialization (custom pricing + test hub)
 |   +-- patch-nativewind.js             # NativeWind postinstall fix
+|-- functions/                           # === FIREBASE CLOUD FUNCTIONS BACKEND ===
+|   |-- index.js                        # 10 serverless functions (939 lines)
+|   |-- package.json                    # Node.js 18, firebase-functions v5
+|   +-- .eslintrc.js                    # ESLint config
+|
 |-- Anchor.toml                         # Anchor config (cluster, wallet, scripts)
 |-- Cargo.toml                          # Rust workspace
 |-- package.json                        # JS dependencies + devnet:deploy/init scripts
@@ -262,8 +268,10 @@ deep-pulse-complete/
 |-- index.js                            # Entry point (polyfills loaded first)
 |-- tsconfig.json                       # TypeScript config (tests)
 |-- SMART_CONTRACTS.md                  # Detailed smart contract docs (French)
-|-- firebase.json                       # Firebase config (Storage rules)
+|-- firebase.json                       # Firebase config (Functions + Storage + Firestore)
 |-- storage.rules                       # Firebase Storage security rules
+|-- firestore.rules                     # Firestore security rules
+|-- firestore.indexes.json             # Firestore composite indexes
 |-- docs/
 |   +-- PRIVACY_POLICY.md              # Privacy policy (required for dApp Store)
 +-- README.md                           # This file
@@ -499,6 +507,46 @@ await walletAdapter.disconnect(authToken);
 
 ---
 
+## Backend API (Firebase Cloud Functions)
+
+The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 18) — **$0/month** on the free tier. No traditional server required.
+
+### 10 Serverless Functions
+
+| Function | Trigger | Description |
+|----------|---------|-------------|
+| `onNewNotification` | Firestore `onCreate` | Formats and stores new notifications, sends FCM push to topic subscribers |
+| `sendPushToSubscribers` | HTTPS (callable) | Sends targeted push notifications to all subscribers of a specific hub |
+| `onAdCreativeUploaded` | Storage `onObjectFinalized` | Validates uploaded ad images (size ≤5MB, type JPEG/PNG/WebP), generates Firestore metadata |
+| `moderateAdCreative` | HTTPS (callable) | Admin-only: approve or reject ad creatives, deactivates rejected images |
+| `trackEvent` | HTTPS (callable) | Records analytics events (ad_click, notification_read, swipe_earn, hub_subscribe, etc.) |
+| `getAnalyticsDashboard` | HTTPS (callable) | Returns aggregated analytics for a hub (24h/7d/30d periods, top events, engagement rate) |
+| `reportContent` | HTTPS (callable) | User content reports (spam, inappropriate, scam) with auto-moderation on 3+ reports |
+| `autoModerate` | HTTPS (callable) | Admin bulk moderation — auto-flags content exceeding report thresholds |
+| `dailyScoreUpdate` | Scheduled (daily 2AM UTC) | Syncs on-chain DEEP Scores to Firestore, applies time decay + streak multipliers |
+| `cleanExpiredBoostVaults` | Scheduled (daily 3AM UTC) | Marks expired DAO boost vaults, updates Firestore status |
+
+### Firestore Collections
+
+| Collection | Purpose |
+|------------|---------|
+| `notifications` | Push notification history |
+| `events` | Analytics events (ad clicks, reads, swipes) |
+| `reports` | User content reports |
+| `adCreatives` | Ad image metadata and moderation status |
+| `boostVaults` | DAO vault status mirror |
+| `userScores` | DEEP Score v2 Firestore mirror |
+| `hubSubscribers` | FCM topic subscription tracking |
+
+### Deploy Backend
+
+```bash
+cd functions && npm install
+firebase deploy --only functions,firestore
+```
+
+---
+
 ## Configuration
 
 ### Key Constants
@@ -662,13 +710,30 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 | **Signer validation** | `Signer<'info>` required on every state-mutating instruction |
 | **PDA isolation** | Seeds always include a user-specific identifier (no collisions) |
 | **Checked arithmetic** | `checked_mul`, `checked_div`, `checked_sub` for all math (no overflows) |
-| **Explicit init** | No `init_if_needed` except `VaultContribution` (multiple deposits by design) |
+| **Explicit init** | No `init_if_needed` except `VaultContribution` (guarded with contributor validation) |
 | **Account closure** | `close = destination` returns rent to the correct party |
 | **Discriminators** | Anchor 8-byte discriminators prevent account confusion |
 | **Config validation** | `brand_bps + platform_bps == 10000` enforced at init and update |
-| **Mint validation** | Every token account checks `mint == platform_config.skr_mint` |
+| **Mint validation** | Every token account checks `mint == platform_config.skr_mint` (hardcoded in `constants.rs`) |
+| **Hardcoded $SKR mint** | `SKR_MINT` pubkey hardcoded on-chain — prevents mint substitution attacks |
+| **Distinct PDA authorities** | Escrow and vault use separate authority seeds (`escrow_auth`, `vault_authority`) — prevents PDA collisions |
+| **Anti-farming scoring** | Score only awarded on approval/first contribution — no score on deposit creation |
 | **MWA compliance** | `onWalletNotFound` handler + `authorize` in every `transact()` session |
+| **SeedVault compatible** | Works with Solana Seeker SeedVault wallet (MWA 2.0 compliant) |
 | **Polyfills** | `react-native-get-random-values` + `buffer` loaded before `@solana/web3.js` |
+
+### Security Audit Results
+
+A comprehensive security audit was performed on all smart contract code. **18 issues found, all fixed:**
+
+| Severity | Count | Key Fixes |
+|----------|-------|-----------|
+| **Critical** | 3 | C-01: Vault signer seeds mismatch (funds would be permanently locked) — Fixed `VAULT_TOKEN_SEED` → `VAULT_AUTHORITY_SEED`; C-02: Escrow PDA collision (authority = token account) — Added `ESCROW_AUTHORITY_SEED`; C-03: `init_if_needed` reinit guard on `VaultContribution` |
+| **High** | 4 | H-01: Hardcoded $SKR mint validation; H-02: Hub validation in `expire_ad_slot`; H-03: Score farming prevention (no points on deposit creation); H-04: Mint validation on all token accounts |
+| **Medium** | 6 | Zero minimum contribution, vault duration bounds, shared description buffers, admin transfer event, pause mechanism placeholder, ad slot slot_index limit |
+| **Low** | 5 | `checked_sub` for subscriber count, close escrow on approval, contribution tracking improvements |
+
+All critical and high severity issues have been fixed in the deployed smart contract code. See commit `3bd24fd` for the full diff.
 
 ---
 
@@ -827,4 +892,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + frontend connected to real on-chain transactions (MWA enabled ✓) | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Image Picker (brand ad creatives) ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions backend (10 functions) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Firestore DB + security rules ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Image Picker (brand ad creatives) ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
