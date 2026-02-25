@@ -55,8 +55,10 @@ const HUB_SEED = 'hub';
 const SUBSCRIPTION_SEED = 'subscription';
 const DEPOSIT_SEED = 'deposit';
 const ESCROW_SEED = 'escrow';
+const ESCROW_AUTHORITY_SEED = 'escrow_auth'; // [C-02 FIX] Distinct seed for escrow authority PDA
 const VAULT_SEED = 'vault';
 const VAULT_TOKEN_SEED = 'vault_token';
+const VAULT_AUTHORITY_SEED = 'vault_authority'; // [C-01 FIX] Distinct seed for vault authority PDA
 const CONTRIBUTION_SEED = 'contribution';
 const AD_SLOT_SEED = 'ad_slot';
 const USER_SCORE_SEED = 'user_score';
@@ -117,6 +119,14 @@ function getEscrowPda(depositPda) {
   );
 }
 
+// [C-02 FIX] Separate PDA for escrow authority (distinct from escrow token account)
+function getEscrowAuthorityPda(depositPda) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(ESCROW_AUTHORITY_SEED), depositPda.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
 function getVaultPda(hubPda, vaultIndex) {
   const indexBuffer = Buffer.alloc(4);
   indexBuffer.writeUInt32LE(vaultIndex);
@@ -129,6 +139,14 @@ function getVaultPda(hubPda, vaultIndex) {
 function getVaultTokenPda(vaultPda) {
   return PublicKey.findProgramAddressSync(
     [Buffer.from(VAULT_TOKEN_SEED), vaultPda.toBuffer()],
+    PROGRAM_ID
+  );
+}
+
+// [C-01 FIX] Separate PDA for vault authority (distinct from vault token account)
+function getVaultAuthorityPda(vaultPda) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(VAULT_AUTHORITY_SEED), vaultPda.toBuffer()],
     PROGRAM_ID
   );
 }
@@ -501,6 +519,7 @@ class ProgramService {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [depositPda] = getDepositPda(userPubkey, depositIndex);
       const [escrowPda] = getEscrowPda(depositPda);
+      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const [platformConfigPda] = getPlatformConfigPda();
       const [userScorePda] = getUserScorePda(userPubkey);
 
@@ -530,8 +549,8 @@ class ProgramService {
           depositor: userPubkey,
           hub: hubPda,
           deposit: depositPda,
-          escrowTokenAccount: escrowPda, // The token account at escrow PDA
-          escrowAuthority: escrowPda,
+          escrowTokenAccount: escrowPda,
+          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           platformConfig: platformConfigPda,
           depositorTokenAccount: depositorAta,
           skrMint: SKR_MINT,
@@ -552,6 +571,7 @@ class ProgramService {
   async approveFeedback(depositPda, hubPda, depositorPubkey) {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [escrowPda] = getEscrowPda(depositPda);
+      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const depositorAta = await getAssociatedTokenAddress(
         SKR_MINT,
         depositorPubkey
@@ -569,7 +589,7 @@ class ProgramService {
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
-          escrowAuthority: escrowPda,
+          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           depositorTokenAccount: depositorAta,
           depositor: depositorPubkey,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -586,6 +606,7 @@ class ProgramService {
   async approveTalent(depositPda, hubPda, depositorPubkey) {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [escrowPda] = getEscrowPda(depositPda);
+      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const depositorAta = await getAssociatedTokenAddress(
         SKR_MINT,
         depositorPubkey
@@ -603,7 +624,7 @@ class ProgramService {
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
-          escrowAuthority: escrowPda,
+          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           depositorTokenAccount: depositorAta,
           depositor: depositorPubkey,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -620,6 +641,7 @@ class ProgramService {
   async rejectDeposit(depositPda, hubPda, depositorPubkey) {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [escrowPda] = getEscrowPda(depositPda);
+      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const [platformConfigPda] = getPlatformConfigPda();
       const [treasuryPda] = getTreasuryPda();
       const treasuryAta = await getAssociatedTokenAddress(
@@ -640,7 +662,7 @@ class ProgramService {
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
-          escrowAuthority: escrowPda,
+          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           treasuryTokenAccount: treasuryAta,
           depositor: depositorPubkey,
           platformConfig: platformConfigPda,
@@ -667,8 +689,10 @@ class ProgramService {
   ) {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [escrowPda] = getEscrowPda(depositPda);
+      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const [vaultPda] = getVaultPda(hubPda, vaultIndex);
       const [vaultTokenPda] = getVaultTokenPda(vaultPda);
+      const [vaultAuthorityPda] = getVaultAuthorityPda(vaultPda); // [C-01 FIX]
       const [platformConfigPda] = getPlatformConfigPda();
 
       const depositorAta = await getAssociatedTokenAddress(
@@ -694,12 +718,12 @@ class ProgramService {
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
-          escrowAuthority: escrowPda,
+          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           depositorTokenAccount: depositorAta,
           depositor: depositorPubkey,
           daoVault: vaultPda,
           vaultTokenAccount: vaultTokenPda,
-          vaultTokenAuthority: vaultTokenPda,
+          vaultTokenAuthority: vaultAuthorityPda, // [C-01 FIX] Distinct PDA
           platformConfig: platformConfigPda,
           skrMint: SKR_MINT,
           tokenProgram: TOKEN_PROGRAM_ID,
