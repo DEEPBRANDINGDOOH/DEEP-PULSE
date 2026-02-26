@@ -44,9 +44,13 @@ Import recordings, add transitions, captions, and music.
 **[Show SwipeEarn screen -> toggle ON -> lock screen demo if possible]**
 "Swipe-to-Earn turns the Android lock screen into a reward engine. Users see sponsored content when they unlock their phone. Swipe right to skip, swipe left to engage — earning DEEP Score points with every interaction. Max 15 per day, fully opt-in."
 
-### SCREEN 6: DEEP SCORE + PROFILE (1:50 - 2:10)
+### SCREEN 6: DEEP SCORE + PROFILE (1:50 - 2:05)
 **[Show Profile screen with DEEP Score, tier badge]**
 "The DEEP Score v2 prevents farming with diminishing returns, daily caps, streak bonuses, and diversity multipliers. Five tiers from Bronze to Legend — only real contributors rank up."
+
+### SCREEN 6.5: MY CREATED HUBS (2:05 - 2:15)
+**[Show Profile screen → scroll to "My Created Hubs" section → tap a hub → Hub Dashboard]**
+"Brands manage their hubs directly from Profile. View subscriber counts, check PENDING or ACTIVE status, and tap any hub to open its Dashboard — send notifications, manage Push Ads, launch DOOH campaigns, all in one place."
 
 ### SCREEN 7: DAO BOOST (2:10 - 2:25)
 **[Show DAO Boost screen -> Contribute flow]**
@@ -70,7 +74,7 @@ Import recordings, add transitions, captions, and music.
 
 ### OUTRO (3:25 - 3:40)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
@@ -110,7 +114,8 @@ Take these screenshots from the emulator/device for the video or pitch deck:
 7. Push Notification Ad campaign creation modal (live preview)
 8. SwipeEarn screen (enabled, showing stats)
 9. Profile screen (DEEP Score + tier badge)
-10. DAO Boost screen (vault with progress bar)
+10. Profile screen — "My Created Hubs" section (brand hub management)
+11. DAO Boost screen (vault with progress bar)
 11. Brand Boost screen (hub creation flow)
 12. Hub Dashboard (send notification + Discord + DOOH)
 13. DOOH campaign form (inventory selection)

@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ FICHIERS INCLUS (39 fichiers)
+## ✅ FICHIERS INCLUS (42 fichiers)
 
 ### 📱 Application Core (6 fichiers)
 
@@ -23,14 +23,14 @@
 - ✅ `src/screens/HomeScreen.js` - Écran principal
 - ✅ `src/screens/DiscoverScreen.js` - Découverte hubs (reads from Zustand store)
 - ✅ `src/screens/MyHubsScreen.js` - Hubs abonnés (reads from Zustand store)
-- ✅ `src/screens/ProfileScreen.js` - Profil utilisateur
+- ✅ `src/screens/ProfileScreen.js` - Profil utilisateur + "My Created Hubs" section
 - ✅ `src/screens/DAOBoostScreen.js` - DAO voting
 - ✅ `src/screens/TalentScreen.js` - Talent marketplace
-- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord)
+- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord + Firebase push)
 - ✅ `src/screens/BrandModerationScreen.js` - Modération
-- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Push Notification Ads (500 $SKR/week)
+- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Push Notification Ads (500 $SKR/week) + proper URL hashing
 - ✅ `src/screens/BrandBoostScreen.js` - Brand boost (hub creation → store)
-- ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval, pricing, deals)
+- ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval, pricing, deals, Firebase moderation sync)
 - ✅ `src/screens/NotificationsScreen.js` - Notifications globales
 - ✅ `src/screens/HubNotificationsScreen.js` - Notifications d'un hub spécifique
 - ✅ `src/screens/NotificationDetailScreen.js` - Détail notification + feedback
@@ -48,11 +48,14 @@
 - ✅ `src/components/ProjectCard.js` - Cartes projet
 - ✅ `src/components/ui/PulseOrb.js` - Animation pulse onboarding
 
-### ⚙️ Services (3 services)
+### ⚙️ Services (6 services)
 
 - ✅ `src/services/walletAdapter.js` - **IMPROVED** MWA 2.1.0
-- ✅ `src/services/notificationService.js` - Gestion notifications
-- ✅ `src/services/ModerationService.js` - Service modération
+- ✅ `src/services/notificationService.js` - FCM registration + listeners
+- ✅ `src/services/firebaseService.js` - **NEW** Firebase backend wiring (Firestore + Cloud Functions + FCM topics)
+- ✅ `src/services/programService.js` - Anchor program interactions (21 instructions)
+- ✅ `src/services/transactionHelper.js` - Transaction builder + MWA signing
+- ✅ `src/services/storageService.js` - Firebase Storage uploads (ad creatives)
 
 ### 📐 Configuration (1 fichier)
 
@@ -150,6 +153,37 @@ dependencies {
 }
 ```
 
+### 5. src/services/firebaseService.js ✅ (NEW — Last Mile Backend)
+
+**Firebase backend wiring service — central hub for all server-side sync:**
+```
+- sendHubNotification()       → Cloud Function sendPushToSubscribers → FCM topic push
+- subscribeToHubBackend()     → FCM topic hub_{hubId} + Firestore subscriptions/
+- unsubscribeFromHubBackend() → FCM topic unsubscribe + Firestore cleanup
+- createHubInFirestore()      → Firestore hubs/ (status: PENDING)
+- approveHubInFirestore()     → Firestore hubs/ (status: ACTIVE)
+- rejectHubInFirestore()      → Firestore hubs/ (status: REJECTED)
+- approveAdCreative()         → Cloud Function moderateAdCreative
+- rejectAdCreative()          → Cloud Function moderateAdCreative
+- trackEvent()                → Cloud Function trackEvent (DEEP Score)
+- registerFcmToken()          → Firestore fcmTokens/ (targeted push)
+- sendGlobalNotification()    → Firestore notifications/ (admin push to all)
+```
+
+**Architecture:** Safe imports with try-catch, two-tier fallback (Cloud Function → Firestore → local-only), optimistic UI (Zustand first, Firebase sync in background).
+
+**New Firebase packages added:**
+- `@react-native-firebase/firestore` (^23.8.6) — Firestore DB sync
+- `@react-native-firebase/functions` (^23.8.6) — Cloud Functions calls
+
+**Firestore collections:**
+- `notifications/` — Hub notification docs (triggers FCM via onNewNotification)
+- `subscriptions/` — User-hub subscriptions ({walletAddress}_{hubId})
+- `hubs/` — Hub data (status, subscribers, creator)
+- `adCreatives/` — Ad creatives for admin review
+- `fcmTokens/` — FCM device tokens per wallet
+- `analytics/` — User events + DEEP Score data
+
 ---
 
 ## 🎯 FONCTIONNALITÉS COMPLÈTES
@@ -164,10 +198,11 @@ dependencies {
 - Transaction history
 
 ### Brand Features ✅
-- Hub Dashboard (dynamic subscriber count, notification history)
-- Send notifications (stored in Zustand → visible in hub feed)
-- Hub creation lifecycle (create → pending → admin approval → Discover)
-- Moderation approve/reject
+- Hub Dashboard (dynamic subscriber count, notification history, Firebase push)
+- Send notifications (Zustand + Cloud Function → FCM push to all subscribers)
+- Hub creation lifecycle (create → Firestore PENDING → admin approval → ACTIVE → Discover)
+- "My Created Hubs" in Profile (brands manage hubs, direct access to Dashboard)
+- Moderation approve/reject (synced to Firestore + Cloud Functions)
 - Ad slots purchase (Top 1500/Bottom 800/Lockscreen 2000 $SKR/week)
 - Push Notification Ads (500 $SKR/week, full campaign creation)
 - DOOH Worldwide (campaign briefs for global venues)
@@ -244,8 +279,8 @@ dependencies {
 ### Taille du Package
 - **Source code:** ~250 KB
 - **node_modules:** ~350 MB (après install)
-- **APK Debug:** ~40-50 MB
-- **APK Release:** ~25-35 MB
+- **APK Debug:** ~138 MB (with Firestore + Functions native modules)
+- **APK Release:** ~57 MB (optimized, ProGuard)
 
 ---
 
