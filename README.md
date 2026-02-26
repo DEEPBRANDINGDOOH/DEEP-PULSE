@@ -161,7 +161,7 @@ cd android && ./gradlew assembleDebug
 
 # Build release APK (for distribution / Seeker)
 cd android && ./gradlew assembleRelease
-# Output: android/app/build/outputs/apk/release/app-release.apk (~54MB)
+# Output: android/app/build/outputs/apk/release/app-release.apk (~57MB)
 
 # Install on connected device / Solana Seeker
 adb install app/build/outputs/apk/release/app-release.apk
@@ -244,6 +244,7 @@ deep-pulse-complete/
 |   |   |-- transactionHelper.js       # UI ↔ chain bridge (wallet state, error handling, alerts)
 |   |   |-- lockScreenService.js       # Swipe-to-Earn JS bridge (native Android LockScreen module)
 |   |   |-- notificationService.js     # Firebase Cloud Messaging (FCM) push notifications
+|   |   |-- firebaseService.js         # Firebase backend wiring (Firestore + Cloud Functions + FCM topics)
 |   |   +-- storageService.js          # Firebase Storage — ad creative upload (image picker + progress)
 |   |-- store/
 |   |   +-- appStore.js                # Zustand + AsyncStorage persist
@@ -278,8 +279,9 @@ deep-pulse-complete/
 |-- tsconfig.json                       # TypeScript config (tests)
 |-- SMART_CONTRACTS.md                  # Detailed smart contract docs (French)
 |-- firebase.json                       # Firebase config (Functions + Storage + Firestore)
+|-- .firebaserc                         # Firebase project link (deep-pulse)
 |-- storage.rules                       # Firebase Storage security rules
-|-- firestore.rules                     # Firestore security rules
+|-- firestore.rules                     # Firestore security rules (deployed)
 |-- firestore.indexes.json             # Firestore composite indexes
 |-- docs/
 |   +-- PRIVACY_POLICY.md              # Privacy policy (required for dApp Store)
@@ -438,6 +440,7 @@ Community --> contribute_to_vault() --> [Vault PDA collects $SKR]
 | `walletAdapter.js` | MWA 2.0 — authorize, reauthorize, SIWS (Sign In With Solana), `signAndSendTransactions`, full error handling |
 | `lockScreenService.js` | Swipe-to-Earn — JS bridge to native Android LockScreen overlay (start/stop, permissions, ad queue, swipe events) |
 | `notificationService.js` | Firebase Cloud Messaging (FCM) — push notification token registration and channel setup |
+| `firebaseService.js` | **Firebase backend wiring** — Firestore + Cloud Functions + FCM topics (sendHubNotification, subscribeToHubBackend, createHubInFirestore, approveHubInFirestore, registerFcmToken, trackEvent, etc.) — two-tier fallback: Cloud Function → Firestore direct → local-only |
 | `storageService.js` | Firebase Storage — ad creative image upload with validation, progress tracking, and download URL retrieval |
 
 ### State Management
@@ -537,23 +540,30 @@ The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 20) — **
 
 ### Firestore Collections
 
-| Collection | Purpose |
-|------------|---------|
-| `notifications` | Push notification history |
-| `events` | Analytics events (ad clicks, reads, swipes) |
-| `reports` | User content reports |
-| `adCreatives` | Ad image metadata and moderation status |
-| `boostVaults` | DAO vault status mirror |
-| `userScores` | DEEP Score v2 Firestore mirror |
-| `hubSubscribers` | FCM topic subscription tracking |
+| Collection | Purpose | Client Write |
+|------------|---------|:------------:|
+| `notifications` | Push notification history (triggers FCM via onNewNotification) | ✅ create |
+| `hubs` | Hub data (status: PENDING/ACTIVE/REJECTED, subscribers, creator) | ✅ create + update |
+| `subscriptions` | User-hub subscriptions ({walletAddress}_{hubId}) + FCM topic sync | ✅ create + delete |
+| `fcmTokens` | FCM device tokens per wallet (targeted push delivery) | ✅ write |
+| `adCreatives` | Ad image metadata and moderation status | ❌ server-only |
+| `analytics` | User events + DEEP Score data (via trackEvent Cloud Function) | ❌ server-only |
+| `reports` | User content reports | ❌ server-only |
+| `moderationLog` | Admin moderation audit trail | ❌ server-only |
+| `boostVaults` | DAO vault status mirror | ❌ server-only |
+| `users` | User profiles / DEEP Score (via dailyScoreUpdate) | ❌ server-only |
+| `globalStats` | Aggregated platform statistics | ❌ server-only |
+| `activeAds` | Ad rotation pool | ❌ server-only |
 
 ### Deploy Backend
 
 ```bash
 cd functions && npm install
-firebase deploy --only functions,firestore
+firebase deploy --only functions,firestore:rules
 firebase deploy --only hosting
 ```
+
+> **Status:** All 10 Cloud Functions deployed to `us-central1`. Firestore Security Rules deployed with client write access for `notifications`, `hubs`, `subscriptions`, `fcmTokens`.
 
 ### Live URLs
 
@@ -913,4 +923,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions backend (10 functions, Node.js 20) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | Firestore DB + security rules ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Push Notification Ads (500 $SKR/week, FCM push, full campaign creation flow) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~54MB) ✓
+**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Push Notification Ads (500 $SKR/week, FCM push, full campaign creation flow) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓

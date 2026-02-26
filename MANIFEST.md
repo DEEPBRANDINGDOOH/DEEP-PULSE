@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ FICHIERS INCLUS (42 fichiers)
+## ✅ FICHIERS INCLUS (43 fichiers)
 
 ### 📱 Application Core (6 fichiers)
 
@@ -75,6 +75,12 @@
 - ✅ `android-config/AndroidManifest.xml` - **Avec <queries> MWA**
 - ✅ `android-config/build.gradle` - **minSdk 26 + MWA clientlib**
 - ✅ `android-config/gradle.properties` - Configuration Gradle
+
+### 🔥 Firebase Configuration (3 fichiers)
+
+- ✅ `firebase.json` - Firebase config (Functions + Firestore + Storage + Hosting)
+- ✅ `.firebaserc` - Firebase project link (deep-pulse)
+- ✅ `firestore.rules` - **DEPLOYED** Firestore Security Rules (client writes for notifications, hubs, subscriptions, fcmTokens)
 
 ### 📚 Documentation (3 fichiers)
 
@@ -364,7 +370,7 @@ Ces fichiers seront générés automatiquement:
 ## 🎉 RÉSUMÉ
 
 Ce package contient:
-- ✅ **39 fichiers** de code source
+- ✅ **43 fichiers** de code source
 - ✅ **Toutes corrections** appliquées
 - ✅ **100% conforme** Solana Mobile
 - ✅ **Production-ready**

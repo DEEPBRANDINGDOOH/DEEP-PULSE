@@ -3,22 +3,45 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Notifications ──
-    // Readable by anyone; only Cloud Functions (admin SDK) write
+    // Readable by anyone; client writes allowed for hub notifications + global push
+    // Cloud Functions also write via Admin SDK (bypasses rules)
     match /notifications/{notificationId} {
       allow read: if true;
-      allow write: if false; // server-only via Cloud Functions
+      allow create: if true;
+      allow update, delete: if false;
     }
 
     // ── Hubs ──
+    // Readable by anyone; client writes for hub creation (PENDING) and admin approval
     match /hubs/{hubId} {
       allow read: if true;
-      allow write: if false; // server-only
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Subscriptions ──
+    // Client writes for subscribe/unsubscribe (FCM topic sync)
+    // Document ID format: {walletAddress}_{hubId}
+    match /subscriptions/{subscriptionId} {
+      allow read: if true;
+      allow create: if true;
+      allow delete: if true;
+      allow update: if false;
+    }
+
+    // ── FCM Tokens ──
+    // Client writes for device token registration (push delivery)
+    match /fcmTokens/{tokenId} {
+      allow read: if false;
+      allow write: if true;
     }
 
     // ── Ad Creatives (pending review queue) ──
+    // Readable by anyone; writes only via Cloud Functions (Admin SDK)
     match /adCreatives/{creativeId} {
       allow read: if true;
-      allow write: if false; // server-only
+      allow write: if false;
     }
 
     // ── Active Ads (rotation pool) ──
@@ -28,9 +51,10 @@ service cloud.firestore {
     }
 
     // ── Analytics per user ──
+    // Server-only writes via trackEvent Cloud Function
     match /analytics/{walletAddress} {
       allow read: if true;
-      allow write: if false; // server-only via trackEvent
+      allow write: if false;
       match /{subcollection=**} {
         allow read: if true;
         allow write: if false;
@@ -44,14 +68,15 @@ service cloud.firestore {
     }
 
     // ── User profiles / scores ──
+    // Updated by dailyScoreUpdate Cloud Function
     match /users/{walletAddress} {
       allow read: if true;
-      allow write: if false; // updated by dailyScoreUpdate
+      allow write: if false;
     }
 
     // ── Reports ──
     match /reports/{reportId} {
-      allow read: if false; // admin-only via Cloud Functions
+      allow read: if false;
       allow write: if false;
     }
 
