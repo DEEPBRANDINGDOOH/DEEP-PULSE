@@ -17,28 +17,36 @@
 - ✅ `metro.config.js` - Metro bundler config
 - ✅ `tailwind.config.js` - Tailwind CSS config
 
-### 📱 Screens (13 écrans)
+### 📱 Screens (19 écrans)
 
-- ✅ `src/screens/OnboardingScreen.js` - 4 slides intro
+- ✅ `src/screens/OnboardingScreen.js` - 4 slides intro (redesigned)
 - ✅ `src/screens/HomeScreen.js` - Écran principal
-- ✅ `src/screens/DiscoverScreen.js` - Découverte hubs
-- ✅ `src/screens/MyHubsScreen.js` - Feed notifications
+- ✅ `src/screens/DiscoverScreen.js` - Découverte hubs (reads from Zustand store)
+- ✅ `src/screens/MyHubsScreen.js` - Hubs abonnés (reads from Zustand store)
 - ✅ `src/screens/ProfileScreen.js` - Profil utilisateur
 - ✅ `src/screens/DAOBoostScreen.js` - DAO voting
 - ✅ `src/screens/TalentScreen.js` - Talent marketplace
-- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque
+- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord)
 - ✅ `src/screens/BrandModerationScreen.js` - Modération
-- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads
-- ✅ `src/screens/BrandBoostScreen.js` - Brand boost
-- ✅ `src/screens/AdminScreen.js` - Admin panel
-- ✅ `src/screens/NotificationsScreen.js` - Notifications
+- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Push Notification Ads (500 $SKR/week)
+- ✅ `src/screens/BrandBoostScreen.js` - Brand boost (hub creation → store)
+- ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval, pricing, deals)
+- ✅ `src/screens/NotificationsScreen.js` - Notifications globales
+- ✅ `src/screens/HubNotificationsScreen.js` - Notifications d'un hub spécifique
+- ✅ `src/screens/NotificationDetailScreen.js` - Détail notification + feedback
+- ✅ `src/screens/SwipeEarnScreen.js` - Swipe-to-Earn lock screen
+- ✅ `src/screens/AdminMessagesScreen.js` - Messages admin ↔ marques
+- ✅ `src/screens/DOOHScreen.js` - Formulaire campagne DOOH Worldwide
+- ✅ `src/screens/AlertsScreen.js` - Centre d'alertes
 
-### 🧩 Components (4 composants)
+### 🧩 Components (6 composants)
 
-- ✅ `src/components/AdRotation.js` - Rotation ads 15s
-- ✅ `src/components/WalletButton.js` - Connexion wallet
+- ✅ `src/components/AdRotation.js` - Rotation ads 15s (local mock + remote)
+- ✅ `src/components/MockAdBanners.js` - Bannières pub locales (Jupiter, Marinade, Tensor, etc.)
+- ✅ `src/components/WalletButton.js` - Connexion wallet MWA
 - ✅ `src/components/AlertCard.js` - Cartes alerte
 - ✅ `src/components/ProjectCard.js` - Cartes projet
+- ✅ `src/components/ui/PulseOrb.js` - Animation pulse onboarding
 
 ### ⚙️ Services (3 services)
 
@@ -156,10 +164,13 @@ dependencies {
 - Transaction history
 
 ### Brand Features ✅
-- Hub Dashboard
-- Send notifications
+- Hub Dashboard (dynamic subscriber count, notification history)
+- Send notifications (stored in Zustand → visible in hub feed)
+- Hub creation lifecycle (create → pending → admin approval → Discover)
 - Moderation approve/reject
-- Ad slots purchase (2K/1.5K)
+- Ad slots purchase (Top 1500/Bottom 800/Lockscreen 2000 $SKR/week)
+- Push Notification Ads (500 $SKR/week, full campaign creation)
+- DOOH Worldwide (campaign briefs for global venues)
 - Discord → Hub notification pipeline (auto-forward announcements)
 - Analytics dashboard
 - Subscription billing
@@ -179,9 +190,11 @@ dependencies {
 ### Ad System ✅
 - Ad rotation 15s
 - Max 8 ads per slot
-- Click tracking
-- Impression tracking
-- Purchase interface
+- Click tracking + Impression tracking
+- Local mock banners (Jupiter, Marinade, Tensor, Magic Eden, Raydium)
+- Push Notification Ads (full campaign flow with live preview)
+- Lockscreen ads (premium full-screen)
+- Purchase interface + volume discounts
 
 ---
 
@@ -221,7 +234,7 @@ dependencies {
 - **Utils:** ~400 lignes
 
 ### Technologies
-- React Native 0.74.1
+- React Native 0.76.9
 - React Navigation 6.x
 - Solana Web3.js 1.87.6
 - MWA Protocol 2.1.0

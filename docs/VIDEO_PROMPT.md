@@ -56,9 +56,21 @@ Import recordings, add transitions, captions, and music.
 **[Show Hub Dashboard -> Scroll to Integrations -> Discord section]**
 "Brands can connect their Discord server's announcement channel directly to their hub. Major announcements are auto-forwarded as push notifications to all subscribers — bridging Web2 communities with Web3 notifications."
 
-### OUTRO (2:40 - 2:55)
+### SCREEN 9: PUSH NOTIFICATION ADS (2:40 - 2:55)
+**[Show Ad Slots screen -> Push Notification Ad card -> Create Campaign modal]**
+"Push Notification Ads let brands create full campaigns — title, body, CTA button, image, and duration. Live preview updates as you type. Delivered via FCM to every subscriber. 500 $SKR per week with volume discounts."
+
+### SCREEN 10: DOOH WORLDWIDE (2:55 - 3:10)
+**[Show Hub Dashboard -> DOOH section -> Create DOOH Campaign form]**
+"Brands with a hub can create Digital Out-of-Home campaigns across global venues — airports, shopping centers, stadiums, billboards. Select inventory, set budget and dates, submit a brief. Our partner network handles the rest."
+
+### SCREEN 11: HUB LIFECYCLE (3:10 - 3:25)
+**[Show BrandBoost -> Create Hub -> Admin approves -> Hub in Discover -> User subscribes -> My Hubs]**
+"The full hub lifecycle: brands create a hub, admin reviews and approves, the hub appears in Discover, users subscribe for free, and the brand sends push notifications from their dashboard. Fully connected, fully on-chain."
+
+### OUTRO (3:25 - 3:40)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 17 screens, Swipe-to-Earn, DEEP Score v2, Discord integration, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
@@ -92,12 +104,15 @@ Take these screenshots from the emulator/device for the video or pitch deck:
 1. Onboarding screen (with Solana Seeker branding)
 2. Wallet connect dialog (Phantom popup)
 3. Home screen (feed + rotating ad)
-4. Discover screen (hub list)
-5. Ad Slots screen (purchase modal with image upload)
-6. Image picker open (selecting ad creative)
-7. Upload progress bar
+4. Discover screen (hub list + subscribe)
+5. My Hubs screen (subscribed hubs + last notification)
+6. Ad Slots screen (Push Notification Ad card + purchase modal)
+7. Push Notification Ad campaign creation modal (live preview)
 8. SwipeEarn screen (enabled, showing stats)
 9. Profile screen (DEEP Score + tier badge)
 10. DAO Boost screen (vault with progress bar)
-11. Admin screen (platform management)
-12. Notification detail (feedback submission)
+11. Brand Boost screen (hub creation flow)
+12. Hub Dashboard (send notification + Discord + DOOH)
+13. DOOH campaign form (inventory selection)
+14. Admin screen (platform management + hub approval)
+15. Notification detail (feedback submission)
