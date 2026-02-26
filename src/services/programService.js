@@ -866,6 +866,41 @@ class ProgramService {
       return Array.from(hash);
     }
   }
+
+  /**
+   * Update platform config prices (admin only)
+   * Only sends non-null values — on-chain instruction uses Option<T>
+   */
+  async updatePlatformConfig(priceUpdates) {
+    return this._executeMwaTransaction(async (tx, userPubkey) => {
+      const [platformConfigPda] = getPlatformConfigPda();
+
+      const idl = this.getIdl();
+      const program = new Program(idl, PROGRAM_ID, {
+        connection: this.connection,
+      });
+
+      const ix = await program.methods
+        .updatePlatformConfig(
+          priceUpdates.hubSubscriptionPrice ?? null,
+          priceUpdates.feedbackDeposit ?? null,
+          priceUpdates.daoProposalDeposit ?? null,
+          priceUpdates.talentDeposit ?? null,
+          priceUpdates.topAdPricePerWeek ?? null,
+          priceUpdates.bottomAdPricePerWeek ?? null,
+          priceUpdates.daoBrandShareBps ?? null,
+          priceUpdates.daoPlatformShareBps ?? null,
+          priceUpdates.minVaultContribution ?? null,
+        )
+        .accounts({
+          admin: userPubkey,
+          platformConfig: platformConfigPda,
+        })
+        .instruction();
+
+      tx.add(ix);
+    });
+  }
 }
 
 // Export singleton

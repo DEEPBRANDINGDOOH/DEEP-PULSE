@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING } from '../config/constants';
 import { useAppStore } from '../store/appStore';
+import { programService } from '../services/programService';
 
 // ============================================
 // MOCK DATA
@@ -107,30 +108,26 @@ const STATS_DATA = {
 // ============================================
 
 export default function AdminScreen({ navigation }) {
-  const { wallet } = useAppStore();
+  const { wallet, platformPricing: prices, updateSinglePrice, loadPlatformPricingFromChain } = useAppStore();
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
   const [pendingAds, setPendingAds] = useState(MOCK_PENDING_ADS);
   const [pendingHubs, setPendingHubs] = useState(MOCK_PENDING_HUBS);
+  const [savingPrice, setSavingPrice] = useState(false);
 
   // Stats state
   const [statsPeriod, setStatsPeriod] = useState('30d');
   const [statsTab, setStatsTab] = useState('global');
 
-  // Pricing management state
-  const [prices, setPrices] = useState({
-    feedback: 300,
-    talent: 50,
-    daoBoost: 100,
-    hubCreation: 2000,
-    topAdSlot: 1500,
-    bottomAdSlot: 800,
-    lockscreenAd: 2000,
-    globalNotification: 1000,
-  });
+  // Pricing edit state
   const [editingPrice, setEditingPrice] = useState(null);
   const [editPriceValue, setEditPriceValue] = useState('');
+
+  // Fetch on-chain prices on mount (release mode only)
+  useEffect(() => {
+    loadPlatformPricingFromChain();
+  }, []);
 
   // Custom deals state
   const [customDeals, setCustomDeals] = useState([
@@ -704,24 +701,58 @@ export default function AdminScreen({ navigation }) {
     globalNotification: { label: 'Global Notification', icon: 'megaphone', unit: '$SKR' },
   };
 
+  // Map frontend key → on-chain parameter name
+  const PRICE_TO_CHAIN_MAP = {
+    feedback: 'feedbackDeposit',
+    talent: 'talentDeposit',
+    daoBoost: 'daoProposalDeposit',
+    hubCreation: 'hubSubscriptionPrice',
+    topAdSlot: 'topAdPricePerWeek',
+    bottomAdSlot: 'bottomAdPricePerWeek',
+  };
+
   const handleSavePrice = (key) => {
     const newValue = parseInt(editPriceValue, 10);
     if (isNaN(newValue) || newValue <= 0) {
       Alert.alert('Invalid Price', 'Please enter a valid positive number.');
       return;
     }
+    const chainParam = PRICE_TO_CHAIN_MAP[key];
+    const isOnChainPrice = !!chainParam;
+
     Alert.alert(
       'Update Price',
-      `Change "${PRICE_LABELS[key].label}" from ${prices[key]} to ${newValue} $SKR?`,
+      `Change "${PRICE_LABELS[key].label}" from ${prices[key]} to ${newValue} $SKR?${isOnChainPrice && !__DEV__ ? '\n\nThis will update the on-chain PlatformConfig.' : ''}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Update',
-          onPress: () => {
-            setPrices(prev => ({ ...prev, [key]: newValue }));
-            setEditingPrice(null);
-            setEditPriceValue('');
-            Alert.alert('Price Updated', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.\n\nNote: Rebuild the APK to apply this change to all users.`);
+          onPress: async () => {
+            if (!__DEV__ && isOnChainPrice) {
+              // Release mode: call on-chain update_platform_config
+              try {
+                setSavingPrice(true);
+                const DECIMALS = 1_000_000;
+                const onChainValue = newValue * DECIMALS;
+                await programService.updatePlatformConfig({
+                  [chainParam]: onChainValue,
+                });
+                updateSinglePrice(key, newValue);
+                setEditingPrice(null);
+                setEditPriceValue('');
+                Alert.alert('Price Updated On-Chain', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.\n\nAll users will see the new price immediately.`);
+              } catch (error) {
+                Alert.alert('Transaction Failed', error.message || 'Failed to update price on-chain.');
+              } finally {
+                setSavingPrice(false);
+              }
+            } else {
+              // Dev mode: update store locally
+              updateSinglePrice(key, newValue);
+              setEditingPrice(null);
+              setEditPriceValue('');
+              Alert.alert('Price Updated', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.${__DEV__ ? '\n\n(Dev mode: local update only)' : ''}`);
+            }
           },
         },
       ]

@@ -16,6 +16,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
+import { PRICING } from '../config/constants';
 
 export const useAppStore = create(
   persist(
@@ -112,6 +113,51 @@ export const useAppStore = create(
       pushToken: null,
 
       setPushToken: (token) => set({ pushToken: token }),
+
+      // ============================================
+      // PLATFORM PRICING (fetched from on-chain in release)
+      // ============================================
+      platformPricing: {
+        feedback: PRICING.FEEDBACK,
+        talent: PRICING.TALENT,
+        daoBoost: PRICING.DAO_BOOST,
+        hubCreation: PRICING.HUB_CREATION,
+        topAdSlot: PRICING.TOP_AD_SLOT,
+        bottomAdSlot: PRICING.BOTTOM_AD_SLOT,
+        lockscreenAd: PRICING.LOCKSCREEN_AD,
+        globalNotification: PRICING.GLOBAL_NOTIFICATION,
+      },
+
+      setPlatformPricing: (pricing) => set({ platformPricing: pricing }),
+
+      updateSinglePrice: (key, value) => set((state) => ({
+        platformPricing: { ...state.platformPricing, [key]: value },
+      })),
+
+      loadPlatformPricingFromChain: async () => {
+        if (__DEV__) return; // Mock mode — keep defaults
+        try {
+          const { fetchPlatformConfig } = require('../services/transactionHelper');
+          const config = await fetchPlatformConfig();
+          if (config) {
+            const DECIMALS = 1_000_000; // $SKR has 6 decimals
+            set({
+              platformPricing: {
+                feedback: config.feedbackDeposit.toNumber() / DECIMALS,
+                talent: config.talentDeposit.toNumber() / DECIMALS,
+                daoBoost: config.daoProposalDeposit.toNumber() / DECIMALS,
+                hubCreation: config.hubSubscriptionPrice.toNumber() / DECIMALS,
+                topAdSlot: config.topAdPricePerWeek.toNumber() / DECIMALS,
+                bottomAdSlot: config.bottomAdPricePerWeek.toNumber() / DECIMALS,
+                lockscreenAd: 2000, // Not in PlatformConfig — keep default
+                globalNotification: 1000, // Not in PlatformConfig — keep default
+              },
+            });
+          }
+        } catch (error) {
+          console.warn('[Store] Failed to load pricing from chain:', error.message);
+        }
+      },
 
       // ============================================
       // UI STATE
