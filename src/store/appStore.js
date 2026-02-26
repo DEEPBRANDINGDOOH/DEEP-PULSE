@@ -46,15 +46,23 @@ export const useAppStore = create(
       subscribedProjects: [],
 
       subscribeToProject: (projectId) => {
-        const { subscribedProjects } = get();
+        const { subscribedProjects, hubs } = get();
         if (!subscribedProjects.includes(projectId)) {
-          set({ subscribedProjects: [...subscribedProjects, projectId] });
+          set({
+            subscribedProjects: [...subscribedProjects, projectId],
+            // Increment subscriber count on the hub
+            hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: (h.subscribers || 0) + 1 } : h),
+          });
         }
       },
 
       unsubscribeFromProject: (projectId) => {
-        const { subscribedProjects } = get();
-        set({ subscribedProjects: subscribedProjects.filter(id => id !== projectId) });
+        const { subscribedProjects, hubs } = get();
+        set({
+          subscribedProjects: subscribedProjects.filter(id => id !== projectId),
+          // Decrement subscriber count on the hub
+          hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: Math.max(0, (h.subscribers || 0) - 1) } : h),
+        });
       },
 
       isSubscribed: (projectId) => {
@@ -118,6 +126,25 @@ export const useAppStore = create(
       })),
 
       // ============================================
+      // HUB NOTIFICATIONS STATE (persisted)
+      // ============================================
+      hubNotifications: {},
+
+      addHubNotification: (hubName, notification) => {
+        set((state) => ({
+          hubNotifications: {
+            ...state.hubNotifications,
+            [hubName]: [notification, ...(state.hubNotifications[hubName] || [])],
+          },
+        }));
+      },
+
+      getHubNotifications: (hubName) => {
+        const { hubNotifications } = get();
+        return hubNotifications[hubName] || [];
+      },
+
+      // ============================================
       // PROJECTS STATE (not persisted — resets on app start)
       // ============================================
       projects: [...MOCK_PROJECTS],
@@ -151,7 +178,7 @@ export const useAppStore = create(
         bottomAdSlot: PRICING.BOTTOM_AD_SLOT,
         lockscreenAd: PRICING.LOCKSCREEN_AD,
         globalNotification: PRICING.GLOBAL_NOTIFICATION,
-        richNotificationAd: PRICING.RICH_NOTIFICATION_AD || 500,
+        pushNotificationAd: PRICING.PUSH_NOTIFICATION_AD || 500,
       },
 
       setPlatformPricing: (pricing) => set({ platformPricing: pricing }),
@@ -203,6 +230,7 @@ export const useAppStore = create(
         theme: state.theme,
         hubs: state.hubs,
         pendingHubs: state.pendingHubs,
+        hubNotifications: state.hubNotifications,
       }),
     }
   )

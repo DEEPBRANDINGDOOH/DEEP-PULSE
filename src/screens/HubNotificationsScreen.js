@@ -53,8 +53,10 @@ export default function HubNotificationsScreen({ navigation, route }) {
   const hubIcon = route.params?.hubIcon || 'apps';
   const subscribers = route.params?.subscribers || 0;
   const { wallet } = useAppStore();
+  const storeNotifications = useAppStore((state) => state.hubNotifications[hubName] || []);
 
-  const notifications = MOCK_HUB_NOTIFICATIONS[hubName] || [];
+  // Merge mock notifications + store notifications (store first = newest)
+  const notifications = [...storeNotifications, ...(MOCK_HUB_NOTIFICATIONS[hubName] || [])];
 
   const handleNotificationPress = (notif) => {
     navigation.navigate('NotificationDetail', {

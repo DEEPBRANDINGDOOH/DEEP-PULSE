@@ -253,7 +253,7 @@ export const PRICING = {
   BOTTOM_AD_SLOT: 800,        // $SKR per week
   LOCKSCREEN_AD: 2000,        // $SKR per week (premium lock screen overlay)
   GLOBAL_NOTIFICATION: 1000,  // $SKR per notification
-  RICH_NOTIFICATION_AD: 500,  // $SKR per campaign (batch of 1000 notifications)
+  PUSH_NOTIFICATION_AD: 500,  // $SKR per week (daily push to all hub subscribers)
 };
 
 // ========================================
@@ -428,7 +428,7 @@ export const MOCK_ADS = {
 };
 
 // ========================================
-// RICH NOTIFICATION ADS (mock data)
+// PUSH NOTIFICATION ADS (mock data)
 // ========================================
 
 export const MOCK_RICH_NOTIFICATION_ADS = [

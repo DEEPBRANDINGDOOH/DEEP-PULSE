@@ -119,10 +119,15 @@ export default function BrandBoostScreen({ navigation }) {
 
                   Alert.alert(
                     'Hub Created!',
-                    `Your hub "${createdHubName}" has been submitted for review!\n\nThe admin will approve it shortly. You can then manage it from your dashboard.`,
+                    `Your hub "${createdHubName}" has been submitted for review!\n\nThe admin will approve it shortly. You can manage it from your dashboard now.`,
                     [{
                       text: 'Go to Dashboard',
-                      onPress: () => navigation.navigate('HubDashboard', { hubName: createdHubName }),
+                      onPress: () => navigation.navigate('HubDashboard', {
+                        hubName: createdHubName,
+                        hubIcon: newHub.icon,
+                        hubStatus: 'PENDING',
+                        subscribers: 0,
+                      }),
                     }]
                   );
                 }

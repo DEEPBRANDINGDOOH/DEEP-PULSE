@@ -38,7 +38,7 @@ Hackathon Submission — March 2026
 | Submit feedback (300 $SKR deposit) | Receive DAO boost funding (95/5 split) | Duration-based discounts (up to 40% off) |
 | Vote on DAO proposals | Analytics dashboard | Lock screen premium ads |
 | DEEP Score ranks real contributors | Admin review for quality control | Impression & click tracking |
-| | Hub lifecycle (create -> approve -> Discover) | Rich Notification Ads (500 $SKR/campaign, FCM push) |
+| | Hub lifecycle (create -> approve -> Discover) | Push Notification Ads (500 $SKR/week, FCM push) — full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts |
 | | DOOH Worldwide campaign briefs | DOOH digital billboard campaigns |
 
 ---
@@ -54,7 +54,7 @@ Hackathon Submission — March 2026
           |
 4. USERS engage: read, feedback, vote, swipe
           |
-5. ADVERTISERS buy ad slots (top/bottom/lockscreen/rich notification/DOOH)
+5. ADVERTISERS buy ad slots (top/bottom/lockscreen/push notification/DOOH)
           |
 6. COMMUNITY funds DAO boost proposals
           |
@@ -103,7 +103,7 @@ Hackathon Submission — March 2026
 | Top ad slot | 1,500 | Per week |
 | Bottom ad slot | 800 | Per week |
 | Lock screen ad | 2,000 | Per week |
-| Rich Notification Ad | 500 | Per campaign (FCM push) |
+| Push Notification Ad | 500 | Per week (FCM push) |
 
 **Token Flow:**
 - All payments in $SKR (existing Seeker token)
@@ -167,13 +167,13 @@ Hackathon Submission — March 2026
 
 ---
 
-### SLIDE 10 — RICH NOTIFICATION ADS & DOOH WORLDWIDE
+### SLIDE 10 — PUSH NOTIFICATION ADS & DOOH WORLDWIDE
 
-**Rich Notification Ads (500 $SKR/campaign):**
+**Push Notification Ads (500 $SKR/week):**
 
 - Push notification ads delivered via Firebase Cloud Messaging
 - Works on ALL devices including Solana Seeker — no SYSTEM_ALERT_WINDOW permission needed
-- Brands create campaigns with title, body, image, and call-to-action
+- Full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts
 - Reaches every subscriber's notification tray instantly
 - Lower barrier to entry than banner or lock screen ads
 
@@ -215,7 +215,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 16. Hub Notifications (hub-specific feed)
 17. Swipe-to-Earn (lock screen dashboard)
 18. DOOH Screen (Digital Out-Of-Home campaign brief form)
-19. Rich Notification Ads (push notification ad campaigns)
+19. Push Notification Ads (push notification ad campaigns — full campaign creation flow)
 
 **Both APKs available:**
 - Debug APK (132 MB) — mock fallbacks for testing
@@ -243,7 +243,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline, Rich Notification Ads, DOOH Worldwide, Hub Lifecycle |
+| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline, Push Notification Ads (full campaign creation flow), DOOH Worldwide, Hub Lifecycle |
 | **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |

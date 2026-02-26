@@ -6,9 +6,17 @@ import { useAppStore } from '../store/appStore';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
+  const hubIcon = route.params?.hubIcon || 'rocket';
+  const hubStatus = route.params?.hubStatus || 'ACTIVE';
   const { wallet } = useAppStore();
   const lockscreenPrice = useAppStore((state) => state.platformPricing?.lockscreenAd || 2000);
   const hubCreationPrice = useAppStore((state) => state.platformPricing?.hubCreation || 2000);
+  const addHubNotification = useAppStore((state) => state.addHubNotification);
+  // Read live subscriber count from hub in store
+  const storeHubs = useAppStore((state) => state.hubs);
+  const pendingHubs = useAppStore((state) => state.pendingHubs);
+  const hubNotifications = useAppStore((state) => state.hubNotifications);
+  const hubData = storeHubs.find(h => h.name === hubName) || pendingHubs.find(h => h.name === hubName);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [discordWebhook, setDiscordWebhook] = useState('');
@@ -16,11 +24,13 @@ export default function HubDashboardScreen({ navigation, route }) {
   const [discordServer, setDiscordServer] = useState('');
   const [discordChannel, setDiscordChannel] = useState('');
 
+  // Use real data from the store; fallback to mock for legacy hubs
+  const sentNotifs = hubNotifications[hubName] || [];
   const stats = {
-    sent: 342,
-    openRate: 87,
-    clickRate: 62,
-    subscribers: 12542,
+    sent: hubData ? sentNotifs.length : 342,
+    openRate: hubData?.subscribers > 0 ? 87 : 0,
+    clickRate: hubData?.subscribers > 0 ? 62 : 0,
+    subscribers: hubData?.subscribers || route.params?.subscribers || 0,
   };
 
   return (
@@ -28,10 +38,27 @@ export default function HubDashboardScreen({ navigation, route }) {
       <ScrollView>
         {/* Header */}
         <View className="p-6 pb-4">
-          <Text className="text-text font-black text-3xl mb-2">{hubName}</Text>
+          <View className="flex-row items-center mb-2">
+            <Text className="text-text font-black text-3xl">{hubName}</Text>
+            {(hubStatus === 'PENDING' || hubData?.status === 'PENDING') && (
+              <View className="ml-3 bg-yellow-500/20 rounded-full px-3 py-1">
+                <Text className="text-yellow-400 text-xs font-bold">PENDING</Text>
+              </View>
+            )}
+          </View>
           <Text className="text-text-secondary text-base">
             {stats.subscribers.toLocaleString()} subscribers
           </Text>
+          {(hubStatus === 'PENDING' || hubData?.status === 'PENDING') && (
+            <View className="bg-yellow-500/10 rounded-xl p-3 mt-3 border border-yellow-500/20">
+              <View className="flex-row items-center">
+                <Ionicons name="time-outline" size={16} color="#EAB308" />
+                <Text className="text-yellow-400 text-sm ml-2 flex-1">
+                  Your hub is pending admin approval. Once approved, it will be visible in Discover.
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Stats Cards */}
@@ -99,7 +126,21 @@ export default function HubDashboardScreen({ navigation, route }) {
                 Alert.alert('Send Notification', `Send "${title}" to ${stats.subscribers.toLocaleString()} subscribers?`, [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Send', onPress: () => {
-                    Alert.alert('Sent!', 'Notification sent to all subscribers.');
+                    // Store notification so it appears in HubNotifications
+                    addHubNotification(hubName, {
+                      id: `notif_${Date.now()}`,
+                      title: title.trim(),
+                      hubName: hubName,
+                      hubIcon: hubIcon,
+                      message: message.trim(),
+                      fullMessage: message.trim(),
+                      link: null,
+                      timestamp: 'Just now',
+                      reactions: 0,
+                      comments: 0,
+                      isNew: true,
+                    });
+                    Alert.alert('Sent!', `Notification "${title}" sent to ${stats.subscribers.toLocaleString()} subscribers.`);
                     setTitle('');
                     setMessage('');
                   }},

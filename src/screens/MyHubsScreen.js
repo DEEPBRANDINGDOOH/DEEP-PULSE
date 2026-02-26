@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
-import { MOCK_ADS, MOCK_HUBS } from '../config/constants';
+import { MOCK_ADS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
-// Extra hub metadata not in MOCK_HUBS (for display in My Hubs)
+// Extra hub metadata for legacy mock hubs (display in My Hubs)
 const HUB_EXTRA = {
   '1': { unreadCount: 3, lastNotification: 'New game launch tomorrow!', lastNotificationTime: '2 hours ago' },
   '2': { unreadCount: 1, lastNotification: 'Artist spotlight: @solartist', lastNotificationTime: '5 hours ago' },
@@ -17,18 +17,27 @@ const HUB_EXTRA = {
 export default function MyHubsScreen({ navigation }) {
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const unsubscribeFromProject = useAppStore((state) => state.unsubscribeFromProject);
+  const storeHubs = useAppStore((state) => state.hubs);
+  const hubNotifications = useAppStore((state) => state.hubNotifications);
 
-  // Build myHubs from the store subscriptions + MOCK_HUBS data
+  // Build myHubs from the store subscriptions + store hubs (includes mock + user-created)
   const myHubs = useMemo(() => {
     return subscribedProjects
       .map(id => {
-        const hub = MOCK_HUBS.find(h => h.id === id);
+        const hub = storeHubs.find(h => h.id === id);
         if (!hub) return null;
-        const extra = HUB_EXTRA[id] || { unreadCount: 0, lastNotification: 'No notifications yet', lastNotificationTime: '' };
+        // For new hubs, check stored notifications; for legacy mocks, use HUB_EXTRA
+        const storedNotifs = hubNotifications[hub.name] || [];
+        const latestNotif = storedNotifs.length > 0 ? storedNotifs[0] : null;
+        const extra = HUB_EXTRA[id] || {
+          unreadCount: storedNotifs.length,
+          lastNotification: latestNotif ? latestNotif.title : 'No notifications yet',
+          lastNotificationTime: latestNotif ? latestNotif.timestamp : '',
+        };
         return { ...hub, ...extra };
       })
       .filter(Boolean);
-  }, [subscribedProjects]);
+  }, [subscribedProjects, storeHubs, hubNotifications]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
