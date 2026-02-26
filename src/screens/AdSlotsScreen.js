@@ -194,6 +194,15 @@ export default function AdSlotsScreen({ route, navigation }) {
   // My ads
   const [myAds, setMyAds] = useState(MOCK_MY_ADS);
 
+  // Rich Notification campaign state
+  const [showRichNotifModal, setShowRichNotifModal] = useState(false);
+  const [richTitle, setRichTitle] = useState('');
+  const [richBody, setRichBody] = useState('');
+  const [richCtaLabel, setRichCtaLabel] = useState('');
+  const [richCtaUrl, setRichCtaUrl] = useState('');
+  const [richImageUrl, setRichImageUrl] = useState('');
+  const [isSubmittingRich, setIsSubmittingRich] = useState(false);
+
   // Mock data
   const [topSlots, setTopSlots] = useState([
     { id: 1, advertiser: '7xK...9Qz', active: true, remaining: 3 },
@@ -755,69 +764,95 @@ export default function AdSlotsScreen({ route, navigation }) {
 
         {/* Rich Notification Ads — RECOMMENDED */}
         <View className="px-6 mb-4">
-          <View className="bg-success/5 rounded-2xl p-5 border border-success/20">
-            <View className="flex-row items-center mb-3">
-              <View className="w-10 h-10 rounded-full bg-success/20 items-center justify-center">
-                <Ionicons name="notifications" size={22} color="#4CAF50" />
+          <View className="bg-background-card rounded-2xl p-5 border border-border">
+            {/* Header with badge */}
+            <View className="flex-row justify-between items-start mb-4">
+              <View className="flex-row items-center flex-1">
+                <View className="w-14 h-14 rounded-xl bg-success/10 items-center justify-center mr-4">
+                  <Ionicons name="notifications" size={28} color="#4CAF50" />
+                </View>
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text className="text-text font-bold text-lg mb-1">Push Notification Ad</Text>
+                    <View className="bg-success/20 rounded-full px-2 py-0.5 ml-2">
+                      <Text className="text-success text-xs font-bold">NEW</Text>
+                    </View>
+                  </View>
+                  <Text className="text-text-secondary text-xs">
+                    Send a branded push notification to all hub subscribers
+                  </Text>
+                </View>
               </View>
-              <View className="ml-3 flex-1">
-                <View className="flex-row items-center">
-                  <Text className="text-success font-bold text-base">Rich Notification Ads</Text>
-                  <View className="bg-success/20 rounded-full px-2 py-0.5 ml-2">
-                    <Text className="text-success text-xs font-bold">RECOMMENDED</Text>
+              <View className="bg-success/20 px-3 py-1 rounded-lg">
+                <Text className="text-success font-bold text-sm">500 $SKR/week</Text>
+              </View>
+            </View>
+
+            {/* Notification Preview Mockup */}
+            <View className="bg-background-secondary rounded-xl p-4 mb-4 border border-border">
+              <Text className="text-text-secondary text-xs font-semibold mb-3 uppercase">Preview</Text>
+              <View className="bg-[#1a1a20] rounded-xl p-4 border border-[#2a2a30]">
+                <View className="flex-row items-start">
+                  <View className="w-10 h-10 rounded-lg bg-primary/20 items-center justify-center mr-3 mt-0.5">
+                    <Ionicons name="pulse" size={20} color="#FF9F66" />
+                  </View>
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between mb-1">
+                      <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                      <Text className="text-text-secondary text-xs">now</Text>
+                    </View>
+                    <Text className="text-text font-bold text-sm mb-1">Your Campaign Title Here</Text>
+                    <Text className="text-text-secondary text-xs leading-4" numberOfLines={2}>
+                      Your promotional message goes here. Reach all subscribers instantly.
+                    </Text>
+                    <View className="bg-primary/15 rounded-lg px-3 py-1.5 mt-2 self-start border border-primary/25">
+                      <Text className="text-primary text-xs font-bold">Call to Action</Text>
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
-            <Text className="text-text-secondary text-sm mb-3 leading-5">
-              Push notification delivered directly to user devices via FCM. Includes image, title, body text, and a call-to-action button. No special permissions required.
-            </Text>
-            <View className="bg-success/10 rounded-xl p-3 mb-4 border border-success/20">
-              <View className="flex-row items-center">
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text className="text-success text-xs font-semibold ml-2">
-                  Works on all devices including Solana Seeker — no SYSTEM_ALERT_WINDOW needed
-                </Text>
-              </View>
-            </View>
+
+            {/* Specs */}
             <View className="bg-background-secondary rounded-xl p-4 mb-4">
               <View className="flex-row justify-between mb-2">
-                <Text className="text-text-secondary text-sm">Price</Text>
-                <Text className="text-success font-bold text-sm">500 $SKR / campaign</Text>
+                <Text className="text-text-secondary text-sm">Frequency</Text>
+                <Text className="text-text font-semibold text-sm">1 push/day for duration</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-text-secondary text-sm">Reach</Text>
-                <Text className="text-text font-semibold text-sm">~1,000 notifications</Text>
+                <Text className="text-text-secondary text-sm">Audience</Text>
+                <Text className="text-text font-semibold text-sm">All hub subscribers</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-text-secondary text-sm">Content</Text>
-                <Text className="text-text font-semibold text-sm">Title + Body + Image + CTA</Text>
+                <Text className="text-text-secondary text-sm">Delivery</Text>
+                <Text className="text-text font-semibold text-sm">Instant push (FCM)</Text>
+              </View>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-text-secondary text-sm">Format</Text>
+                <Text className="text-text font-semibold text-sm">Title + Body + CTA button</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-text-secondary text-sm">Delivery</Text>
-                <Text className="text-text font-semibold text-sm">Instant via FCM</Text>
+                <Text className="text-text-secondary text-sm">Compatibility</Text>
+                <Text className="text-success font-semibold text-sm">All devices</Text>
               </View>
             </View>
+
+            {/* Purchase Button */}
             <TouchableOpacity
               onPress={() => {
-                Alert.alert(
-                  'Rich Notification Ad',
-                  'Create a rich notification campaign?\n\nYour notification will be sent to all subscribers with:\n- Custom title (60 chars)\n- Body text (120 chars)\n- Optional image (512x256 px)\n- Call-to-action button\n\nCost: 500 $SKR per campaign',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Create Campaign', onPress: () => {
-                      Alert.alert('Coming Soon', 'Rich Notification campaigns will be available in the next update. Stay tuned!');
-                    }},
-                  ]
-                );
+                setRichTitle('');
+                setRichBody('');
+                setRichCtaLabel('');
+                setRichCtaUrl('');
+                setRichImageUrl('');
+                setShowRichNotifModal(true);
               }}
-              className="bg-success rounded-xl py-4"
+              className="bg-success rounded-xl p-4"
               activeOpacity={0.7}
             >
-              <View className="flex-row items-center justify-center">
-                <Ionicons name="notifications" size={18} color="#fff" />
-                <Text className="text-white font-bold text-base ml-2">Create Rich Notification Campaign</Text>
-              </View>
+              <Text className="text-white font-bold text-center">
+                <Ionicons name="create" size={18} /> Create Campaign (500 $SKR/week)
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1120,6 +1155,241 @@ export default function AdSlotsScreen({ route, navigation }) {
                     <Ionicons name={isPurchasing ? 'hourglass' : 'shield-checkmark'} size={18} color="#fff" />
                     <Text className="text-white font-bold text-center text-lg ml-2">
                       {isPurchasing ? 'Processing...' : 'Purchase & Submit for Review'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Rich Notification Campaign Modal */}
+      <Modal
+        visible={showRichNotifModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowRichNotifModal(false)}
+      >
+        <View className="flex-1 bg-black/80 justify-end">
+          <View className="bg-background rounded-t-3xl p-6 max-h-[90%]">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-text font-black text-2xl">
+                  Push Notification Ad
+                </Text>
+                <TouchableOpacity onPress={() => setShowRichNotifModal(false)}>
+                  <Ionicons name="close" size={28} color="#888" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Review notice */}
+              <View className="bg-success/10 rounded-xl p-3 mb-5 border border-success/20">
+                <View className="flex-row items-center">
+                  <Ionicons name="people" size={18} color="#4CAF50" />
+                  <Text className="text-text-secondary text-sm ml-2 flex-1">
+                    Your notification will be sent to all hub subscribers instantly
+                  </Text>
+                </View>
+              </View>
+
+              {/* Form */}
+              <View>
+                {/* Title */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">
+                    Notification Title <Text className="text-text-secondary font-normal">(max 60 chars)</Text>
+                  </Text>
+                  <TextInput
+                    value={richTitle}
+                    onChangeText={(t) => setRichTitle(t.slice(0, 60))}
+                    placeholder="e.g. Flash Sale: 50% off all NFTs!"
+                    placeholderTextColor="#666"
+                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                  />
+                  <Text className="text-text-secondary text-xs mt-1 text-right">{richTitle.length}/60</Text>
+                </View>
+
+                {/* Body */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">
+                    Message <Text className="text-text-secondary font-normal">(max 150 chars)</Text>
+                  </Text>
+                  <TextInput
+                    value={richBody}
+                    onChangeText={(t) => setRichBody(t.slice(0, 150))}
+                    placeholder="e.g. Don't miss our exclusive collection drop. Mint now before it's gone!"
+                    placeholderTextColor="#666"
+                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    style={{ minHeight: 80 }}
+                  />
+                  <Text className="text-text-secondary text-xs mt-1 text-right">{richBody.length}/150</Text>
+                </View>
+
+                {/* CTA Label */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">
+                    Button Label <Text className="text-text-secondary font-normal">(max 20 chars)</Text>
+                  </Text>
+                  <TextInput
+                    value={richCtaLabel}
+                    onChangeText={(t) => setRichCtaLabel(t.slice(0, 20))}
+                    placeholder="e.g. Mint Now"
+                    placeholderTextColor="#666"
+                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                  />
+                </View>
+
+                {/* CTA URL */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">Button URL</Text>
+                  <TextInput
+                    value={richCtaUrl}
+                    onChangeText={setRichCtaUrl}
+                    placeholder="https://yourproject.com/offer"
+                    placeholderTextColor="#666"
+                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                    autoCapitalize="none"
+                    keyboardType="url"
+                  />
+                </View>
+
+                {/* Image URL (optional) */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">
+                    Image URL <Text className="text-text-secondary font-normal">(optional, 512x256 px)</Text>
+                  </Text>
+                  <TextInput
+                    value={richImageUrl}
+                    onChangeText={setRichImageUrl}
+                    placeholder="https://cdn.example.com/banner.png"
+                    placeholderTextColor="#666"
+                    className="bg-background-secondary text-text rounded-xl p-4 border border-border"
+                    autoCapitalize="none"
+                    keyboardType="url"
+                  />
+                </View>
+
+                {/* Duration */}
+                <View className="mb-4">
+                  <Text className="text-text font-bold text-sm mb-2">Duration (weeks)</Text>
+                  <View className="flex-row items-center space-x-3">
+                    <TouchableOpacity
+                      onPress={() => setDuration(Math.max(1, duration - 1))}
+                      className="bg-background-secondary w-12 h-12 rounded-xl items-center justify-center border border-border"
+                    >
+                      <Ionicons name="remove" size={24} color="#4CAF50" />
+                    </TouchableOpacity>
+                    <View className="flex-1 bg-background-secondary rounded-xl p-4 border border-border">
+                      <Text className="text-text text-center font-bold text-lg">{duration}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setDuration(duration + 1)}
+                      className="bg-background-secondary w-12 h-12 rounded-xl items-center justify-center border border-border"
+                    >
+                      <Ionicons name="add" size={24} color="#4CAF50" />
+                    </TouchableOpacity>
+                  </View>
+                  <Text className="text-text-secondary text-xs mt-2">
+                    1 push notification per day to all subscribers for {duration} week{duration > 1 ? 's' : ''}
+                  </Text>
+                </View>
+
+                {/* Live Preview */}
+                <View className="bg-background-secondary rounded-xl p-4 mb-4 border border-border">
+                  <Text className="text-text-secondary text-xs font-semibold mb-3 uppercase">Live Preview</Text>
+                  <View className="bg-[#1a1a20] rounded-xl p-4 border border-[#2a2a30]">
+                    <View className="flex-row items-start">
+                      <View className="w-10 h-10 rounded-lg bg-primary/20 items-center justify-center mr-3 mt-0.5">
+                        <Ionicons name="pulse" size={20} color="#FF9F66" />
+                      </View>
+                      <View className="flex-1">
+                        <View className="flex-row items-center justify-between mb-1">
+                          <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                          <Text className="text-text-secondary text-xs">now</Text>
+                        </View>
+                        <Text className="text-text font-bold text-sm mb-1">
+                          {richTitle || 'Your Title'}
+                        </Text>
+                        <Text className="text-text-secondary text-xs leading-4" numberOfLines={2}>
+                          {richBody || 'Your message appears here...'}
+                        </Text>
+                        {(richCtaLabel || '').trim() !== '' && (
+                          <View className="bg-primary/15 rounded-lg px-3 py-1.5 mt-2 self-start border border-primary/25">
+                            <Text className="text-primary text-xs font-bold">{richCtaLabel}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Price */}
+                <View className="bg-success/10 rounded-xl p-4 border border-success/30 mb-4">
+                  <View className="flex-row justify-between mb-2">
+                    <Text className="text-text-secondary">Base Price</Text>
+                    <Text className="text-text font-semibold">{(500 * duration).toLocaleString()} $SKR</Text>
+                  </View>
+                  {calculateDiscount(duration) > 0 && (
+                    <View className="flex-row justify-between mb-2">
+                      <Text className="text-success">Discount ({(calculateDiscount(duration) * 100).toFixed(0)}%)</Text>
+                      <Text className="text-success font-semibold">
+                        -{(500 * duration * calculateDiscount(duration)).toLocaleString()} $SKR
+                      </Text>
+                    </View>
+                  )}
+                  <View className="border-t border-success/20 pt-2 mt-1">
+                    <View className="flex-row justify-between items-center">
+                      <Text className="text-success font-bold text-lg">Total</Text>
+                      <Text className="text-success font-black text-lg">
+                        {(500 * duration * (1 - calculateDiscount(duration))).toLocaleString()} $SKR
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Submit Button */}
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!richTitle.trim() || !richBody.trim()) {
+                      Alert.alert('Missing Fields', 'Please fill in at least the title and message.');
+                      return;
+                    }
+                    const totalCost = 500 * duration * (1 - calculateDiscount(duration));
+                    setIsSubmittingRich(true);
+                    Alert.alert(
+                      'Confirm Campaign',
+                      `Purchase push notification campaign?\n\nTitle: ${richTitle}\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYour notification will be submitted for admin review.`,
+                      [
+                        { text: 'Cancel', style: 'cancel', onPress: () => setIsSubmittingRich(false) },
+                        {
+                          text: 'Purchase & Submit',
+                          onPress: () => {
+                            setTimeout(() => {
+                              setIsSubmittingRich(false);
+                              setShowRichNotifModal(false);
+                              Alert.alert(
+                                'Campaign Submitted!',
+                                `Your push notification ad has been submitted for admin review.\n\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYou will be notified once approved.`,
+                              );
+                            }, 1500);
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                  disabled={isSubmittingRich}
+                  className={`rounded-xl p-4 ${isSubmittingRich ? 'bg-gray-500' : 'bg-success'}`}
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name={isSubmittingRich ? 'hourglass' : 'shield-checkmark'} size={18} color="#fff" />
+                    <Text className="text-white font-bold text-center text-lg ml-2">
+                      {isSubmittingRich ? 'Processing...' : 'Purchase & Submit for Review'}
                     </Text>
                   </View>
                 </TouchableOpacity>
