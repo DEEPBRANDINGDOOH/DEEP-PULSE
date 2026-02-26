@@ -102,6 +102,8 @@ dependencies {
     implementation project(':solana-mobile_mobile-wallet-adapter-protocol')
     implementation project(':solana-mobile_mobile-wallet-adapter-walletlib')
     implementation project(':react-native-firebase_app')
+    implementation project(':react-native-firebase_firestore')
+    implementation project(':react-native-firebase_functions')
     implementation project(':react-native-firebase_messaging')
     implementation project(':react-native-firebase_storage')
     implementation project(':react-native-image-picker')

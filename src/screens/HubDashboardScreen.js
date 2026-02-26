@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { sendHubNotification } from '../services/firebaseService';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -125,22 +126,40 @@ export default function HubDashboardScreen({ navigation, route }) {
                 }
                 Alert.alert('Send Notification', `Send "${title}" to ${stats.subscribers.toLocaleString()} subscribers?`, [
                   { text: 'Cancel', style: 'cancel' },
-                  { text: 'Send', onPress: () => {
-                    // Store notification so it appears in HubNotifications
+                  { text: 'Send', onPress: async () => {
+                    const notifTitle = title.trim();
+                    const notifMessage = message.trim();
+
+                    // 1. Store locally in Zustand (optimistic UI)
                     addHubNotification(hubName, {
                       id: `notif_${Date.now()}`,
-                      title: title.trim(),
+                      title: notifTitle,
                       hubName: hubName,
                       hubIcon: hubIcon,
-                      message: message.trim(),
-                      fullMessage: message.trim(),
+                      message: notifMessage,
+                      fullMessage: notifMessage,
                       link: null,
                       timestamp: 'Just now',
                       reactions: 0,
                       comments: 0,
                       isNew: true,
                     });
-                    Alert.alert('Sent!', `Notification "${title}" sent to ${stats.subscribers.toLocaleString()} subscribers.`);
+
+                    // 2. Send via Firebase Cloud Function → FCM push to all subscribers
+                    const hubId = hubData?.id || `hub_${hubName}`;
+                    sendHubNotification(
+                      hubId,
+                      hubName,
+                      notifTitle,
+                      notifMessage,
+                      wallet.publicKey || 'mock_admin',
+                    ).then((res) => {
+                      console.log('[HubDashboard] Push sent:', res);
+                    }).catch((err) => {
+                      console.warn('[HubDashboard] Push delivery failed (local saved):', err);
+                    });
+
+                    Alert.alert('Sent!', `Notification "${notifTitle}" sent to ${stats.subscribers.toLocaleString()} subscribers via push.`);
                     setTitle('');
                     setMessage('');
                   }},

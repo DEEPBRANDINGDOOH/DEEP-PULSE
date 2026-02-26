@@ -17,6 +17,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
 import { PRICING, MOCK_HUBS } from '../config/constants';
+import {
+  subscribeToHubBackend,
+  unsubscribeFromHubBackend,
+  createHubInFirestore,
+  approveHubInFirestore,
+  rejectHubInFirestore,
+} from '../services/firebaseService';
 
 export const useAppStore = create(
   persist(
@@ -46,23 +53,31 @@ export const useAppStore = create(
       subscribedProjects: [],
 
       subscribeToProject: (projectId) => {
-        const { subscribedProjects, hubs } = get();
+        const { subscribedProjects, hubs, wallet } = get();
         if (!subscribedProjects.includes(projectId)) {
+          // 1. Update local state immediately (optimistic UI)
           set({
             subscribedProjects: [...subscribedProjects, projectId],
             // Increment subscriber count on the hub
             hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: (h.subscribers || 0) + 1 } : h),
           });
+          // 2. Sync with Firebase backend (FCM topic + Firestore)
+          subscribeToHubBackend(projectId, wallet.publicKey || 'mock_user')
+            .catch(e => console.warn('[Store] Backend subscribe failed:', e));
         }
       },
 
       unsubscribeFromProject: (projectId) => {
-        const { subscribedProjects, hubs } = get();
+        const { subscribedProjects, hubs, wallet } = get();
+        // 1. Update local state immediately (optimistic UI)
         set({
           subscribedProjects: subscribedProjects.filter(id => id !== projectId),
           // Decrement subscriber count on the hub
           hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: Math.max(0, (h.subscribers || 0) - 1) } : h),
         });
+        // 2. Sync with Firebase backend (FCM topic + Firestore)
+        unsubscribeFromHubBackend(projectId, wallet.publicKey || 'mock_user')
+          .catch(e => console.warn('[Store] Backend unsubscribe failed:', e));
       },
 
       isSubscribed: (projectId) => {
@@ -106,24 +121,41 @@ export const useAppStore = create(
       hubs: [...MOCK_HUBS],
       pendingHubs: [],
 
-      addPendingHub: (hub) => set((state) => ({
-        pendingHubs: [hub, ...state.pendingHubs],
-      })),
+      addPendingHub: (hub) => {
+        // 1. Update local state immediately
+        set((state) => ({
+          pendingHubs: [hub, ...state.pendingHubs],
+        }));
+        // 2. Sync with Firestore
+        createHubInFirestore(hub)
+          .catch(e => console.warn('[Store] Firestore createHub failed:', e));
+      },
 
       approveHub: (hubId) => {
-        const { pendingHubs, hubs } = get();
+        const { pendingHubs, hubs, wallet } = get();
         const hub = pendingHubs.find((h) => h.id === hubId);
         if (hub) {
+          // 1. Update local state immediately
           set({
             pendingHubs: pendingHubs.filter((h) => h.id !== hubId),
             hubs: [...hubs, { ...hub, status: 'ACTIVE' }],
           });
+          // 2. Sync with Firestore
+          approveHubInFirestore(hubId, wallet.publicKey || 'admin')
+            .catch(e => console.warn('[Store] Firestore approveHub failed:', e));
         }
       },
 
-      rejectHub: (hubId) => set((state) => ({
-        pendingHubs: state.pendingHubs.filter((h) => h.id !== hubId),
-      })),
+      rejectHub: (hubId) => {
+        const { wallet } = get();
+        // 1. Update local state immediately
+        set((state) => ({
+          pendingHubs: state.pendingHubs.filter((h) => h.id !== hubId),
+        }));
+        // 2. Sync with Firestore
+        rejectHubInFirestore(hubId, wallet.publicKey || 'admin')
+          .catch(e => console.warn('[Store] Firestore rejectHub failed:', e));
+      },
 
       // ============================================
       // HUB NOTIFICATIONS STATE (persisted)

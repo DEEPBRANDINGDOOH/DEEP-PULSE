@@ -19,6 +19,7 @@
 
 import React, { useState } from 'react';
 import { purchaseAdSlot as purchaseAdSlotTx } from '../services/transactionHelper';
+import { programService } from '../services/programService';
 import {
   View,
   Text,
@@ -363,12 +364,19 @@ export default function AdSlotsScreen({ route, navigation }) {
               // Attempt real on-chain ad purchase if hubId is available
               if (hubId) {
                 const slotIndex = Date.now() % 100000;
+                // Hash URLs properly for on-chain storage
+                const imageUrlHash = finalImageUrl
+                  ? await programService.hashContent(finalImageUrl)
+                  : Array.from(new Uint8Array(32));
+                const landingUrlHash = landingUrl
+                  ? await programService.hashContent(landingUrl)
+                  : Array.from(new Uint8Array(32));
                 const result = await purchaseAdSlotTx(
                   hubId,
                   selectedSlot,
                   slotIndex,
-                  Array.from(new Uint8Array(32)), // imageUrl hash placeholder
-                  Array.from(new Uint8Array(32)), // landingUrl hash placeholder
+                  imageUrlHash,
+                  landingUrlHash,
                   duration
                 );
                 if (!result.success) {

@@ -44,8 +44,13 @@ export default function ProfileScreen({ navigation }) {
   const clearWallet = useAppStore((state) => state.clearWallet);
   const storeWallet = useAppStore((state) => state.wallet);
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
+  const storeHubs = useAppStore((state) => state.hubs);
+  const pendingHubs = useAppStore((state) => state.pendingHubs);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
+
+  // Get hubs created by this user (pending + active)
+  const myCreatedHubs = [...pendingHubs, ...storeHubs].filter(h => h.creator != null);
 
   // Use real wallet if connected, otherwise fall back to mock
   const connectedPubkey = getWalletPublicKey();
@@ -229,6 +234,47 @@ export default function ProfileScreen({ navigation }) {
         </View>
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </TouchableOpacity>
+
+      {/* My Created Hubs — shows hub dashboards for hubs this user created */}
+      {myCreatedHubs.length > 0 && (
+        <View className="mb-3">
+          <Text className="text-text font-semibold text-lg mb-3">My Created Hubs</Text>
+          {myCreatedHubs.map((hub) => (
+            <TouchableOpacity
+              key={hub.id}
+              onPress={() => navigation.navigate('HubDashboard', {
+                hubName: hub.name,
+                hubIcon: hub.icon || 'rocket',
+                hubStatus: hub.status || 'ACTIVE',
+                subscribers: hub.subscribers || 0,
+              })}
+              className="bg-background-card rounded-xl p-4 mb-2 flex-row items-center justify-between border border-border"
+            >
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 bg-primary/20 rounded-full items-center justify-center">
+                  <Ionicons name={hub.icon || 'rocket'} size={20} color="#FF9F66" />
+                </View>
+                <View className="ml-3 flex-1">
+                  <Text className="text-text font-bold">{hub.name}</Text>
+                  <Text className="text-text-secondary text-xs">
+                    {(hub.subscribers || 0).toLocaleString()} subscribers
+                  </Text>
+                </View>
+                <View className={`rounded-full px-2 py-1 mr-2 ${
+                  hub.status === 'PENDING' ? 'bg-yellow-500/20' : 'bg-green-500/20'
+                }`}>
+                  <Text className={`text-xs font-bold ${
+                    hub.status === 'PENDING' ? 'text-yellow-400' : 'text-green-400'
+                  }`}>
+                    {hub.status || 'ACTIVE'}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#FF9F66" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Admin Access */}
       {isAdmin(user.wallet) && (

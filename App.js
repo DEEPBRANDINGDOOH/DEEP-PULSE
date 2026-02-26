@@ -7,6 +7,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { notificationService } from './src/services/notificationService';
+import { registerFcmToken } from './src/services/firebaseService';
+import { useAppStore } from './src/store/appStore';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -127,7 +129,16 @@ const App = () => {
     const bootstrapNotifications = async () => {
       try {
         // Request permission + get FCM token
-        await notificationService.registerForPushNotifications();
+        const fcmToken = await notificationService.registerForPushNotifications();
+
+        // Register FCM token with Firebase backend (for targeted push)
+        if (fcmToken) {
+          const walletPubkey = useAppStore.getState().wallet?.publicKey;
+          if (walletPubkey) {
+            registerFcmToken(fcmToken, walletPubkey).catch(() => {});
+          }
+          useAppStore.getState().setPushToken(fcmToken);
+        }
 
         // Listen for foreground notifications
         notificationService.addForegroundListener((notification) => {
@@ -140,9 +151,14 @@ const App = () => {
           // TODO: Navigate to relevant screen based on data
         });
 
-        // Listen for token refresh
+        // Listen for token refresh — re-register with backend
         notificationService.onTokenRefresh((newToken) => {
           console.log('[App] FCM token refreshed');
+          const walletPk = useAppStore.getState().wallet?.publicKey;
+          if (walletPk) {
+            registerFcmToken(newToken, walletPk).catch(() => {});
+          }
+          useAppStore.getState().setPushToken(newToken);
         });
       } catch (e) {
         console.warn('[App] Notification bootstrap failed:', e.message);

@@ -97,8 +97,7 @@ class NotificationService {
 
     const token = await this.getToken();
 
-    // TODO: Send token to backend to associate with user's wallet
-    // await api.registerDevice({ token, walletAddress });
+    // Token is registered with Firebase backend via registerFcmToken() in App.js
 
     return token;
   }
