@@ -33,18 +33,19 @@ if (MWA_ENABLED) {
     const protocol = require('@solana-mobile/mobile-wallet-adapter-protocol');
     SolanaMobileWalletAdapterProtocolError = protocol.SolanaMobileWalletAdapterProtocolError;
     mwaAvailable = true;
-    console.log('[WalletAdapter] MWA native module loaded');
+    logger.log('[WalletAdapter] MWA native module loaded');
   } catch (e) {
-    console.warn('[WalletAdapter] MWA import failed:', e.message);
+    logger.warn('[WalletAdapter] MWA import failed:', e.message);
   }
 } else {
-  console.log('[WalletAdapter] MWA disabled — running in mock mode (Expo Go)');
+  logger.log('[WalletAdapter] MWA disabled — running in mock mode (Expo Go)');
 }
 
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { APP_IDENTITY, getRpcEndpoint, getCluster, STORAGE_KEYS } from '../config/constants';
+import { logger } from '../utils/security';
 
 /**
  * Handler called when no compatible wallet app is found on device.
@@ -96,7 +97,7 @@ class MobileWalletAdapterService {
   async connect() {
     // Fallback for Expo Go where MWA native module is unavailable
     if (!mwaAvailable || !transact) {
-      console.warn('[WalletAdapter] MWA not available — using dev mock wallet');
+      logger.warn('[WalletAdapter] MWA not available — using dev mock wallet');
       const mockPublicKey = new PublicKey('7xKLuJkm9QPZWF8yKJp9kn6YLddgjA18BxvFQCc9Qz4');
       return {
         publicKey: mockPublicKey,
@@ -130,7 +131,7 @@ class MobileWalletAdapterService {
         };
       }, { onWalletNotFound });
 
-      console.log('Wallet connected:', result.publicKey.toString());
+      logger.log('Wallet connected:', result.publicKey.toString());
       return result;
     } catch (error) {
       console.error('Wallet connection error:', error);
@@ -180,7 +181,7 @@ class MobileWalletAdapterService {
         };
       }, { onWalletNotFound });
 
-      console.log('SIWS authentication successful:', result.publicKey.toString());
+      logger.log('SIWS authentication successful:', result.publicKey.toString());
       return result;
     } catch (error) {
       console.error('SIWS error:', error);
@@ -200,16 +201,16 @@ class MobileWalletAdapterService {
       const savedToken = await AsyncStorage.getItem(STORAGE_KEYS.WALLET_AUTH_TOKEN);
 
       if (!savedToken) {
-        console.log('No saved session found');
+        logger.log('No saved session found');
         return null;
       }
 
-      console.log('Attempting auto-reconnect...');
+      logger.log('Attempting auto-reconnect...');
       const result = await this.reauthorize(savedToken);
-      console.log('Auto-reconnect successful');
+      logger.log('Auto-reconnect successful');
       return result;
     } catch (error) {
-      console.log('Auto-reconnect failed, clearing saved session');
+      logger.log('Auto-reconnect failed, clearing saved session');
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_AUTH_TOKEN);
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_PUBLIC_KEY);
       return null;
@@ -250,7 +251,7 @@ class MobileWalletAdapterService {
         };
       }, { onWalletNotFound });
 
-      console.log('Wallet reauthorized:', result.publicKey.toString());
+      logger.log('Wallet reauthorized:', result.publicKey.toString());
       return result;
     } catch (error) {
       console.error('Reauthorization failed:', error);
@@ -278,10 +279,10 @@ class MobileWalletAdapterService {
         });
       }, { onWalletNotFound });
 
-      console.log('Wallet disconnected');
+      logger.log('Wallet disconnected');
     } catch (error) {
       // Deauthorize errors are usually not critical
-      console.warn('Deauthorize warning:', error);
+      logger.warn('Deauthorize warning:', error);
     } finally {
       // Always clear local storage
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_AUTH_TOKEN);
@@ -319,7 +320,7 @@ class MobileWalletAdapterService {
         return result.signedTransactions[0];
       }, { onWalletNotFound });
 
-      console.log('Transaction signed');
+      logger.log('Transaction signed');
       return signedTransaction;
     } catch (error) {
       console.error('Transaction signing error:', error);
@@ -364,7 +365,7 @@ class MobileWalletAdapterService {
         return sig;
       }, { onWalletNotFound });
 
-      console.log('Transaction sent:', signature);
+      logger.log('Transaction sent:', signature);
       return signature;
     } catch (error) {
       console.error('Sign and send error:', error);
@@ -404,7 +405,7 @@ class MobileWalletAdapterService {
         return signedMessages[0];
       }, { onWalletNotFound });
 
-      console.log('Message signed');
+      logger.log('Message signed');
       return result;
     } catch (error) {
       console.error('Message signing error:', error);
@@ -479,7 +480,7 @@ class MobileWalletAdapterService {
         return sig;
       }, { onWalletNotFound });
 
-      console.log('SOL transferred:', signature);
+      logger.log('SOL transferred:', signature);
       return signature;
     } catch (error) {
       console.error('SOL transfer error:', error);
@@ -518,7 +519,7 @@ class MobileWalletAdapterService {
 
         // Exponential backoff: 1s, 2s, 4s
         const delay = Math.pow(2, attempt) * 1000;
-        console.log(`Retry attempt ${attempt + 1} in ${delay}ms...`);
+        logger.log(`Retry attempt ${attempt + 1} in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

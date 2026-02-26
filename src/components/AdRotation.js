@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getMockAdComponent } from './MockAdBanners';
-import { safeOpenURL } from '../utils/security';
+import { safeOpenURL, logger } from '../utils/security';
 
 // Ad Rotation Configuration
 const ROTATION_CONFIG = {
@@ -291,7 +291,7 @@ export class AdRotationManager {
     });
     
     // In production: Send to analytics server
-    console.log('[AdRotation] Impression:', data);
+    logger.log('[AdRotation] Impression:', data);
   }
 
   static trackClick(data) {
@@ -301,7 +301,7 @@ export class AdRotationManager {
     });
     
     // In production: Send to analytics server
-    console.log('[AdRotation] Click:', data);
+    logger.log('[AdRotation] Click:', data);
   }
 
   static getStats(adId) {

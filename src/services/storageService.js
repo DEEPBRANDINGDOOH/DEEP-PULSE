@@ -21,6 +21,7 @@
 import storage from '@react-native-firebase/storage';
 import { Alert } from 'react-native';
 import { getWalletPublicKey } from './transactionHelper';
+import { logger } from '../utils/security';
 
 // Max file sizes in bytes
 const MAX_SIZE_BANNER = 2 * 1024 * 1024;    // 2 MB for top/bottom ads
@@ -126,8 +127,8 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
     // Get download URL
     const downloadUrl = await ref.getDownloadURL();
 
-    console.log(`[StorageService] Upload complete: ${storagePath}`);
-    console.log(`[StorageService] Download URL: ${downloadUrl}`);
+    logger.log(`[StorageService] Upload complete: ${storagePath}`);
+    logger.log(`[StorageService] Download URL: ${downloadUrl}`);
 
     return {
       success: true,
@@ -163,7 +164,7 @@ export async function deleteAdCreative(storagePath) {
   try {
     if (!storagePath) return false;
     await storage().ref(storagePath).delete();
-    console.log(`[StorageService] Deleted: ${storagePath}`);
+    logger.log(`[StorageService] Deleted: ${storagePath}`);
     return true;
   } catch (error) {
     console.error('[StorageService] Delete failed:', error);

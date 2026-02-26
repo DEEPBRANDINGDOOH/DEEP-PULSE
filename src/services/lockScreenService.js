@@ -26,6 +26,7 @@
  */
 
 import { NativeModules, NativeEventEmitter, Platform, Alert } from 'react-native';
+import { logger } from '../utils/security';
 
 const { LockScreenModule } = NativeModules;
 
@@ -51,7 +52,7 @@ const lockScreenService = {
     try {
       return await LockScreenModule.hasOverlayPermission();
     } catch (e) {
-      console.warn('[LockScreen] Permission check failed:', e);
+      logger.warn('[LockScreen] Permission check failed:', e);
       return false;
     }
   },
@@ -66,7 +67,7 @@ const lockScreenService = {
     try {
       return await LockScreenModule.requestOverlayPermission();
     } catch (e) {
-      console.warn('[LockScreen] Permission request failed:', e);
+      logger.warn('[LockScreen] Permission request failed:', e);
       return false;
     }
   },
@@ -78,7 +79,7 @@ const lockScreenService = {
    */
   async start() {
     if (!this.isAvailable()) {
-      console.warn('[LockScreen] Not available on this platform');
+      logger.warn('[LockScreen] Not available on this platform');
       return false;
     }
     try {

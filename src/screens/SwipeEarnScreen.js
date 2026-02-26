@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import lockScreenService from '../services/lockScreenService';
 import { MOCK_ADS } from '../config/constants';
+import { logger } from '../utils/security';
 
 /**
  * SwipeEarnScreen — Dashboard for the Swipe-to-Earn (LockScreen Overlay) feature.
@@ -78,10 +79,10 @@ export default function SwipeEarnScreen({ navigation }) {
 
       if (lockscreenAds.length > 0) {
         const queued = await lockScreenService.pushAdQueue(lockscreenAds);
-        console.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module`);
+        logger.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module`);
       }
     } catch (e) {
-      console.warn('[SwipeEarn] Failed to push ad queue:', e);
+      logger.warn('[SwipeEarn] Failed to push ad queue:', e);
     }
   }, []);
 
@@ -96,7 +97,7 @@ export default function SwipeEarnScreen({ navigation }) {
         pushLockscreenAds();
       }
     } catch (e) {
-      console.warn('Failed to load stats:', e);
+      logger.warn('Failed to load stats:', e);
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
-import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -172,9 +172,9 @@ export default function HubDashboardScreen({ navigation, route }) {
                       wallet.publicKey || 'mock_admin',
                       linkUrl.trim() || null,
                     ).then((res) => {
-                      console.log('[HubDashboard] Push sent:', res);
+                      logger.log('[HubDashboard] Push sent:', res);
                     }).catch((err) => {
-                      console.warn('[HubDashboard] Push delivery failed (local saved):', err);
+                      logger.warn('[HubDashboard] Push delivery failed (local saved):', err);
                     });
 
                     Alert.alert('Sent!', `Notification "${notifTitle}" sent to ${stats.subscribers.toLocaleString()} subscribers via push.`);

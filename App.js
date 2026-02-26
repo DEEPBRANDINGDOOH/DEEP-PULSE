@@ -9,6 +9,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { notificationService } from './src/services/notificationService';
 import { registerFcmToken } from './src/services/firebaseService';
 import { useAppStore } from './src/store/appStore';
+import { logger } from './src/utils/security';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -142,18 +143,18 @@ const App = () => {
 
         // Listen for foreground notifications
         notificationService.addForegroundListener((notification) => {
-          console.log('[App] Foreground notification:', notification.title);
+          logger.log('[App] Foreground notification:', notification.title);
         });
 
         // Handle notifications that opened the app
         notificationService.getInitialNotification((data) => {
-          console.log('[App] Notification opened app:', data);
+          logger.log('[App] Notification opened app:', data);
           // TODO: Navigate to relevant screen based on data
         });
 
         // Listen for token refresh — re-register with backend
         notificationService.onTokenRefresh((newToken) => {
-          console.log('[App] FCM token refreshed');
+          logger.log('[App] FCM token refreshed');
           const walletPk = useAppStore.getState().wallet?.publicKey;
           if (walletPk) {
             registerFcmToken(newToken, walletPk).catch(() => {});
@@ -161,7 +162,7 @@ const App = () => {
           useAppStore.getState().setPushToken(newToken);
         });
       } catch (e) {
-        console.warn('[App] Notification bootstrap failed:', e.message);
+        logger.warn('[App] Notification bootstrap failed:', e.message);
       }
     };
 

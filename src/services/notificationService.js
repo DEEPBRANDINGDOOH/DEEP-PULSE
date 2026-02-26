@@ -12,13 +12,14 @@
 
 import React from 'react';
 import { Platform, PermissionsAndroid, Alert } from 'react-native';
+import { logger } from '../utils/security';
 
 // Safe import for Firebase Messaging
 let messaging = null;
 try {
   messaging = require('@react-native-firebase/messaging').default;
 } catch (e) {
-  console.warn('Firebase Messaging not available:', e.message);
+  logger.warn('Firebase Messaging not available:', e.message);
 }
 
 class NotificationService {
@@ -33,7 +34,7 @@ class NotificationService {
    */
   async requestPermission() {
     if (!messaging) {
-      console.warn('Firebase Messaging not available');
+      logger.warn('Firebase Messaging not available');
       return false;
     }
 
@@ -44,7 +45,7 @@ class NotificationService {
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.warn('Notification permission denied');
+          logger.warn('Notification permission denied');
           return false;
         }
       }
@@ -56,7 +57,7 @@ class NotificationService {
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (enabled) {
-        console.log('FCM permission granted:', authStatus);
+        logger.log('FCM permission granted:', authStatus);
       }
       return enabled;
     } catch (error) {
@@ -77,7 +78,7 @@ class NotificationService {
     try {
       const token = await messaging().getToken();
       this.fcmToken = token;
-      console.log('FCM Token:', token);
+      logger.sensitive('FCM Token:', token);
       return token;
     } catch (error) {
       console.error('Error getting FCM token:', error);
@@ -112,7 +113,7 @@ class NotificationService {
     if (!messaging) return;
     try {
       await messaging().subscribeToTopic(`hub_${hubId}`);
-      console.log(`Subscribed to hub: ${hubId}`);
+      logger.log(`Subscribed to hub: ${hubId}`);
     } catch (error) {
       console.error(`Error subscribing to hub ${hubId}:`, error);
     }
@@ -127,7 +128,7 @@ class NotificationService {
     if (!messaging) return;
     try {
       await messaging().unsubscribeFromTopic(`hub_${hubId}`);
-      console.log(`Unsubscribed from hub: ${hubId}`);
+      logger.log(`Unsubscribed from hub: ${hubId}`);
     } catch (error) {
       console.error(`Error unsubscribing from hub ${hubId}:`, error);
     }
@@ -142,7 +143,7 @@ class NotificationService {
     if (!messaging) return;
 
     this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
-      console.log('FCM foreground message:', remoteMessage);
+      logger.log('FCM foreground message:', remoteMessage);
 
       if (onNotification) {
         onNotification({
@@ -168,7 +169,7 @@ class NotificationService {
     if (!messaging) return;
 
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log('FCM background message:', remoteMessage);
+      logger.log('FCM background message:', remoteMessage);
       // Background notifications are automatically shown in the tray
       // This handler is for custom data processing
     });
@@ -185,7 +186,7 @@ class NotificationService {
 
     // App opened from background
     messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log('Notification opened app from background:', remoteMessage);
+      logger.log('Notification opened app from background:', remoteMessage);
       if (onNotificationOpen) {
         onNotificationOpen(remoteMessage.data);
       }
@@ -194,7 +195,7 @@ class NotificationService {
     // App opened from killed state
     const initialNotification = await messaging().getInitialNotification();
     if (initialNotification) {
-      console.log('Notification opened app from killed state:', initialNotification);
+      logger.log('Notification opened app from killed state:', initialNotification);
       if (onNotificationOpen) {
         onNotificationOpen(initialNotification.data);
       }
@@ -208,7 +209,7 @@ class NotificationService {
   onTokenRefresh(callback) {
     if (!messaging) return;
     return messaging().onTokenRefresh((token) => {
-      console.log('FCM token refreshed:', token);
+      logger.sensitive('FCM token refreshed:', token);
       this.fcmToken = token;
       if (callback) callback(token);
     });

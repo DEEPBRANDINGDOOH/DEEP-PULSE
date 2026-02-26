@@ -88,7 +88,7 @@
 - ✅ `README.md` - Documentation complète
 - ✅ `QUICKSTART.md` - Guide rapide 30 min
 - ✅ `MANIFEST.md` - Ce fichier
-- ✅ `SECURITY_AUDIT.md` - **NEW** Full security audit report (37 findings, all fixed)
+- ✅ `SECURITY_AUDIT.md` - Full security audit report (3 audits: 18 + 37 + ~90 issues fixed, score 9.5/10)
 
 ### 🛠️ Scripts (1 fichier)
 
@@ -256,6 +256,8 @@ dependencies {
 - MWA queries declared
 - Secure storage (AsyncStorage)
 - No plaintext secrets
+- ProGuard / R8 enabled for release builds (code obfuscation + dead code elimination)
+- Comprehensive ProGuard keep rules for React Native, Solana Mobile, Firebase, Hermes
 
 ### Code Quality ✅
 - Clean architecture
@@ -263,6 +265,8 @@ dependencies {
 - Error boundaries
 - Type safety (JSDoc)
 - Production-ready
+- Env-aware logging (~90+ console statements replaced with `logger` — silent in production)
+- **Security score: 9.5 / 10** (3 full security audits completed)
 
 ---
 
@@ -288,7 +292,7 @@ dependencies {
 - **Source code:** ~250 KB
 - **node_modules:** ~350 MB (après install)
 - **APK Debug:** ~138 MB (with Firestore + Functions native modules)
-- **APK Release:** ~57 MB (optimized, ProGuard)
+- **APK Release:** ~57 MB (optimized, ProGuard/R8 enabled — code obfuscation + dead code elimination)
 
 ---
 

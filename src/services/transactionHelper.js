@@ -11,6 +11,7 @@ import { programService } from './programService';
 import { walletAdapter } from './walletAdapter';
 import { notificationService } from './notificationService';
 import { PRICING, DEPOSITS } from '../config/constants';
+import { logger } from '../utils/security';
 
 // ============================================
 // WALLET STATE
@@ -93,7 +94,7 @@ export const subscribeToHub = async (hubPda) => {
     try {
       await notificationService.subscribeToHub(hubPda.toString());
     } catch (e) {
-      console.warn('[FCM] Topic subscribe failed (non-blocking):', e.message);
+      logger.warn('[FCM] Topic subscribe failed (non-blocking):', e.message);
     }
     return result;
   }, {
@@ -113,7 +114,7 @@ export const unsubscribeFromHub = async (hubPda) => {
     try {
       await notificationService.unsubscribeFromHub(hubPda.toString());
     } catch (e) {
-      console.warn('[FCM] Topic unsubscribe failed (non-blocking):', e.message);
+      logger.warn('[FCM] Topic unsubscribe failed (non-blocking):', e.message);
     }
     return result;
   }, {
@@ -318,7 +319,7 @@ export const initUserScore = async () => {
     return programService.initUserScore();
   }, {
     onSuccess: () => {
-      console.log('[Transaction] User score initialized on-chain');
+      logger.log('[Transaction] User score initialized on-chain');
     },
   });
 };
@@ -334,7 +335,7 @@ export const fetchAllHubs = async () => {
   try {
     return await programService.fetchAllHubs();
   } catch (error) {
-    console.warn('[Read] fetchAllHubs failed, using mock data:', error.message);
+    logger.warn('[Read] fetchAllHubs failed, using mock data:', error.message);
     return null; // Screens fall back to mock data when null
   }
 };
@@ -346,7 +347,7 @@ export const fetchUserSubscriptions = async (userPubkey) => {
   try {
     return await programService.fetchUserSubscriptions(userPubkey);
   } catch (error) {
-    console.warn('[Read] fetchUserSubscriptions failed:', error.message);
+    logger.warn('[Read] fetchUserSubscriptions failed:', error.message);
     return null;
   }
 };
@@ -358,7 +359,7 @@ export const fetchUserScore = async (userPubkey) => {
   try {
     return await programService.fetchUserScore(userPubkey);
   } catch (error) {
-    console.warn('[Read] fetchUserScore failed:', error.message);
+    logger.warn('[Read] fetchUserScore failed:', error.message);
     return null;
   }
 };
@@ -370,7 +371,7 @@ export const fetchVaultsForHub = async (hubPda) => {
   try {
     return await programService.fetchOpenVaultsForHub(hubPda);
   } catch (error) {
-    console.warn('[Read] fetchVaultsForHub failed:', error.message);
+    logger.warn('[Read] fetchVaultsForHub failed:', error.message);
     return null;
   }
 };
@@ -382,7 +383,7 @@ export const fetchPlatformConfig = async () => {
   try {
     return await programService.fetchPlatformConfig();
   } catch (error) {
-    console.warn('[Read] fetchPlatformConfig failed:', error.message);
+    logger.warn('[Read] fetchPlatformConfig failed:', error.message);
     return null;
   }
 };

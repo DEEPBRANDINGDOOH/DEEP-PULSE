@@ -24,6 +24,7 @@ import {
   approveHubInFirestore,
   rejectHubInFirestore,
 } from '../services/firebaseService';
+import { logger } from '../utils/security';
 
 export const useAppStore = create(
   persist(
@@ -65,7 +66,7 @@ export const useAppStore = create(
           // [H-03 FIX] Rollback on failure instead of swallowing errors
           subscribeToHubBackend(projectId, wallet.publicKey || 'mock_user')
             .catch(e => {
-              console.warn('[Store] Backend subscribe failed, rolling back:', e);
+              logger.warn('[Store] Backend subscribe failed, rolling back:', e);
               const current = get();
               set({
                 subscribedProjects: current.subscribedProjects.filter(id => id !== projectId),
@@ -89,7 +90,7 @@ export const useAppStore = create(
         // [H-03 FIX] Rollback on failure instead of swallowing errors
         unsubscribeFromHubBackend(projectId, wallet.publicKey || 'mock_user')
           .catch(e => {
-            console.warn('[Store] Backend unsubscribe failed, rolling back:', e);
+            logger.warn('[Store] Backend unsubscribe failed, rolling back:', e);
             const current = get();
             set({
               subscribedProjects: [...current.subscribedProjects, projectId],
@@ -146,7 +147,7 @@ export const useAppStore = create(
         }));
         // 2. Sync with Firestore
         createHubInFirestore(hub)
-          .catch(e => console.warn('[Store] Firestore createHub failed:', e));
+          .catch(e => logger.warn('[Store] Firestore createHub failed:', e));
       },
 
       approveHub: (hubId) => {
@@ -160,7 +161,7 @@ export const useAppStore = create(
           });
           // 2. Sync with Firestore
           approveHubInFirestore(hubId, wallet.publicKey || 'admin')
-            .catch(e => console.warn('[Store] Firestore approveHub failed:', e));
+            .catch(e => logger.warn('[Store] Firestore approveHub failed:', e));
         }
       },
 
@@ -172,7 +173,7 @@ export const useAppStore = create(
         }));
         // 2. Sync with Firestore
         rejectHubInFirestore(hubId, wallet.publicKey || 'admin')
-          .catch(e => console.warn('[Store] Firestore rejectHub failed:', e));
+          .catch(e => logger.warn('[Store] Firestore rejectHub failed:', e));
       },
 
       // ============================================
@@ -258,7 +259,7 @@ export const useAppStore = create(
             });
           }
         } catch (error) {
-          console.warn('[Store] Failed to load pricing from chain:', error.message);
+          logger.warn('[Store] Failed to load pricing from chain:', error.message);
         }
       },
 

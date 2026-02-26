@@ -6,6 +6,7 @@ import { getTierFromScore, PRICING } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { programService } from '../services/programService';
 import { approveAdCreative, rejectAdCreative, sendGlobalNotification } from '../services/firebaseService';
+import { logger } from '../utils/security';
 
 // ============================================
 // MOCK DATA
@@ -165,7 +166,7 @@ export default function AdminScreen({ navigation }) {
             setPendingAds(prev => prev.filter(a => a.id !== ad.id));
             // Sync with Firebase backend
             approveAdCreative(ad.id, wallet.publicKey || 'admin')
-              .catch(e => console.warn('[Admin] approveAd backend failed:', e));
+              .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
             Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.`);
           },
         },
@@ -190,7 +191,7 @@ export default function AdminScreen({ navigation }) {
             setPendingAds(prev => prev.filter(a => a.id !== ad.id));
             // Sync with Firebase backend
             rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Rejected by admin — refund required')
-              .catch(e => console.warn('[Admin] rejectAd backend failed:', e));
+              .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
             Alert.alert(
               'Ad Rejected',
               `Ad rejected.\n\nRefund required:\nWallet: ${ad.brandWallet}\nAmount: ${ad.totalCost.toLocaleString()} $SKR\n\nPlease process the refund manually.`
@@ -218,7 +219,7 @@ export default function AdminScreen({ navigation }) {
             setPendingAds(prev => prev.filter(a => a.id !== ad.id));
             // Sync with Firebase backend
             rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Flagged as spam — funds retained')
-              .catch(e => console.warn('[Admin] flagSpam backend failed:', e));
+              .catch(e => logger.warn('[Admin] flagSpam backend failed:', e));
             Alert.alert(
               'Flagged as Spam',
               `"${ad.brandName}" flagged as spam.\nFunds retained: ${ad.totalCost.toLocaleString()} $SKR\nBrand wallet: ${ad.brandWallet}`
@@ -273,8 +274,8 @@ export default function AdminScreen({ navigation }) {
           onPress: async () => {
             // Send via Firebase Cloud Function → FCM push to ALL users
             sendGlobalNotification(globalNotifTitle, globalNotifMessage, wallet.publicKey || 'admin')
-              .then((res) => console.log('[Admin] Global push sent:', res))
-              .catch(e => console.warn('[Admin] Global push failed:', e));
+              .then((res) => logger.log('[Admin] Global push sent:', res))
+              .catch(e => logger.warn('[Admin] Global push failed:', e));
             Alert.alert('Sent!', 'Global notification sent to all users via push.');
             setGlobalNotifTitle('');
             setGlobalNotifMessage('');

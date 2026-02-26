@@ -11,6 +11,7 @@
 
 import { Alert } from 'react-native';
 import { API_BASE_URL } from '../config/constants';
+import { logger } from '../utils/security';
 
 // Safe imports for Firebase
 let firestore = null;
@@ -20,19 +21,19 @@ let messagingModule = null;
 try {
   firestore = require('@react-native-firebase/firestore').default;
 } catch (e) {
-  console.warn('[FirebaseService] Firestore not available:', e.message);
+  logger.warn('[FirebaseService] Firestore not available:', e.message);
 }
 
 try {
   functions = require('@react-native-firebase/functions').default;
 } catch (e) {
-  console.warn('[FirebaseService] Cloud Functions not available:', e.message);
+  logger.warn('[FirebaseService] Cloud Functions not available:', e.message);
 }
 
 try {
   messagingModule = require('@react-native-firebase/messaging').default;
 } catch (e) {
-  console.warn('[FirebaseService] Messaging not available:', e.message);
+  logger.warn('[FirebaseService] Messaging not available:', e.message);
 }
 
 // =====================================================
@@ -41,7 +42,7 @@ try {
 
 function getDb() {
   if (!firestore) {
-    console.warn('[FirebaseService] Firestore not initialized');
+    logger.warn('[FirebaseService] Firestore not initialized');
     return null;
   }
   return firestore();
@@ -49,7 +50,7 @@ function getDb() {
 
 function getFunctions() {
   if (!functions) {
-    console.warn('[FirebaseService] Cloud Functions not initialized');
+    logger.warn('[FirebaseService] Cloud Functions not initialized');
     return null;
   }
   return functions();
@@ -75,11 +76,11 @@ function getFunctions() {
  * @returns {Promise<{success: boolean, notificationId?: string}>}
  */
 export async function sendHubNotification(hubId, hubName, title, body, walletAddress, link = null) {
-  if (__DEV__) console.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
+  logger.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
 
   // [C-06 FIX] Validate required fields before any write
   if (!hubId || !title || !body || !walletAddress || walletAddress.length < 32) {
-    console.warn('[FirebaseService] sendHubNotification: missing required fields');
+    logger.warn('[FirebaseService] sendHubNotification: missing required fields');
     return { success: false, error: 'Missing required fields' };
   }
   // Enforce field length limits (match Firestore rules)
@@ -98,10 +99,10 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
         walletAddress,
         data: { hubName, hubId, ...(link ? { link } : {}) },
       });
-      if (__DEV__) console.log('[FirebaseService] Cloud Function response:', result.data);
+      logger.log('[FirebaseService] Cloud Function response:', result.data);
       return { success: true, notificationId: result.data?.notificationId };
     } catch (error) {
-      if (__DEV__) console.warn('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
+      logger.warn('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
     }
   }
 
@@ -119,15 +120,15 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
         source: 'app_direct',
         walletAddress,
       });
-      if (__DEV__) console.log('[FirebaseService] Notification written to Firestore:', notifRef.id);
+      logger.log('[FirebaseService] Notification written to Firestore:', notifRef.id);
       return { success: true, notificationId: notifRef.id };
     } catch (error) {
-      if (__DEV__) console.warn('[FirebaseService] Firestore write failed:', error.message);
+      logger.warn('[FirebaseService] Firestore write failed:', error.message);
     }
   }
 
   // No Firebase available — notification saved locally only
-  console.log('[FirebaseService] No Firebase — notification local only');
+  logger.log('[FirebaseService] No Firebase — notification local only');
   return { success: true, notificationId: null };
 }
 
@@ -140,7 +141,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
  * @param {Object} hubData - { id, name, description, category, icon, creator, createdDate }
  */
 export async function createHubInFirestore(hubData) {
-  console.log(`[FirebaseService] createHub: ${hubData.name}`);
+  logger.log(`[FirebaseService] createHub: ${hubData.name}`);
   const db = getDb();
   if (!db) return { success: false };
 
@@ -152,10 +153,10 @@ export async function createHubInFirestore(hubData) {
       subscribers: 0,
       createdAt: firestore.FieldValue.serverTimestamp(),
     });
-    console.log('[FirebaseService] Hub created in Firestore:', hubData.id);
+    logger.log('[FirebaseService] Hub created in Firestore:', hubData.id);
     return { success: true };
   } catch (error) {
-    console.warn('[FirebaseService] createHub failed:', error.message);
+    logger.warn('[FirebaseService] createHub failed:', error.message);
     return { success: false, error: error.message };
   }
 }
@@ -166,7 +167,7 @@ export async function createHubInFirestore(hubData) {
  * @param {string} adminWallet - Admin wallet address
  */
 export async function approveHubInFirestore(hubId, adminWallet) {
-  console.log(`[FirebaseService] approveHub: ${hubId}`);
+  logger.log(`[FirebaseService] approveHub: ${hubId}`);
   const db = getDb();
   if (!db) return { success: false };
 
@@ -177,10 +178,10 @@ export async function approveHubInFirestore(hubId, adminWallet) {
       approvedAt: firestore.FieldValue.serverTimestamp(),
       approvedBy: adminWallet || null,
     });
-    console.log('[FirebaseService] Hub approved in Firestore:', hubId);
+    logger.log('[FirebaseService] Hub approved in Firestore:', hubId);
     return { success: true };
   } catch (error) {
-    console.warn('[FirebaseService] approveHub failed:', error.message);
+    logger.warn('[FirebaseService] approveHub failed:', error.message);
     return { success: false, error: error.message };
   }
 }
@@ -191,7 +192,7 @@ export async function approveHubInFirestore(hubId, adminWallet) {
  * @param {string} adminWallet - Admin wallet address
  */
 export async function rejectHubInFirestore(hubId, adminWallet) {
-  console.log(`[FirebaseService] rejectHub: ${hubId}`);
+  logger.log(`[FirebaseService] rejectHub: ${hubId}`);
   const db = getDb();
   if (!db) return { success: false };
 
@@ -202,10 +203,10 @@ export async function rejectHubInFirestore(hubId, adminWallet) {
       rejectedAt: firestore.FieldValue.serverTimestamp(),
       rejectedBy: adminWallet || null,
     });
-    console.log('[FirebaseService] Hub rejected in Firestore:', hubId);
+    logger.log('[FirebaseService] Hub rejected in Firestore:', hubId);
     return { success: true };
   } catch (error) {
-    console.warn('[FirebaseService] rejectHub failed:', error.message);
+    logger.warn('[FirebaseService] rejectHub failed:', error.message);
     return { success: false, error: error.message };
   }
 }
@@ -220,15 +221,15 @@ export async function rejectHubInFirestore(hubId, adminWallet) {
  * @param {string} walletAddress - Subscriber wallet
  */
 export async function subscribeToHubBackend(hubId, walletAddress) {
-  console.log(`[FirebaseService] subscribe: ${walletAddress} → hub ${hubId}`);
+  logger.log(`[FirebaseService] subscribe: ${walletAddress} → hub ${hubId}`);
 
   // 1. Subscribe to FCM topic (for push notifications)
   if (messagingModule) {
     try {
       await messagingModule().subscribeToTopic(`hub_${hubId}`);
-      console.log(`[FirebaseService] FCM topic subscribed: hub_${hubId}`);
+      logger.log(`[FirebaseService] FCM topic subscribed: hub_${hubId}`);
     } catch (e) {
-      console.warn('[FirebaseService] FCM topic subscribe failed:', e.message);
+      logger.warn('[FirebaseService] FCM topic subscribe failed:', e.message);
     }
   }
 
@@ -249,10 +250,10 @@ export async function subscribeToHubBackend(hubId, walletAddress) {
       subscribers: firestore.FieldValue.increment(1),
     });
 
-    console.log('[FirebaseService] Subscription recorded in Firestore');
+    logger.log('[FirebaseService] Subscription recorded in Firestore');
     return { success: true };
   } catch (error) {
-    console.warn('[FirebaseService] subscribe Firestore failed:', error.message);
+    logger.warn('[FirebaseService] subscribe Firestore failed:', error.message);
     return { success: true }; // FCM subscription still works
   }
 }
@@ -263,15 +264,15 @@ export async function subscribeToHubBackend(hubId, walletAddress) {
  * @param {string} walletAddress - Subscriber wallet
  */
 export async function unsubscribeFromHubBackend(hubId, walletAddress) {
-  console.log(`[FirebaseService] unsubscribe: ${walletAddress} ← hub ${hubId}`);
+  logger.log(`[FirebaseService] unsubscribe: ${walletAddress} ← hub ${hubId}`);
 
   // 1. Unsubscribe from FCM topic
   if (messagingModule) {
     try {
       await messagingModule().unsubscribeFromTopic(`hub_${hubId}`);
-      console.log(`[FirebaseService] FCM topic unsubscribed: hub_${hubId}`);
+      logger.log(`[FirebaseService] FCM topic unsubscribed: hub_${hubId}`);
     } catch (e) {
-      console.warn('[FirebaseService] FCM topic unsubscribe failed:', e.message);
+      logger.warn('[FirebaseService] FCM topic unsubscribe failed:', e.message);
     }
   }
 
@@ -284,10 +285,10 @@ export async function unsubscribeFromHubBackend(hubId, walletAddress) {
     await db.collection('hubs').doc(hubId).update({
       subscribers: firestore.FieldValue.increment(-1),
     });
-    console.log('[FirebaseService] Unsubscription recorded in Firestore');
+    logger.log('[FirebaseService] Unsubscription recorded in Firestore');
     return { success: true };
   } catch (error) {
-    console.warn('[FirebaseService] unsubscribe Firestore failed:', error.message);
+    logger.warn('[FirebaseService] unsubscribe Firestore failed:', error.message);
     return { success: true };
   }
 }
@@ -302,7 +303,7 @@ export async function unsubscribeFromHubBackend(hubId, walletAddress) {
  * @param {string} walletAddress - Admin wallet
  */
 export async function approveAdCreative(creativeId, walletAddress) {
-  console.log(`[FirebaseService] approveAd: ${creativeId}`);
+  logger.log(`[FirebaseService] approveAd: ${creativeId}`);
   const fnInstance = getFunctions();
   if (fnInstance) {
     try {
@@ -310,7 +311,7 @@ export async function approveAdCreative(creativeId, walletAddress) {
       const result = await moderate({ creativeId, action: 'approve', walletAddress });
       return { success: true, data: result.data };
     } catch (error) {
-      console.warn('[FirebaseService] approveAd Cloud Function failed:', error.message);
+      logger.warn('[FirebaseService] approveAd Cloud Function failed:', error.message);
     }
   }
 
@@ -325,7 +326,7 @@ export async function approveAdCreative(creativeId, walletAddress) {
       });
       return { success: true };
     } catch (error) {
-      console.warn('[FirebaseService] approveAd Firestore failed:', error.message);
+      logger.warn('[FirebaseService] approveAd Firestore failed:', error.message);
     }
   }
 
@@ -339,7 +340,7 @@ export async function approveAdCreative(creativeId, walletAddress) {
  * @param {string} reason - Rejection reason
  */
 export async function rejectAdCreative(creativeId, walletAddress, reason) {
-  console.log(`[FirebaseService] rejectAd: ${creativeId}`);
+  logger.log(`[FirebaseService] rejectAd: ${creativeId}`);
   const fnInstance = getFunctions();
   if (fnInstance) {
     try {
@@ -352,7 +353,7 @@ export async function rejectAdCreative(creativeId, walletAddress, reason) {
       });
       return { success: true, data: result.data };
     } catch (error) {
-      console.warn('[FirebaseService] rejectAd Cloud Function failed:', error.message);
+      logger.warn('[FirebaseService] rejectAd Cloud Function failed:', error.message);
     }
   }
 
@@ -367,7 +368,7 @@ export async function rejectAdCreative(creativeId, walletAddress, reason) {
       });
       return { success: true };
     } catch (error) {
-      console.warn('[FirebaseService] rejectAd Firestore failed:', error.message);
+      logger.warn('[FirebaseService] rejectAd Firestore failed:', error.message);
     }
   }
 
@@ -385,7 +386,7 @@ export async function rejectAdCreative(creativeId, walletAddress, reason) {
  * @param {string} hubId - Optional hub context
  */
 export async function trackEvent(walletAddress, eventType, hubId = null) {
-  console.log(`[FirebaseService] trackEvent: ${eventType} by ${walletAddress}`);
+  logger.log(`[FirebaseService] trackEvent: ${eventType} by ${walletAddress}`);
   const fnInstance = getFunctions();
   if (fnInstance) {
     try {
@@ -393,7 +394,7 @@ export async function trackEvent(walletAddress, eventType, hubId = null) {
       await track({ walletAddress, eventType, hubId });
       return { success: true };
     } catch (error) {
-      console.warn('[FirebaseService] trackEvent failed:', error.message);
+      logger.warn('[FirebaseService] trackEvent failed:', error.message);
     }
   }
 
@@ -408,7 +409,7 @@ export async function trackEvent(walletAddress, eventType, hubId = null) {
       });
       return { success: true };
     } catch (error) {
-      console.warn('[FirebaseService] trackEvent Firestore failed:', error.message);
+      logger.warn('[FirebaseService] trackEvent Firestore failed:', error.message);
     }
   }
 
@@ -422,7 +423,7 @@ export async function trackEvent(walletAddress, eventType, hubId = null) {
  * @param {string} walletAddress - Admin wallet
  */
 export async function sendGlobalNotification(title, body, walletAddress) {
-  console.log(`[FirebaseService] sendGlobalNotification: "${title}"`);
+  logger.log(`[FirebaseService] sendGlobalNotification: "${title}"`);
 
   const db = getDb();
   if (db) {
@@ -437,7 +438,7 @@ export async function sendGlobalNotification(title, body, walletAddress) {
       });
       return { success: true };
     } catch (error) {
-      console.warn('[FirebaseService] sendGlobalNotification failed:', error.message);
+      logger.warn('[FirebaseService] sendGlobalNotification failed:', error.message);
     }
   }
 
@@ -460,7 +461,7 @@ export async function fetchHubsFromFirestore() {
     const snapshot = await db.collection('hubs').where('active', '==', true).get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.warn('[FirebaseService] fetchHubs failed:', error.message);
+    logger.warn('[FirebaseService] fetchHubs failed:', error.message);
     return null;
   }
 }
@@ -481,8 +482,8 @@ export async function registerFcmToken(token, walletAddress) {
       updatedAt: firestore.FieldValue.serverTimestamp(),
       platform: 'android',
     }, { merge: true });
-    console.log('[FirebaseService] FCM token registered for:', walletAddress);
+    logger.log('[FirebaseService] FCM token registered for:', walletAddress);
   } catch (error) {
-    console.warn('[FirebaseService] registerFcmToken failed:', error.message);
+    logger.warn('[FirebaseService] registerFcmToken failed:', error.message);
   }
 }

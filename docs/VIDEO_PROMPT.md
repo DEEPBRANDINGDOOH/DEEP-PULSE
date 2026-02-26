@@ -72,9 +72,13 @@ Import recordings, add transitions, captions, and music.
 **[Show BrandBoost -> Create Hub -> Admin approves -> Hub in Discover -> User subscribes -> My Hubs]**
 "The full hub lifecycle: brands create a hub, admin reviews and approves, the hub appears in Discover, users subscribe for free, and the brand sends push notifications from their dashboard. Fully connected, fully on-chain."
 
-### OUTRO (3:25 - 3:40)
+### SCREEN 12: SECURITY (3:25 - 3:35)
+**[Show security stats overlay or architecture diagram]**
+"3 full security audits. 9.5 out of 10 security score. Over 90 console statements replaced with environment-aware logging — no sensitive data leaks in production. ProGuard enabled for code obfuscation. 145 total issues identified and fixed across smart contracts, mobile app, and Firebase backend."
+
+### OUTRO (3:35 - 3:50)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, 3 security audits with a 9.5/10 score, env-aware logging, ProGuard enabled — all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
