@@ -184,16 +184,25 @@ export default function AdRotation({
         {(() => {
           const MockComponent = getMockAdComponent(currentAd.id);
           if (MockComponent) {
+            // Local mock banner — no loading needed
             return <MockComponent />;
           } else if (currentAd.imageUrl) {
             return (
-              <Image
-                source={{ uri: currentAd.imageUrl }}
-                className="w-full h-full"
-                resizeMode="cover"
-                onLoadStart={() => setIsLoading(true)}
-                onLoadEnd={() => setIsLoading(false)}
-              />
+              <>
+                <Image
+                  source={{ uri: currentAd.imageUrl }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                  onLoadStart={() => setIsLoading(true)}
+                  onLoadEnd={() => setIsLoading(false)}
+                />
+                {/* Loading overlay — only for remote images */}
+                {isLoading && (
+                  <View className="absolute inset-0 bg-background-secondary items-center justify-center">
+                    <ActivityIndicator size="small" color="#FF9F66" />
+                  </View>
+                )}
+              </>
             );
           } else {
             return (
@@ -204,13 +213,6 @@ export default function AdRotation({
             );
           }
         })()}
-
-        {/* Loading overlay */}
-        {isLoading && (
-          <View className="absolute inset-0 bg-background-secondary items-center justify-center">
-            <ActivityIndicator size="small" color="#FF9F66" />
-          </View>
-        )}
 
         {/* Ad Badge */}
         <View className="absolute top-2 left-2">
