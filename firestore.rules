@@ -3,38 +3,65 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ── Notifications ──
-    // Readable by anyone; client writes allowed for hub notifications + global push
+    // Readable by anyone; client creates must include required fields + valid data
     // Cloud Functions also write via Admin SDK (bypasses rules)
     match /notifications/{notificationId} {
       allow read: if true;
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasAll(['hubId', 'title', 'body', 'walletAddress'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 500
+        && request.resource.data.hubId is string
+        && request.resource.data.walletAddress is string
+        && request.resource.data.walletAddress.size() >= 32;
       allow update, delete: if false;
     }
 
     // ── Hubs ──
-    // Readable by anyone; client writes for hub creation (PENDING) and admin approval
+    // Readable by anyone; client creates must have status PENDING (enforced)
+    // Updates restricted to subscriber count + status fields only
     match /hubs/{hubId} {
       allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'status', 'creator'])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 64
+        && request.resource.data.creator is string
+        && request.resource.data.creator.size() >= 32;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['subscribers', 'status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy']);
       allow delete: if false;
     }
 
     // ── Subscriptions ──
     // Client writes for subscribe/unsubscribe (FCM topic sync)
     // Document ID format: {walletAddress}_{hubId}
+    // Create must include valid wallet + hubId, ID must match wallet prefix
     match /subscriptions/{subscriptionId} {
       allow read: if true;
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasAll(['walletAddress', 'hubId'])
+        && request.resource.data.walletAddress is string
+        && request.resource.data.walletAddress.size() >= 32
+        && request.resource.data.hubId is string
+        && subscriptionId.matches(request.resource.data.walletAddress + '_.*');
       allow delete: if true;
       allow update: if false;
     }
 
     // ── FCM Tokens ──
-    // Client writes for device token registration (push delivery)
-    match /fcmTokens/{tokenId} {
+    // Client writes for device token registration
+    // Document ID is the wallet address; prevents overwriting other users' tokens
+    match /fcmTokens/{walletAddress} {
       allow read: if false;
-      allow write: if true;
+      allow write: if request.resource.data.keys().hasAll(['token', 'platform'])
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 0
+        && request.resource.data.platform == 'android'
+        && walletAddress.size() >= 32;
     }
 
     // ── Ad Creatives (pending review queue) ──

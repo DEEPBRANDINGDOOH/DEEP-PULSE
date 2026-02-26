@@ -62,13 +62,23 @@ export const useAppStore = create(
             hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: (h.subscribers || 0) + 1 } : h),
           });
           // 2. Sync with Firebase backend (FCM topic + Firestore)
+          // [H-03 FIX] Rollback on failure instead of swallowing errors
           subscribeToHubBackend(projectId, wallet.publicKey || 'mock_user')
-            .catch(e => console.warn('[Store] Backend subscribe failed:', e));
+            .catch(e => {
+              console.warn('[Store] Backend subscribe failed, rolling back:', e);
+              const current = get();
+              set({
+                subscribedProjects: current.subscribedProjects.filter(id => id !== projectId),
+                hubs: current.hubs.map(h => h.id === projectId ? { ...h, subscribers: Math.max(0, (h.subscribers || 0) - 1) } : h),
+              });
+            });
         }
       },
 
       unsubscribeFromProject: (projectId) => {
         const { subscribedProjects, hubs, wallet } = get();
+        const prevProjects = [...subscribedProjects];
+        const prevCount = hubs.find(h => h.id === projectId)?.subscribers || 0;
         // 1. Update local state immediately (optimistic UI)
         set({
           subscribedProjects: subscribedProjects.filter(id => id !== projectId),
@@ -76,8 +86,16 @@ export const useAppStore = create(
           hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: Math.max(0, (h.subscribers || 0) - 1) } : h),
         });
         // 2. Sync with Firebase backend (FCM topic + Firestore)
+        // [H-03 FIX] Rollback on failure instead of swallowing errors
         unsubscribeFromHubBackend(projectId, wallet.publicKey || 'mock_user')
-          .catch(e => console.warn('[Store] Backend unsubscribe failed:', e));
+          .catch(e => {
+            console.warn('[Store] Backend unsubscribe failed, rolling back:', e);
+            const current = get();
+            set({
+              subscribedProjects: [...current.subscribedProjects, projectId],
+              hubs: current.hubs.map(h => h.id === projectId ? { ...h, subscribers: prevCount } : h),
+            });
+          });
       },
 
       isSubscribed: (projectId) => {

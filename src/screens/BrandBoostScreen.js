@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { createHub } from '../services/transactionHelper';
+import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
@@ -50,6 +51,7 @@ export default function BrandBoostScreen({ navigation }) {
   ];
 
   const handleCreateHub = async () => {
+    if (!checkRateLimit('create_hub', 10000)) return;
     if (!hubName.trim() || !hubDescription.trim()) {
       Alert.alert('Missing Information', 'Please fill in all fields');
       return;
@@ -392,6 +394,7 @@ export default function BrandBoostScreen({ navigation }) {
                   placeholderTextColor="#666"
                   value={hubName}
                   onChangeText={setHubName}
+                  maxLength={MAX_LENGTHS.HUB_NAME}
                   editable={!isCreating}
                 />
 
@@ -405,6 +408,7 @@ export default function BrandBoostScreen({ navigation }) {
                   onChangeText={setHubDescription}
                   multiline
                   numberOfLines={3}
+                  maxLength={MAX_LENGTHS.HUB_DESCRIPTION}
                   editable={!isCreating}
                 />
 

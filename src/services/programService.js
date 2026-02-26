@@ -292,17 +292,10 @@ class ProgramService {
     const idl = this.getIdl();
     if (!idl) return [];
     const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    // Filter by is_active = true using memcmp
-    return program.account.hub.all([
-      {
-        memcmp: {
-          // Offset for is_active field (after discriminator + creator + name + desc + category + sub_count)
-          // This offset would need to be calculated exactly based on the struct layout
-          offset: 8 + 32 + (4 + 64) + (4 + 256) + 1 + 4 + 1, // is_verified offset
-          bytes: '', // We'd need the correct filter for is_active
-        },
-      },
-    ]);
+    // [H-04 FIX] Fetch all hubs and filter client-side for is_active
+    // memcmp offset is fragile across Anchor versions; client-side filter is safer
+    const allHubs = await program.account.hub.all();
+    return allHubs.filter(h => h.account.isActive === true);
   }
 
   async fetchUserSubscriptions(userPubkey) {
@@ -794,7 +787,9 @@ class ProgramService {
     durationWeeks
   ) {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
-      const slotTypeNum = slotType === 'top' ? 0 : 1;
+      // [H-06 FIX] Support all three slot types (top, bottom, lockscreen)
+      const slotTypeMap = { top: 0, bottom: 1, lockscreen: 2 };
+      const slotTypeNum = slotTypeMap[slotType] ?? 1;
       const [adSlotPda] = getAdSlotPda(hubPda, slotTypeNum, slotIndex);
       const [platformConfigPda] = getPlatformConfigPda();
       const [treasuryPda] = getTreasuryPda();
@@ -814,7 +809,8 @@ class ProgramService {
         connection: this.connection,
       });
 
-      const typeEnum = slotType === 'top' ? { top: {} } : { bottom: {} };
+      const typeEnumMap = { top: { top: {} }, bottom: { bottom: {} }, lockscreen: { lockscreen: {} } };
+      const typeEnum = typeEnumMap[slotType] || { bottom: {} };
 
       const ix = await program.methods
         .purchaseAdSlot(
@@ -850,18 +846,25 @@ class ProgramService {
    */
   async hashContent(content) {
     // React Native compatible SHA-256 using js-sha256 (no crypto.subtle)
-    // Falls back to a simple hash if js-sha256 is not available
+    // [H-02 FIX] Improved fallback — multi-round mixing instead of weak XOR
     try {
       const { sha256 } = require('js-sha256');
       const hash = sha256.array(content);
       return hash.slice(0, 32);
-    } catch {
-      // Fallback: simple hash using Buffer
+    } catch (error) {
+      // Fallback: multi-round mixing hash (js-sha256 should always be available)
+      console.error('[ProgramService] js-sha256 not available, using fallback hash');
       const data = Buffer.from(content, 'utf-8');
       const hash = new Uint8Array(32);
-      for (let i = 0; i < data.length; i++) {
-        hash[i % 32] ^= data[i];
-        hash[(i + 1) % 32] = (hash[(i + 1) % 32] + data[i]) & 0xff;
+      hash[0] = data.length & 0xff;
+      hash[1] = (data.length >> 8) & 0xff;
+      for (let round = 0; round < 4; round++) {
+        for (let i = 0; i < data.length; i++) {
+          const idx = (i + round * 7) % 32;
+          hash[idx] = (hash[idx] * 31 + data[i] + round * 17 + i) & 0xff;
+          hash[(idx + 13) % 32] ^= hash[idx] ^ data[i];
+          hash[(idx + 7) % 32] = (hash[(idx + 7) % 32] + hash[idx]) & 0xff;
+        }
       }
       return Array.from(hash);
     }

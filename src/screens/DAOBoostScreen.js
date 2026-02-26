@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { submitDaoProposal, contributeToVault } from '../services/transactionHelper';
+import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 const MOCK_PROPOSALS = [
   {
@@ -83,6 +84,7 @@ export default function DAOBoostScreen({ navigation }) {
         onChangeText={setTitle}
         placeholder="Enter proposal title..."
         placeholderTextColor="#666"
+        maxLength={MAX_LENGTHS.PROPOSAL_TITLE}
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
       />
 
@@ -94,6 +96,7 @@ export default function DAOBoostScreen({ navigation }) {
         placeholderTextColor="#666"
         multiline
         numberOfLines={4}
+        maxLength={MAX_LENGTHS.PROPOSAL_DESCRIPTION}
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 h-32 border border-border"
         textAlignVertical="top"
       />
@@ -110,6 +113,7 @@ export default function DAOBoostScreen({ navigation }) {
 
       <TouchableOpacity
         onPress={async () => {
+          if (!checkRateLimit('dao_submit')) return;
           if (!wallet.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
             return;

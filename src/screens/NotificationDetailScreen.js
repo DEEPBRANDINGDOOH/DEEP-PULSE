@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import GradientButton from '../components/ui/GradientButton';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
+import { safeOpenURL } from '../utils/security';
 
 export default function NotificationDetailScreen({ navigation, route }) {
   const notification = route.params?.notification || {};
@@ -22,9 +23,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
 
   const handleOpenLink = () => {
     if (notification.link) {
-      Linking.openURL(notification.link).catch(() => {
-        Alert.alert('Error', 'Could not open this link.');
-      });
+      safeOpenURL(notification.link, 'notification link');
     }
   };
 

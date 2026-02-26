@@ -9,11 +9,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, Linking } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
+import { safeOpenURL } from '../utils/security';
 
 export const AlertCard = ({ alert, onPress, onMarkAsRead }) => {
   const handleLinkPress = () => {
     if (alert.link) {
-      Linking.openURL(alert.link);
+      safeOpenURL(alert.link, 'alert link');
     }
   };
 

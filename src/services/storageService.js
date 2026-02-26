@@ -83,9 +83,13 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
       return { success: false, error: validation.errors.join(', ') };
     }
 
-    // Get wallet address for storage path
+    // [H-08 FIX] Require wallet connection — no anonymous uploads
     const walletPubkey = getWalletPublicKey();
-    const walletStr = walletPubkey ? walletPubkey.toString() : 'anonymous';
+    if (!walletPubkey) {
+      Alert.alert('Wallet Required', 'Please connect your wallet before uploading ad creatives.');
+      return { success: false, error: 'Wallet not connected' };
+    }
+    const walletStr = walletPubkey.toString();
 
     // Generate unique filename
     const timestamp = Date.now();

@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ FICHIERS INCLUS (43 fichiers)
+## ✅ FICHIERS INCLUS (45 fichiers)
 
 ### 📱 Application Core (6 fichiers)
 
@@ -66,9 +66,10 @@
 - ✅ `src/data/mockData.js` - Données de développement
 - ✅ `src/store/appStore.js` - State management
 
-### 🌍 Utils (1 fichier)
+### 🌍 Utils (2 fichiers)
 
 - ✅ `src/utils/i18n.js` - Internationalisation
+- ✅ `src/utils/security.js` - **NEW** Security utilities (safeOpenURL, logger, rate limiter, email validation, URL validation, input length constants)
 
 ### 🤖 Android Configuration (3 fichiers)
 
@@ -82,11 +83,12 @@
 - ✅ `.firebaserc` - Firebase project link (deep-pulse)
 - ✅ `firestore.rules` - **DEPLOYED** Firestore Security Rules (client writes for notifications, hubs, subscriptions, fcmTokens)
 
-### 📚 Documentation (3 fichiers)
+### 📚 Documentation (4 fichiers)
 
 - ✅ `README.md` - Documentation complète
 - ✅ `QUICKSTART.md` - Guide rapide 30 min
 - ✅ `MANIFEST.md` - Ce fichier
+- ✅ `SECURITY_AUDIT.md` - **NEW** Full security audit report (37 findings, all fixed)
 
 ### 🛠️ Scripts (1 fichier)
 

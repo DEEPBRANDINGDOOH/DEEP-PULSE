@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { DOOH_INVENTORY } from '../config/constants';
+import { isValidEmail, checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 export default function DOOHScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -40,6 +41,7 @@ export default function DOOHScreen({ navigation, route }) {
   };
 
   const handleSubmit = () => {
+    if (!checkRateLimit('submit_dooh')) return;
     // Validate required fields
     if (!campaignTitle.trim()) {
       Alert.alert('Missing Field', 'Please enter a campaign title.');
@@ -65,7 +67,7 @@ export default function DOOHScreen({ navigation, route }) {
       Alert.alert('Invalid Budget', 'Please enter a valid campaign budget in USD.');
       return;
     }
-    if (!contactEmail.trim() || !contactEmail.includes('@')) {
+    if (!contactEmail.trim() || !isValidEmail(contactEmail)) {
       Alert.alert('Invalid Email', 'Please enter a valid contact email.');
       return;
     }
@@ -142,6 +144,7 @@ export default function DOOHScreen({ navigation, route }) {
             onChangeText={setCampaignTitle}
             placeholder="e.g. Spring 2026 Brand Awareness"
             placeholderTextColor="#666"
+            maxLength={MAX_LENGTHS.DOOH_CAMPAIGN}
             className="bg-background-card border border-border rounded-xl px-4 py-3 text-text mb-5"
           />
 
@@ -155,6 +158,7 @@ export default function DOOHScreen({ navigation, route }) {
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+            maxLength={MAX_LENGTHS.DOOH_BRIEF}
             className="bg-background-card border border-border rounded-xl px-4 py-3 text-text mb-5 h-28"
           />
 
@@ -219,6 +223,7 @@ export default function DOOHScreen({ navigation, route }) {
               placeholder="e.g. 5000"
               placeholderTextColor="#666"
               keyboardType="number-pad"
+              maxLength={MAX_LENGTHS.DOOH_BUDGET}
               className="flex-1 text-text text-base"
             />
             <Text className="text-text-secondary text-sm">USD</Text>
@@ -233,6 +238,7 @@ export default function DOOHScreen({ navigation, route }) {
             placeholderTextColor="#666"
             keyboardType="email-address"
             autoCapitalize="none"
+            maxLength={MAX_LENGTHS.EMAIL}
             className="bg-background-card border border-border rounded-xl px-4 py-3 text-text mb-6"
           />
 

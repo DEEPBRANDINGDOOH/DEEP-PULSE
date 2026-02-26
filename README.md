@@ -754,16 +754,28 @@ Built following [solana-foundation/solana-dev-skill](https://github.com/solana-f
 
 ### Security Audit Results
 
-A comprehensive security audit was performed on all smart contract code. **18 issues found, all fixed:**
+#### Audit #1 — Smart Contract (18 issues, all fixed)
 
 | Severity | Count | Key Fixes |
 |----------|-------|-----------|
-| **Critical** | 3 | C-01: Vault signer seeds mismatch (funds would be permanently locked) — Fixed `VAULT_TOKEN_SEED` → `VAULT_AUTHORITY_SEED`; C-02: Escrow PDA collision (authority = token account) — Added `ESCROW_AUTHORITY_SEED`; C-03: `init_if_needed` reinit guard on `VaultContribution` |
-| **High** | 4 | H-01: Hardcoded $SKR mint validation; H-02: Hub validation in `expire_ad_slot`; H-03: Score farming prevention (no points on deposit creation); H-04: Mint validation on all token accounts |
-| **Medium** | 6 | Zero minimum contribution, vault duration bounds, shared description buffers, admin transfer event, pause mechanism placeholder, ad slot slot_index limit |
+| **Critical** | 3 | C-01: Vault signer seeds mismatch — Fixed `VAULT_TOKEN_SEED` → `VAULT_AUTHORITY_SEED`; C-02: Escrow PDA collision — Added `ESCROW_AUTHORITY_SEED`; C-03: `init_if_needed` reinit guard on `VaultContribution` |
+| **High** | 4 | Hardcoded $SKR mint validation, Hub validation in `expire_ad_slot`, Score farming prevention, Mint validation on all token accounts |
+| **Medium** | 6 | Zero minimum contribution, vault duration bounds, shared description buffers, admin transfer event, pause mechanism, ad slot limit |
 | **Low** | 5 | `checked_sub` for subscriber count, close escrow on approval, contribution tracking improvements |
 
-All critical and high severity issues have been fixed in the deployed smart contract code. See commit `3bd24fd` for the full diff.
+#### Audit #2 — Full Application (37 issues, all fixed)
+
+A comprehensive security audit was performed across the entire application stack (smart contract SDK, Firebase backend, mobile app, Android config). See `SECURITY_AUDIT.md` for the full report.
+
+| Severity | Count | Key Fixes |
+|----------|-------|-----------|
+| **Critical** | 7 | Firestore rules tightened (field validation, data shape enforcement, PENDING-only hub creation), URL injection prevention (`safeOpenURL` utility), Firebase fallback validation, FCM token overwrite protection |
+| **High** | 8 | Input maxLength on all TextInputs (20+ fields), improved hash fallback, optimistic UI rollback on failure, fetchActiveHubs filter fix, Discord webhook strict validation, lockscreen ad slot type support, anonymous upload prevention |
+| **Medium** | 12 | Production console logging removed, rate limiting on submissions, email validation regex, Firestore field length enforcement, image URL protocol validation |
+| **Low** | 7 | Deep link handler, token expiration, error message sanitization |
+| **Info** | 3 | No WebView (positive), no private key storage (positive), Firebase Storage rules note |
+
+**New security utilities:** `src/utils/security.js` — centralized `safeOpenURL()`, `isValidDiscordWebhook()`, `isValidEmail()`, `checkRateLimit()`, `isValidImageUrl()`, `MAX_LENGTHS` constants, environment-aware `logger`.
 
 ---
 
@@ -923,4 +935,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with optional Link URL ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓
+**Status:** Smart contracts compiled + security-audited (18+37 issues fixed, 2 full audits) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with optional Link URL ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓

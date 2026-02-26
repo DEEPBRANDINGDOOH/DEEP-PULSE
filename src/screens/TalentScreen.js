@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { submitTalent } from '../services/transactionHelper';
+import { isValidEmail, isValidHttpUrl, checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 const MOCK_TALENTS = [
   {
@@ -117,6 +118,7 @@ export default function TalentScreen({ navigation }) {
         placeholderTextColor="#666"
         multiline
         numberOfLines={4}
+        maxLength={MAX_LENGTHS.TALENT_SKILLS}
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 h-32 border border-border"
         textAlignVertical="top"
       />
@@ -127,6 +129,7 @@ export default function TalentScreen({ navigation }) {
         onChangeText={setPortfolio}
         placeholder="https://..."
         placeholderTextColor="#666"
+        maxLength={MAX_LENGTHS.URL}
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
       />
 
@@ -138,12 +141,14 @@ export default function TalentScreen({ navigation }) {
         placeholderTextColor="#666"
         keyboardType="email-address"
         autoCapitalize="none"
+        maxLength={MAX_LENGTHS.EMAIL}
         className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-6 border border-border"
       />
 
       <TouchableOpacity
         className="bg-primary rounded-xl py-4"
         onPress={() => {
+          if (!checkRateLimit('submit_talent')) return;
           if (!wallet.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a talent profile.\n\nA 50 $SKR deposit is required.');
             return;

@@ -75,7 +75,16 @@ function getFunctions() {
  * @returns {Promise<{success: boolean, notificationId?: string}>}
  */
 export async function sendHubNotification(hubId, hubName, title, body, walletAddress, link = null) {
-  console.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
+  if (__DEV__) console.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
+
+  // [C-06 FIX] Validate required fields before any write
+  if (!hubId || !title || !body || !walletAddress || walletAddress.length < 32) {
+    console.warn('[FirebaseService] sendHubNotification: missing required fields');
+    return { success: false, error: 'Missing required fields' };
+  }
+  // Enforce field length limits (match Firestore rules)
+  const safeTitle = title.slice(0, 100);
+  const safeBody = body.slice(0, 500);
 
   // Strategy 1: Call the Cloud Function directly (preferred)
   const fnInstance = getFunctions();
@@ -84,15 +93,15 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
       const sendPush = fnInstance.httpsCallable('sendPushToSubscribers');
       const result = await sendPush({
         hubId,
-        title,
-        body,
+        title: safeTitle,
+        body: safeBody,
         walletAddress,
         data: { hubName, hubId, ...(link ? { link } : {}) },
       });
-      console.log('[FirebaseService] Cloud Function response:', result.data);
+      if (__DEV__) console.log('[FirebaseService] Cloud Function response:', result.data);
       return { success: true, notificationId: result.data?.notificationId };
     } catch (error) {
-      console.warn('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
+      if (__DEV__) console.warn('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
     }
   }
 
@@ -103,17 +112,17 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
       const notifRef = await db.collection('notifications').add({
         hubId,
         hubName,
-        title,
-        body,
+        title: safeTitle,
+        body: safeBody,
         link: link || null,
         createdAt: firestore.FieldValue.serverTimestamp(),
         source: 'app_direct',
-        walletAddress: walletAddress || null,
+        walletAddress,
       });
-      console.log('[FirebaseService] Notification written to Firestore:', notifRef.id);
+      if (__DEV__) console.log('[FirebaseService] Notification written to Firestore:', notifRef.id);
       return { success: true, notificationId: notifRef.id };
     } catch (error) {
-      console.warn('[FirebaseService] Firestore write failed:', error.message);
+      if (__DEV__) console.warn('[FirebaseService] Firestore write failed:', error.message);
     }
   }
 

@@ -9,6 +9,7 @@ import GlowCard from '../components/ui/GlowCard';
 import GradientButton from '../components/ui/GradientButton';
 import PulseOrb from '../components/ui/PulseOrb';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
+import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -80,6 +81,7 @@ export default function HomeScreen({ navigation }) {
   const [submitting, setSubmitting] = useState(false);
 
   const submitFeedback = async () => {
+    if (!checkRateLimit('submit_feedback')) return;
     if (!feedbackText.trim()) {
       Alert.alert('Error', 'Please write your feedback before submitting.');
       return;
@@ -358,6 +360,7 @@ export default function HomeScreen({ navigation }) {
               multiline
               numberOfLines={5}
               textAlignVertical="top"
+              maxLength={MAX_LENGTHS.FEEDBACK_TEXT}
               className="bg-background-secondary rounded-xl p-4 mb-6 h-32 text-text"
               style={{ borderWidth: 1, borderColor: '#2a2a30' }}
             />

@@ -38,6 +38,7 @@ import { useAppStore } from '../store/appStore';
 import { PRICING } from '../config/constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
+import { safeOpenURL, MAX_LENGTHS } from '../utils/security';
 
 // Ad Slot Configuration
 const AD_CONFIG = {
@@ -1105,6 +1106,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                         onChangeText={(text) => { setImageUrl(text); setValidationErrors([]); }}
                         placeholder={`https://cdn.example.com/ad-${selectedSlot === 'lockscreen' ? '1080x1920' : selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
                         placeholderTextColor="#666"
+                        maxLength={MAX_LENGTHS.URL}
                         className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                         autoCapitalize="none"
                         keyboardType="url"
@@ -1151,6 +1153,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                     onChangeText={(text) => { setLandingUrl(text); setValidationErrors([]); }}
                     placeholder="https://yourproject.com"
                     placeholderTextColor="#666"
+                    maxLength={MAX_LENGTHS.URL}
                     className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                     autoCapitalize="none"
                     keyboardType="url"
@@ -1584,6 +1587,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       onChangeText={(text) => { setEditImageUrl(text); setEditValidationErrors([]); }}
                       placeholder={`https://cdn.example.com/ad.png`}
                       placeholderTextColor="#666"
+                      maxLength={MAX_LENGTHS.URL}
                       className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                       autoCapitalize="none"
                       keyboardType="url"
@@ -1625,6 +1629,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                   onChangeText={(text) => { setEditLandingUrl(text); setEditValidationErrors([]); }}
                   placeholder="https://yourproject.com"
                   placeholderTextColor="#666"
+                  maxLength={MAX_LENGTHS.URL}
                   className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                   autoCapitalize="none"
                   keyboardType="url"

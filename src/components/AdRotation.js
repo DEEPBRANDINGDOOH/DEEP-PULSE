@@ -28,6 +28,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getMockAdComponent } from './MockAdBanners';
+import { safeOpenURL } from '../utils/security';
 
 // Ad Rotation Configuration
 const ROTATION_CONFIG = {
@@ -121,17 +122,7 @@ export default function AdRotation({
     }
 
     // Open landing page
-    try {
-      const supported = await Linking.canOpenURL(currentAd.landingUrl);
-      if (supported) {
-        await Linking.openURL(currentAd.landingUrl);
-      } else {
-        Alert.alert('Error', 'Cannot open this URL');
-      }
-    } catch (error) {
-      console.error('Error opening URL:', error);
-      Alert.alert('Error', 'Failed to open landing page');
-    }
+    safeOpenURL(currentAd.landingUrl, 'ad link');
   };
 
   // No ads available

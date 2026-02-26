@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
+import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -99,6 +100,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               onChangeText={setTitle}
               placeholder="Notification title..."
               placeholderTextColor="#666"
+              maxLength={MAX_LENGTHS.NOTIFICATION_TITLE}
               className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
             />
 
@@ -110,6 +112,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               placeholderTextColor="#666"
               multiline
               numberOfLines={4}
+              maxLength={MAX_LENGTHS.NOTIFICATION_BODY}
               className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 h-32 border border-border"
               textAlignVertical="top"
             />
@@ -120,6 +123,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               onChangeText={setLinkUrl}
               placeholder="https://..."
               placeholderTextColor="#666"
+              maxLength={MAX_LENGTHS.URL}
               className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
               autoCapitalize="none"
               keyboardType="url"
@@ -128,6 +132,7 @@ export default function HubDashboardScreen({ navigation, route }) {
             <TouchableOpacity
               className="bg-primary rounded-xl py-4"
               onPress={() => {
+                if (!checkRateLimit('send_notification')) return;
                 if (!wallet.connected) {
                   Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
                   return;
@@ -302,6 +307,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                   onChangeText={setDiscordWebhook}
                   placeholder="https://discord.com/api/webhooks/..."
                   placeholderTextColor="#666"
+                  maxLength={MAX_LENGTHS.DISCORD_WEBHOOK}
                   className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border text-xs"
                   autoCapitalize="none"
                 />
@@ -311,7 +317,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                 <TouchableOpacity
                   className="bg-indigo-600 rounded-xl py-3"
                   onPress={() => {
-                    if (!discordWebhook.trim() || !discordWebhook.includes('discord.com/api/webhooks')) {
+                    if (!discordWebhook.trim() || !isValidDiscordWebhook(discordWebhook)) {
                       Alert.alert('Invalid Webhook', 'Please paste a valid Discord webhook URL from your announcements channel.');
                       return;
                     }
