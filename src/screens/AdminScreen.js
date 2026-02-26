@@ -18,14 +18,17 @@ const MOCK_TOP_100 = [
   { rank: 5, wallet: '3fR...8Kp', score: 723, boost: 7, talent: 2, feedback: 9 },
 ];
 
-const MOCK_PENDING_HUBS = [
+// Mock pending hubs used as initial seed (added to store on first launch)
+const INITIAL_PENDING_HUBS = [
   {
-    id: '1', name: 'Crypto Traders', creator: '4mL...7Np',
+    id: 'mock_pending_1', name: 'Crypto Traders', creator: '4mL...7Np',
     subscribers: 0, status: 'PENDING', createdDate: 'Feb 08, 2026',
+    category: 'DeFi', description: 'Trading signals and market analysis', icon: 'trending-up',
   },
   {
-    id: '2', name: 'Solana Devs', creator: '9xT...2Qw',
+    id: 'mock_pending_2', name: 'Solana Devs', creator: '9xT...2Qw',
     subscribers: 0, status: 'PENDING', createdDate: 'Feb 09, 2026',
+    category: 'Infrastructure', description: 'Solana developer community', icon: 'code-slash',
   },
 ];
 
@@ -109,11 +112,14 @@ const STATS_DATA = {
 
 export default function AdminScreen({ navigation }) {
   const { wallet, platformPricing: prices, updateSinglePrice, loadPlatformPricingFromChain } = useAppStore();
+  const pendingHubs = useAppStore((state) => state.pendingHubs);
+  const storeApproveHub = useAppStore((state) => state.approveHub);
+  const storeRejectHub = useAppStore((state) => state.rejectHub);
+  const storeAddPendingHub = useAppStore((state) => state.addPendingHub);
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
   const [pendingAds, setPendingAds] = useState(MOCK_PENDING_ADS);
-  const [pendingHubs, setPendingHubs] = useState(MOCK_PENDING_HUBS);
   const [savingPrice, setSavingPrice] = useState(false);
 
   // Stats state
@@ -125,8 +131,12 @@ export default function AdminScreen({ navigation }) {
   const [editPriceValue, setEditPriceValue] = useState('');
 
   // Fetch on-chain prices on mount (release mode only)
+  // Seed initial pending hubs if store is empty (first launch)
   useEffect(() => {
     loadPlatformPricingFromChain();
+    if (pendingHubs.length === 0) {
+      INITIAL_PENDING_HUBS.forEach((hub) => storeAddPendingHub(hub));
+    }
   }, []);
 
   // Custom deals state
@@ -209,17 +219,17 @@ export default function AdminScreen({ navigation }) {
     );
   };
 
-  // Hub handlers
+  // Hub handlers — connected to Zustand store
   const handleApproveHub = (hubId, hubName) => {
     if (!wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet to approve hubs.');
       return;
     }
-    Alert.alert('Approve Hub', `Approve "${hubName}"?`, [
+    Alert.alert('Approve Hub', `Approve "${hubName}"?\n\nIt will appear in Discover for all users.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Approve', onPress: () => {
-        setPendingHubs(prev => prev.filter(h => h.id !== hubId));
-        Alert.alert('Hub Approved', `"${hubName}" is now active.`);
+        storeApproveHub(hubId);
+        Alert.alert('Hub Approved', `"${hubName}" is now active and visible on Discover.`);
       }},
     ]);
   };
@@ -229,11 +239,11 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
-    Alert.alert('Suspend Hub', `Suspend "${hubName}" for non-payment?`, [
+    Alert.alert('Reject Hub', `Reject "${hubName}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Suspend', style: 'destructive', onPress: () => {
-        setPendingHubs(prev => prev.filter(h => h.id !== hubId));
-        Alert.alert('Hub Suspended', `"${hubName}" has been suspended.`);
+      { text: 'Reject', style: 'destructive', onPress: () => {
+        storeRejectHub(hubId);
+        Alert.alert('Hub Rejected', `"${hubName}" has been rejected.`);
       }},
     ]);
   };

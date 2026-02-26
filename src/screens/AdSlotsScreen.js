@@ -753,19 +753,94 @@ export default function AdSlotsScreen({ route, navigation }) {
           </View>
         </View>
 
+        {/* Rich Notification Ads — RECOMMENDED */}
+        <View className="px-6 mb-4">
+          <View className="bg-success/5 rounded-2xl p-5 border border-success/20">
+            <View className="flex-row items-center mb-3">
+              <View className="w-10 h-10 rounded-full bg-success/20 items-center justify-center">
+                <Ionicons name="notifications" size={22} color="#4CAF50" />
+              </View>
+              <View className="ml-3 flex-1">
+                <View className="flex-row items-center">
+                  <Text className="text-success font-bold text-base">Rich Notification Ads</Text>
+                  <View className="bg-success/20 rounded-full px-2 py-0.5 ml-2">
+                    <Text className="text-success text-xs font-bold">RECOMMENDED</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <Text className="text-text-secondary text-sm mb-3 leading-5">
+              Push notification delivered directly to user devices via FCM. Includes image, title, body text, and a call-to-action button. No special permissions required.
+            </Text>
+            <View className="bg-success/10 rounded-xl p-3 mb-4 border border-success/20">
+              <View className="flex-row items-center">
+                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                <Text className="text-success text-xs font-semibold ml-2">
+                  Works on all devices including Solana Seeker — no SYSTEM_ALERT_WINDOW needed
+                </Text>
+              </View>
+            </View>
+            <View className="bg-background-secondary rounded-xl p-4 mb-4">
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-text-secondary text-sm">Price</Text>
+                <Text className="text-success font-bold text-sm">500 $SKR / campaign</Text>
+              </View>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-text-secondary text-sm">Reach</Text>
+                <Text className="text-text font-semibold text-sm">~1,000 notifications</Text>
+              </View>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-text-secondary text-sm">Content</Text>
+                <Text className="text-text font-semibold text-sm">Title + Body + Image + CTA</Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-text-secondary text-sm">Delivery</Text>
+                <Text className="text-text font-semibold text-sm">Instant via FCM</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert(
+                  'Rich Notification Ad',
+                  'Create a rich notification campaign?\n\nYour notification will be sent to all subscribers with:\n- Custom title (60 chars)\n- Body text (120 chars)\n- Optional image (512x256 px)\n- Call-to-action button\n\nCost: 500 $SKR per campaign',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Create Campaign', onPress: () => {
+                      Alert.alert('Coming Soon', 'Rich Notification campaigns will be available in the next update. Stay tuned!');
+                    }},
+                  ]
+                );
+              }}
+              className="bg-success rounded-xl py-4"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="notifications" size={18} color="#fff" />
+                <Text className="text-white font-bold text-base ml-2">Create Rich Notification Campaign</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Ad Slots */}
         <View className="px-6 pb-6">
           <SlotCard config={AD_CONFIG.TOP_SLOT} slots={topSlots} type="top" />
           <SlotCard config={AD_CONFIG.BOTTOM_SLOT} slots={bottomSlots} type="bottom" />
 
-          {/* Lockscreen Ad Section */}
+          {/* Lockscreen Ad Section — Premium */}
           <View className="bg-primary/5 rounded-2xl p-4 mb-4 border border-primary/20">
             <View className="flex-row items-center mb-3">
               <Ionicons name="phone-portrait" size={20} color="#FF9F66" />
               <Text className="text-primary font-bold text-base ml-2">Premium: Lock Screen Ads</Text>
+              <View className="bg-primary/20 rounded-full px-2 py-0.5 ml-2">
+                <Text className="text-primary text-xs font-bold">PREMIUM</Text>
+              </View>
             </View>
-            <Text className="text-text-secondary text-sm mb-3">
+            <Text className="text-text-secondary text-sm mb-2">
               Full-screen overlay displayed when users unlock their phone. Users earn points by swiping (Swipe-to-Earn). Maximum engagement guaranteed.
+            </Text>
+            <Text className="text-text-secondary text-xs italic">
+              Note: Requires SYSTEM_ALERT_WINDOW permission. For sideloaded APKs, users may need to grant this manually in Settings.
             </Text>
           </View>
           <SlotCard config={AD_CONFIG.LOCKSCREEN_SLOT} slots={lockscreenSlots} type="lockscreen" />

@@ -55,7 +55,7 @@ export default function BrandBoostScreen({ navigation }) {
       return;
     }
 
-    if (!wallet.connected) {
+    if (!wallet.connected && !__DEV__) {
       Alert.alert('Wallet Required', 'Please connect your wallet first. Hub creation costs 2000 $SKR/month.');
       return;
     }
@@ -65,8 +65,10 @@ export default function BrandBoostScreen({ navigation }) {
     try {
       const createdHubName = hubName;
       Alert.alert(
-        'Payment Required',
-        `To create "${hubName}" hub, you need to pay 2000 $SKR per month.\n\nThis will create an on-chain transaction via your wallet.`,
+        __DEV__ ? 'Create Hub (Demo)' : 'Payment Required',
+        __DEV__
+          ? `Create "${hubName}" hub in demo mode?\n\n(No real transaction — mock data)`
+          : `To create "${hubName}" hub, you need to pay 2000 $SKR per month.\n\nThis will create an on-chain transaction via your wallet.`,
         [
           { text: 'Cancel', style: 'cancel', onPress: () => setIsCreating(false) },
           {
@@ -82,7 +84,10 @@ export default function BrandBoostScreen({ navigation }) {
                 const categoryKey = categoryMap[hubCategory] || 'defi';
                 const hubIndex = Date.now() % 1000000; // Unique index
 
-                const result = await createHub(hubName, hubDescription, categoryKey, hubIndex);
+                // Dev mode: simulate success without real transaction
+                const result = __DEV__
+                  ? { success: true, signature: 'mock_tx_' + Date.now() }
+                  : await createHub(hubName, hubDescription, categoryKey, hubIndex);
 
                 // Reset form
                 setHubName('');
@@ -93,9 +98,28 @@ export default function BrandBoostScreen({ navigation }) {
                 setIsCreating(false);
 
                 if (result.success) {
+                  // Add hub to store as pending (admin must approve)
+                  const categoryIconMap = {
+                    'DeFi': 'trending-up', 'NFT': 'color-palette', 'Gaming': 'game-controller',
+                    'Wallet': 'wallet', 'Infrastructure': 'construct', 'DAO': 'people',
+                    'Metaverse': 'globe',
+                  };
+                  const newHub = {
+                    id: `hub_${Date.now()}`,
+                    name: createdHubName,
+                    category: hubCategory,
+                    description: hubDescription,
+                    icon: hubIcon || categoryIconMap[hubCategory] || 'rocket',
+                    subscribers: 0,
+                    status: 'PENDING',
+                    creator: wallet.publicKey || 'mock_admin',
+                    createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+                  };
+                  useAppStore.getState().addPendingHub(newHub);
+
                   Alert.alert(
                     'Hub Created!',
-                    `Your hub "${createdHubName}" has been created on-chain!\n\nYou can now send notifications to your subscribers.`,
+                    `Your hub "${createdHubName}" has been submitted for review!\n\nThe admin will approve it shortly. You can then manage it from your dashboard.`,
                     [{
                       text: 'Go to Dashboard',
                       onPress: () => navigation.navigate('HubDashboard', { hubName: createdHubName }),

@@ -16,7 +16,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
-import { PRICING } from '../config/constants';
+import { PRICING, MOCK_HUBS } from '../config/constants';
 
 export const useAppStore = create(
   persist(
@@ -93,6 +93,31 @@ export const useAppStore = create(
       },
 
       // ============================================
+      // HUBS STATE (persisted — survives app restart)
+      // ============================================
+      hubs: [...MOCK_HUBS],
+      pendingHubs: [],
+
+      addPendingHub: (hub) => set((state) => ({
+        pendingHubs: [hub, ...state.pendingHubs],
+      })),
+
+      approveHub: (hubId) => {
+        const { pendingHubs, hubs } = get();
+        const hub = pendingHubs.find((h) => h.id === hubId);
+        if (hub) {
+          set({
+            pendingHubs: pendingHubs.filter((h) => h.id !== hubId),
+            hubs: [...hubs, { ...hub, status: 'ACTIVE' }],
+          });
+        }
+      },
+
+      rejectHub: (hubId) => set((state) => ({
+        pendingHubs: state.pendingHubs.filter((h) => h.id !== hubId),
+      })),
+
+      // ============================================
       // PROJECTS STATE (not persisted — resets on app start)
       // ============================================
       projects: [...MOCK_PROJECTS],
@@ -126,6 +151,7 @@ export const useAppStore = create(
         bottomAdSlot: PRICING.BOTTOM_AD_SLOT,
         lockscreenAd: PRICING.LOCKSCREEN_AD,
         globalNotification: PRICING.GLOBAL_NOTIFICATION,
+        richNotificationAd: PRICING.RICH_NOTIFICATION_AD || 500,
       },
 
       setPlatformPricing: (pricing) => set({ platformPricing: pricing }),
@@ -175,6 +201,8 @@ export const useAppStore = create(
         subscribedProjects: state.subscribedProjects,
         pushToken: state.pushToken,
         theme: state.theme,
+        hubs: state.hubs,
+        pendingHubs: state.pendingHubs,
       }),
     }
   )

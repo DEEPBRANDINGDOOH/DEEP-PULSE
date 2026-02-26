@@ -7,6 +7,8 @@ import { useAppStore } from '../store/appStore';
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
   const { wallet } = useAppStore();
+  const lockscreenPrice = useAppStore((state) => state.platformPricing?.lockscreenAd || 2000);
+  const hubCreationPrice = useAppStore((state) => state.platformPricing?.hubCreation || 2000);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [discordWebhook, setDiscordWebhook] = useState('');
@@ -157,7 +159,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               <Ionicons name="phone-portrait" size={24} color="#FF9F66" />
               <View className="ml-3 flex-1">
                 <Text className="text-text font-semibold text-base">Lockscreen Ads</Text>
-                <Text className="text-text-secondary text-xs">Premium full-screen overlay - 2,000 $SKR/week</Text>
+                <Text className="text-text-secondary text-xs">Premium full-screen overlay - {lockscreenPrice.toLocaleString()} $SKR/week</Text>
               </View>
             </View>
             <View className="flex-row items-center">
@@ -195,7 +197,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                   Connect your Discord server and select the specific section where you post major announcements. Only messages from this section will be forwarded as push notifications to your hub subscribers.
                 </Text>
 
-                <Text className="text-text font-semibold text-xs mb-1">Discord Server</Text>
+                <Text className="text-text font-semibold text-xs mb-1">Discord Server (optional)</Text>
                 <TextInput
                   value={discordServer}
                   onChangeText={setDiscordServer}
@@ -204,7 +206,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                   className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border"
                 />
 
-                <Text className="text-text font-semibold text-xs mb-1">Announcements Section</Text>
+                <Text className="text-text font-semibold text-xs mb-1">Announcements Section (optional)</Text>
                 <Text className="text-text-secondary text-xs mb-1">
                   Select the exact category → channel where your major announcements are posted
                 </Text>
@@ -235,21 +237,13 @@ export default function HubDashboardScreen({ navigation, route }) {
                 <TouchableOpacity
                   className="bg-indigo-600 rounded-xl py-3"
                   onPress={() => {
-                    if (!discordServer.trim()) {
-                      Alert.alert('Server Required', 'Please enter your Discord server name.');
-                      return;
-                    }
-                    if (!discordChannel.trim()) {
-                      Alert.alert('Section Required', 'Please enter the announcements section (e.g. Announcements > Major Updates).');
-                      return;
-                    }
                     if (!discordWebhook.trim() || !discordWebhook.includes('discord.com/api/webhooks')) {
                       Alert.alert('Invalid Webhook', 'Please paste a valid Discord webhook URL from your announcements channel.');
                       return;
                     }
                     Alert.alert(
                       'Connect Discord',
-                      `Connect "${discordServer}" → ${discordChannel} to "${hubName}"?\n\nMajor announcements from this section will be forwarded as push notifications to your ${stats.subscribers.toLocaleString()} subscribers.`,
+                      `Connect ${discordServer || 'your Discord server'} to "${hubName}"?\n\nAnnouncements will be forwarded as push notifications to your ${stats.subscribers.toLocaleString()} subscribers.`,
                       [
                         { text: 'Cancel', style: 'cancel' },
                         { text: 'Connect', onPress: () => {
@@ -302,8 +296,38 @@ export default function HubDashboardScreen({ navigation, route }) {
             )}
           </View>
 
+          {/* DOOH Worldwide Section */}
+          <View className="bg-background-card rounded-2xl p-5 mb-4 border border-primary/20">
+            <View className="flex-row items-center mb-3">
+              <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center">
+                <Ionicons name="globe" size={22} color="#FF9F66" />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-text font-bold text-base">DOOH Worldwide</Text>
+                <View className="flex-row items-center mt-0.5">
+                  <View className="bg-primary/20 rounded-full px-2 py-0.5">
+                    <Text className="text-primary text-xs font-bold">NEW</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <Text className="text-text-secondary text-sm mb-4 leading-5">
+              Premium programmatic digital out-of-home inventory across high-traffic global venues through our network of international partners.
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('DOOH', { hubName })}
+              className="bg-primary rounded-xl py-3"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="megaphone" size={18} color="#fff" />
+                <Text className="text-white font-bold text-base ml-2">Create DOOH Campaign</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
-            onPress={() => Alert.alert('Billing', `Current subscription: 2,000 $SKR/month\nNext renewal in 23 days`, [
+            onPress={() => Alert.alert('Billing', `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\nNext renewal in 23 days`, [
               { text: 'OK' },
             ])}
             className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"
@@ -313,7 +337,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               <Text className="text-text font-semibold text-base ml-3">Billing</Text>
             </View>
             <View className="flex-row items-center">
-              <Text className="text-text-secondary text-sm mr-2">2,000 $SKR/month</Text>
+              <Text className="text-text-secondary text-sm mr-2">{hubCreationPrice.toLocaleString()} $SKR/month</Text>
               <Ionicons name="chevron-forward" size={20} color="#666" />
             </View>
           </TouchableOpacity>

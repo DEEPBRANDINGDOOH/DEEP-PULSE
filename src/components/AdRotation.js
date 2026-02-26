@@ -27,6 +27,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getMockAdComponent } from './MockAdBanners';
 
 // Ad Rotation Configuration
 const ROTATION_CONFIG = {
@@ -179,21 +180,30 @@ export default function AdRotation({
         className="relative rounded-xl overflow-hidden border border-border bg-background-secondary"
         style={{ height: slotHeight }}
       >
-        {/* Ad Image */}
-        {currentAd.imageUrl ? (
-          <Image
-            source={{ uri: currentAd.imageUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-            onLoadStart={() => setIsLoading(true)}
-            onLoadEnd={() => setIsLoading(false)}
-          />
-        ) : (
-          <View className="w-full h-full items-center justify-center bg-background-card">
-            <Ionicons name="image-outline" size={32} color="#666" />
-            <Text className="text-text-secondary text-xs mt-2">Ad Image</Text>
-          </View>
-        )}
+        {/* Ad Content — Local component or remote image */}
+        {(() => {
+          const MockComponent = getMockAdComponent(currentAd.id);
+          if (MockComponent) {
+            return <MockComponent />;
+          } else if (currentAd.imageUrl) {
+            return (
+              <Image
+                source={{ uri: currentAd.imageUrl }}
+                className="w-full h-full"
+                resizeMode="cover"
+                onLoadStart={() => setIsLoading(true)}
+                onLoadEnd={() => setIsLoading(false)}
+              />
+            );
+          } else {
+            return (
+              <View className="w-full h-full items-center justify-center bg-background-card">
+                <Ionicons name="image-outline" size={32} color="#666" />
+                <Text className="text-text-secondary text-xs mt-2">Ad Image</Text>
+              </View>
+            );
+          }
+        })()}
 
         {/* Loading overlay */}
         {isLoading && (

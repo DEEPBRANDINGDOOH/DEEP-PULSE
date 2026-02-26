@@ -253,6 +253,7 @@ export const PRICING = {
   BOTTOM_AD_SLOT: 800,        // $SKR per week
   LOCKSCREEN_AD: 2000,        // $SKR per week (premium lock screen overlay)
   GLOBAL_NOTIFICATION: 1000,  // $SKR per notification
+  RICH_NOTIFICATION_AD: 500,  // $SKR per campaign (batch of 1000 notifications)
 };
 
 // ========================================
@@ -425,3 +426,43 @@ export const MOCK_ADS = {
     },
   ],
 };
+
+// ========================================
+// RICH NOTIFICATION ADS (mock data)
+// ========================================
+
+export const MOCK_RICH_NOTIFICATION_ADS = [
+  {
+    id: 'rich_notif_1',
+    advertiserId: '7xK...9Qz',
+    title: 'Jupiter: Swap with zero fees this week!',
+    body: 'Trade any SPL token on Jupiter with 0% fees. Limited time offer for Seeker users.',
+    ctaLabel: 'Swap Now',
+    ctaUrl: 'https://jup.ag',
+    brand: 'Jupiter Exchange',
+    active: true,
+  },
+  {
+    id: 'rich_notif_2',
+    advertiserId: '2pQ...mNp',
+    title: 'Tensor: New NFT collection dropping!',
+    body: 'Exclusive Solana Seeker NFT collection. First 500 minters get a bonus airdrop.',
+    ctaLabel: 'Mint Now',
+    ctaUrl: 'https://tensor.trade',
+    brand: 'Tensor',
+    active: true,
+  },
+];
+
+// ========================================
+// DOOH (Digital Out-Of-Home) INVENTORY
+// ========================================
+
+export const DOOH_INVENTORY = [
+  { id: 'transit', label: 'Transit Networks', description: 'Airports, Metro, Railway Stations' },
+  { id: 'retail', label: 'Premium Retail', description: 'Shopping Centers, Flagship Stores' },
+  { id: 'urban', label: 'Urban Outdoor', description: 'Billboards, Street Furniture, Digital Kiosks' },
+  { id: 'corporate', label: 'Corporate Spaces', description: 'Office Towers, Business Districts' },
+  { id: 'entertainment', label: 'Entertainment & Leisure', description: 'Stadiums, Cinemas, Venues' },
+  { id: 'institutional', label: 'Healthcare, Education & Financial', description: 'Institutions' },
+];

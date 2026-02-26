@@ -3,16 +3,30 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityInd
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
-import { MOCK_HUBS, MOCK_ADS } from '../config/constants';
+import { MOCK_ADS } from '../config/constants';
 import { subscribeToHub, unsubscribeFromHub, fetchAllHubs } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const storeSubscribed = useAppStore((state) => state.subscribedProjects);
-  const [hubs, setHubs] = useState(MOCK_HUBS.map(h => ({ ...h, subscribed: storeSubscribed.includes(h.id) })));
-  const [subscribing, setSubscribing] = useState(null); // hubId currently subscribing
+  const storeHubs = useAppStore((state) => state.hubs);
+  // Show only active hubs (or hubs without status = legacy mock hubs)
+  const [hubs, setHubs] = useState(
+    storeHubs
+      .filter((h) => h.status === 'ACTIVE' || !h.status)
+      .map((h) => ({ ...h, subscribed: storeSubscribed.includes(h.id) }))
+  );
+  const [subscribing, setSubscribing] = useState(null);
   const { wallet, subscribeToProject, unsubscribeFromProject, isSubscribed } = useAppStore();
+
+  // Refresh hubs when store changes (e.g. admin approves a new hub)
+  useEffect(() => {
+    const activeHubs = storeHubs
+      .filter((h) => h.status === 'ACTIVE' || !h.status)
+      .map((h) => ({ ...h, subscribed: storeSubscribed.includes(h.id) }));
+    setHubs(activeHubs);
+  }, [storeHubs, storeSubscribed]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);

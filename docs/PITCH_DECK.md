@@ -38,6 +38,8 @@ Hackathon Submission — March 2026
 | Submit feedback (300 $SKR deposit) | Receive DAO boost funding (95/5 split) | Duration-based discounts (up to 40% off) |
 | Vote on DAO proposals | Analytics dashboard | Lock screen premium ads |
 | DEEP Score ranks real contributors | Admin review for quality control | Impression & click tracking |
+| | Hub lifecycle (create -> approve -> Discover) | Rich Notification Ads (500 $SKR/campaign, FCM push) |
+| | DOOH Worldwide campaign briefs | DOOH digital billboard campaigns |
 
 ---
 
@@ -52,7 +54,7 @@ Hackathon Submission — March 2026
           |
 4. USERS engage: read, feedback, vote, swipe
           |
-5. ADVERTISERS buy ad slots (top/bottom/lockscreen)
+5. ADVERTISERS buy ad slots (top/bottom/lockscreen/rich notification/DOOH)
           |
 6. COMMUNITY funds DAO boost proposals
           |
@@ -68,7 +70,7 @@ Hackathon Submission — March 2026
 |                    DEEP PULSE PLATFORM                     |
 +---------------------------+-------------------------------+
 |   React Native App        |   Anchor Program (Solana)     |
-|   17 screens              |   23 instructions             |
+|   19 screens              |   23 instructions             |
 |   MWA 2.0                 |   8 account types             |
 |   NativeWind UI           |   19 events                   |
 |   Firebase (FCM + Storage)|   33 error codes              |
@@ -101,6 +103,7 @@ Hackathon Submission — March 2026
 | Top ad slot | 1,500 | Per week |
 | Bottom ad slot | 800 | Per week |
 | Lock screen ad | 2,000 | Per week |
+| Rich Notification Ad | 500 | Per campaign (FCM push) |
 
 **Token Flow:**
 - All payments in $SKR (existing Seeker token)
@@ -164,18 +167,44 @@ Hackathon Submission — March 2026
 
 ---
 
-### SLIDE 10 — DEMO
+### SLIDE 10 — RICH NOTIFICATION ADS & DOOH WORLDWIDE
 
-**17 fully functional screens:**
+**Rich Notification Ads (500 $SKR/campaign):**
 
-1. Onboarding (wallet connect via MWA 2.0)
-2. Home (notification feed + rotating ad banners)
+- Push notification ads delivered via Firebase Cloud Messaging
+- Works on ALL devices including Solana Seeker — no SYSTEM_ALERT_WINDOW permission needed
+- Brands create campaigns with title, body, image, and call-to-action
+- Reaches every subscriber's notification tray instantly
+- Lower barrier to entry than banner or lock screen ads
+
+**DOOH Worldwide (Digital Out-Of-Home):**
+
+- Campaign brief form accessible from HubDashboard
+- Brands define target locations, formats (billboards, screens, transit), budget, and duration
+- Bridges on-chain brand activity with real-world advertising
+- Global reach — not limited to mobile screens
+
+**Hub Lifecycle:**
+```
+Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
+         → Admin Reviews & Approves → Hub appears on Discover
+         → Users subscribe for free
+```
+
+---
+
+### SLIDE 11 — DEMO
+
+**19 fully functional screens:**
+
+1. Onboarding (redesigned: hero with pulse animation, features showcase, DEEP Score tiers, "Let's grow together")
+2. Home (notification feed + real mock ad banners)
 3. Discover (browse & subscribe to hubs)
 4. My Hubs (subscribed hubs synced via Zustand)
 5. Notifications (push notification list)
 6. Notification Detail (feedback submission)
 7. Profile (wallet, DEEP Score, tier badge)
-8. Hub Dashboard (brand management + Discord integration)
+8. Hub Dashboard (brand management + Discord + DOOH access)
 9. Brand Moderation (approve/reject deposits)
 10. Brand Boost (DAO proposal management)
 11. DAO Boost (community vault funding)
@@ -185,6 +214,8 @@ Hackathon Submission — March 2026
 15. Admin Messages (admin <-> brand communication)
 16. Hub Notifications (hub-specific feed)
 17. Swipe-to-Earn (lock screen dashboard)
+18. DOOH Screen (Digital Out-Of-Home campaign brief form)
+19. Rich Notification Ads (push notification ad campaigns)
 
 **Both APKs available:**
 - Debug APK (132 MB) — mock fallbacks for testing
@@ -192,7 +223,7 @@ Hackathon Submission — March 2026
 
 ---
 
-### SLIDE 11 — COMPETITIVE ADVANTAGE
+### SLIDE 12 — COMPETITIVE ADVANTAGE
 
 | Feature | DEEP PULSE | EPNS/Push Protocol | Dialect | WalletConnect |
 |---------|-----------|-------------------|---------|---------------|
@@ -208,18 +239,18 @@ Hackathon Submission — March 2026
 
 ---
 
-### SLIDE 12 — ROADMAP
+### SLIDE 13 — ROADMAP
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 17 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline |
-| **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, rich notification lock screen (no overlay permission), backend API for analytics |
+| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline, Rich Notification Ads, DOOH Worldwide, Hub Lifecycle |
+| **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |
 
 ---
 
-### SLIDE 13 — TEAM & LINKS
+### SLIDE 14 — TEAM & LINKS
 
 **Solo Builder** — Gilles Beselto
 
@@ -230,7 +261,7 @@ Hackathon Submission — March 2026
 
 **Tech Stats:**
 - 23 smart contract instructions
-- 17 mobile screens
+- 19 mobile screens
 - 8 on-chain account types
 - 33 custom error codes
 - 19 on-chain events
