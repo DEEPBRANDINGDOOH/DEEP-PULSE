@@ -10,7 +10,7 @@ export default function HubDashboardScreen({ navigation, route }) {
   const hubIcon = route.params?.hubIcon || 'rocket';
   const hubStatus = route.params?.hubStatus || 'ACTIVE';
   const { wallet } = useAppStore();
-  const lockscreenPrice = useAppStore((state) => state.platformPricing?.lockscreenAd || 2000);
+  const lockscreenPrice = useAppStore((state) => state.platformPricing?.lockscreenAd || 1000);
   const hubCreationPrice = useAppStore((state) => state.platformPricing?.hubCreation || 2000);
   const addHubNotification = useAppStore((state) => state.addHubNotification);
   // Read live subscriber count from hub in store
@@ -20,6 +20,7 @@ export default function HubDashboardScreen({ navigation, route }) {
   const hubData = storeHubs.find(h => h.name === hubName) || pendingHubs.find(h => h.name === hubName);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordConnected, setDiscordConnected] = useState(false);
   const [discordServer, setDiscordServer] = useState('');
@@ -113,6 +114,17 @@ export default function HubDashboardScreen({ navigation, route }) {
               textAlignVertical="top"
             />
 
+            <Text className="text-text font-semibold mb-2">Link URL <Text className="text-text-secondary font-normal">(optional)</Text></Text>
+            <TextInput
+              value={linkUrl}
+              onChangeText={setLinkUrl}
+              placeholder="https://..."
+              placeholderTextColor="#666"
+              className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+
             <TouchableOpacity
               className="bg-primary rounded-xl py-4"
               onPress={() => {
@@ -138,7 +150,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                       hubIcon: hubIcon,
                       message: notifMessage,
                       fullMessage: notifMessage,
-                      link: null,
+                      link: linkUrl.trim() || null,
                       timestamp: 'Just now',
                       reactions: 0,
                       comments: 0,
@@ -153,6 +165,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                       notifTitle,
                       notifMessage,
                       wallet.publicKey || 'mock_admin',
+                      linkUrl.trim() || null,
                     ).then((res) => {
                       console.log('[HubDashboard] Push sent:', res);
                     }).catch((err) => {
@@ -162,6 +175,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                     Alert.alert('Sent!', `Notification "${notifTitle}" sent to ${stats.subscribers.toLocaleString()} subscribers via push.`);
                     setTitle('');
                     setMessage('');
+                    setLinkUrl('');
                   }},
                 ]);
               }}
@@ -387,14 +401,14 @@ export default function HubDashboardScreen({ navigation, route }) {
           </View>
 
           <TouchableOpacity
-            onPress={() => Alert.alert('Billing', `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\nNext renewal in 23 days`, [
+            onPress={() => Alert.alert("Hub's Billing", `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\nNext renewal in 23 days`, [
               { text: 'OK' },
             ])}
             className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"
           >
             <View className="flex-row items-center">
               <Ionicons name="card" size={24} color="#FF9F66" />
-              <Text className="text-text font-semibold text-base ml-3">Billing</Text>
+              <Text className="text-text font-semibold text-base ml-3">Hub's Billing</Text>
             </View>
             <View className="flex-row items-center">
               <Text className="text-text-secondary text-sm mr-2">{hubCreationPrice.toLocaleString()} $SKR/month</Text>

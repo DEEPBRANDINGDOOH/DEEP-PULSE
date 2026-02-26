@@ -2,9 +2,10 @@
  * Ad Slots Screen
  *
  * Allows brands to purchase ad slots on their hubs
- * - Top Ad Slot: 1,500 $SKR/week (8 max, rotates every 15s)
- * - Bottom Ad Slot: 800 $SKR/week (8 max, rotates every 15s)
- * - Lockscreen Ad: 2,000 $SKR/week (4 max, full-screen Swipe-to-Earn)
+ * - Top Ad Slot: 800 $SKR/week (8 max, rotates every 15s)
+ * - Bottom Ad Slot: 600 $SKR/week (8 max, rotates every 15s)
+ * - Lockscreen Ad: 1,000 $SKR/week (4 max, full-screen Swipe-to-Earn)
+ * - Rich Notification Ads: 1,500 $SKR/week (SPONSORED push, 1/day)
  *
  * Features:
  * - View available slots
@@ -34,13 +35,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { PRICING } from '../config/constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
 
 // Ad Slot Configuration
 const AD_CONFIG = {
   TOP_SLOT: {
-    price: 1500,
+    price: 800,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,
@@ -54,7 +56,7 @@ const AD_CONFIG = {
     maxFileSize: '2 MB',
   },
   BOTTOM_SLOT: {
-    price: 800,
+    price: 600,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,
@@ -68,7 +70,7 @@ const AD_CONFIG = {
     maxFileSize: '2 MB',
   },
   LOCKSCREEN_SLOT: {
-    price: 2000,
+    price: 1000,
     maxSlots: 4,
     rotationInterval: 0,
     width: 1080,
@@ -782,8 +784,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <View className="flex-1">
                   <View className="flex-row items-center">
                     <Text className="text-text font-bold text-lg mb-1">Push Notification Ad</Text>
-                    <View className="bg-success/20 rounded-full px-2 py-0.5 ml-2">
-                      <Text className="text-success text-xs font-bold">NEW</Text>
+                    <View className="bg-yellow-500/20 rounded-full px-2 py-0.5 ml-2">
+                      <Text className="text-yellow-400 text-xs font-bold">SPONSORED</Text>
                     </View>
                   </View>
                   <Text className="text-text-secondary text-xs">
@@ -792,7 +794,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 </View>
               </View>
               <View className="bg-success/20 px-3 py-1 rounded-lg">
-                <Text className="text-success font-bold text-sm">500 $SKR/week</Text>
+                <Text className="text-success font-bold text-sm">{PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week</Text>
               </View>
             </View>
 
@@ -819,6 +821,58 @@ export default function AdSlotsScreen({ route, navigation }) {
                   </View>
                 </View>
               </View>
+            </View>
+
+            {/* Free vs Sponsored comparison callout */}
+            <View className="bg-primary/5 rounded-xl p-4 mb-4 border border-primary/20">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="information-circle" size={18} color="#FF9F66" />
+                <Text className="text-primary font-bold text-sm ml-2">Free vs Sponsored Notifications</Text>
+              </View>
+              <Text className="text-text-secondary text-xs leading-4">
+                Your hub subscription includes unlimited FREE text notifications (title + message + optional link). Rich Notification Ads are PREMIUM sponsored campaigns with CTA buttons, images, priority delivery, and daily guaranteed frequency.
+              </Text>
+            </View>
+
+            {/* Why upgrade to Rich Ads? */}
+            <View className="bg-background-secondary rounded-xl p-4 mb-4 border border-border">
+              <Text className="text-text font-bold text-sm mb-3">Why upgrade to Rich Ads?</Text>
+              {[
+                'CTA Button with custom label + landing URL',
+                'Image support (visual push notification)',
+                '1 guaranteed push per day for campaign duration',
+                '"SPONSORED" badge (premium visibility)',
+                'Advanced analytics (clicks, conversions)',
+                'Volume discounts (up to 40% off)',
+              ].map((item, i) => (
+                <View key={i} className="flex-row items-center mb-1.5">
+                  <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text className="text-text-secondary text-xs ml-2">{item}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* VS Comparison */}
+            <View className="bg-background-secondary rounded-xl p-4 mb-4 border border-border">
+              <View className="flex-row items-center justify-center mb-3">
+                <Text className="text-text font-bold text-sm flex-1 text-center">Free Notifications</Text>
+                <View className="bg-primary/20 rounded-full w-8 h-8 items-center justify-center mx-2">
+                  <Text className="text-primary font-black text-xs">VS</Text>
+                </View>
+                <Text className="text-text font-bold text-sm flex-1 text-center">Rich Notification Ads</Text>
+              </View>
+              {[
+                ['Title + Message + Link', 'Title + Body + CTA + Image'],
+                ['Included in hub plan', `${PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week`],
+                ['Manual send', '1 push/day guaranteed'],
+                ['Basic delivery', 'Full analytics dashboard'],
+              ].map(([free, rich], i) => (
+                <View key={i} className="flex-row mb-2">
+                  <Text className="text-text-secondary text-xs flex-1 text-center">{free}</Text>
+                  <View className="w-12" />
+                  <Text className="text-success text-xs font-semibold flex-1 text-center">{rich}</Text>
+                </View>
+              ))}
             </View>
 
             {/* Specs */}
@@ -859,7 +913,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               activeOpacity={0.7}
             >
               <Text className="text-white font-bold text-center">
-                <Ionicons name="create" size={18} /> Create Campaign (500 $SKR/week)
+                <Ionicons name="create" size={18} /> Create Campaign ({PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week)
               </Text>
             </TouchableOpacity>
           </View>
@@ -1340,13 +1394,13 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <View className="bg-success/10 rounded-xl p-4 border border-success/30 mb-4">
                   <View className="flex-row justify-between mb-2">
                     <Text className="text-text-secondary">Base Price</Text>
-                    <Text className="text-text font-semibold">{(500 * duration).toLocaleString()} $SKR</Text>
+                    <Text className="text-text font-semibold">{(PRICING.PUSH_NOTIFICATION_AD * duration).toLocaleString()} $SKR</Text>
                   </View>
                   {calculateDiscount(duration) > 0 && (
                     <View className="flex-row justify-between mb-2">
                       <Text className="text-success">Discount ({(calculateDiscount(duration) * 100).toFixed(0)}%)</Text>
                       <Text className="text-success font-semibold">
-                        -{(500 * duration * calculateDiscount(duration)).toLocaleString()} $SKR
+                        -{(PRICING.PUSH_NOTIFICATION_AD * duration * calculateDiscount(duration)).toLocaleString()} $SKR
                       </Text>
                     </View>
                   )}
@@ -1354,7 +1408,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                     <View className="flex-row justify-between items-center">
                       <Text className="text-success font-bold text-lg">Total</Text>
                       <Text className="text-success font-black text-lg">
-                        {(500 * duration * (1 - calculateDiscount(duration))).toLocaleString()} $SKR
+                        {(PRICING.PUSH_NOTIFICATION_AD * duration * (1 - calculateDiscount(duration))).toLocaleString()} $SKR
                       </Text>
                     </View>
                   </View>
@@ -1367,7 +1421,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       Alert.alert('Missing Fields', 'Please fill in at least the title and message.');
                       return;
                     }
-                    const totalCost = 500 * duration * (1 - calculateDiscount(duration));
+                    const totalCost = PRICING.PUSH_NOTIFICATION_AD * duration * (1 - calculateDiscount(duration));
                     setIsSubmittingRich(true);
                     Alert.alert(
                       'Confirm Campaign',

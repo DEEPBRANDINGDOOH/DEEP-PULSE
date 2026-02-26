@@ -71,9 +71,10 @@ function getFunctions() {
  * @param {string} title - Notification title
  * @param {string} body - Notification body
  * @param {string} walletAddress - Sender's wallet (for ownership verification)
+ * @param {string|null} link - Optional link URL to include in notification
  * @returns {Promise<{success: boolean, notificationId?: string}>}
  */
-export async function sendHubNotification(hubId, hubName, title, body, walletAddress) {
+export async function sendHubNotification(hubId, hubName, title, body, walletAddress, link = null) {
   console.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
 
   // Strategy 1: Call the Cloud Function directly (preferred)
@@ -86,7 +87,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
         title,
         body,
         walletAddress,
-        data: { hubName, hubId },
+        data: { hubName, hubId, ...(link ? { link } : {}) },
       });
       console.log('[FirebaseService] Cloud Function response:', result.data);
       return { success: true, notificationId: result.data?.notificationId };
@@ -104,6 +105,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
         hubName,
         title,
         body,
+        link: link || null,
         createdAt: firestore.FieldValue.serverTimestamp(),
         source: 'app_direct',
         walletAddress: walletAddress || null,

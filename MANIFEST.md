@@ -28,7 +28,7 @@
 - ✅ `src/screens/TalentScreen.js` - Talent marketplace
 - ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord + Firebase push)
 - ✅ `src/screens/BrandModerationScreen.js` - Modération
-- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Push Notification Ads (500 $SKR/week) + proper URL hashing
+- ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Rich Notification Ads (1,500 $SKR/week, SPONSORED badge, Free vs Sponsored comparison) + proper URL hashing
 - ✅ `src/screens/BrandBoostScreen.js` - Brand boost (hub creation → store)
 - ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval, pricing, deals, Firebase moderation sync)
 - ✅ `src/screens/NotificationsScreen.js` - Notifications globales
@@ -209,8 +209,8 @@ dependencies {
 - Hub creation lifecycle (create → Firestore PENDING → admin approval → ACTIVE → Discover)
 - "My Created Hubs" in Profile (brands manage hubs, direct access to Dashboard)
 - Moderation approve/reject (synced to Firestore + Cloud Functions)
-- Ad slots purchase (Top 1500/Bottom 800/Lockscreen 2000 $SKR/week)
-- Push Notification Ads (500 $SKR/week, full campaign creation)
+- Ad slots purchase (Top 800/Bottom 600/Lockscreen 1,000 $SKR/week)
+- Rich Notification Ads (1,500 $SKR/week, SPONSORED badge, Free vs Sponsored comparison)
 - DOOH Worldwide (campaign briefs for global venues)
 - Discord → Hub notification pipeline (auto-forward announcements)
 - Analytics dashboard

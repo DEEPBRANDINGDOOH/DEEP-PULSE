@@ -210,7 +210,7 @@ export const useAppStore = create(
         bottomAdSlot: PRICING.BOTTOM_AD_SLOT,
         lockscreenAd: PRICING.LOCKSCREEN_AD,
         globalNotification: PRICING.GLOBAL_NOTIFICATION,
-        pushNotificationAd: PRICING.PUSH_NOTIFICATION_AD || 500,
+        pushNotificationAd: PRICING.PUSH_NOTIFICATION_AD || 1500,
       },
 
       setPlatformPricing: (pricing) => set({ platformPricing: pricing }),
@@ -234,7 +234,7 @@ export const useAppStore = create(
                 hubCreation: config.hubSubscriptionPrice.toNumber() / DECIMALS,
                 topAdSlot: config.topAdPricePerWeek.toNumber() / DECIMALS,
                 bottomAdSlot: config.bottomAdPricePerWeek.toNumber() / DECIMALS,
-                lockscreenAd: 2000, // Not in PlatformConfig — keep default
+                lockscreenAd: 1000, // Not in PlatformConfig — keep default
                 globalNotification: 1000, // Not in PlatformConfig — keep default
               },
             });

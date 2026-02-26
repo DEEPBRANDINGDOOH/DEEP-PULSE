@@ -62,7 +62,7 @@ Import recordings, add transitions, captions, and music.
 
 ### SCREEN 9: PUSH NOTIFICATION ADS (2:40 - 2:55)
 **[Show Ad Slots screen -> Push Notification Ad card -> Create Campaign modal]**
-"Push Notification Ads let brands create full campaigns — title, body, CTA button, image, and duration. Live preview updates as you type. Delivered via FCM to every subscriber. 500 $SKR per week with volume discounts."
+"Push Notification Ads let brands create full campaigns — title, body, CTA button, image, and duration. Live preview updates as you type. Delivered via FCM to every subscriber. 1,500 $SKR per week with volume discounts. Clear differentiation from free hub notifications — Free vs Sponsored comparison built right into the UI."
 
 ### SCREEN 10: DOOH WORLDWIDE (2:55 - 3:10)
 **[Show Hub Dashboard -> DOOH section -> Create DOOH Campaign form]**

@@ -39,7 +39,7 @@
 |------|----------|
 | **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
 | **Brands** | Create notification hubs (2,000 $SKR/month) with lifecycle (creation -> admin approval -> Discover listing), moderate content, manage ad slots, receive DAO boost funding, launch DOOH campaigns |
-| **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (2,000 $SKR/week), Push Notification Ads (500 $SKR/week) via FCM push on all devices — full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts, DOOH Worldwide campaign briefs |
+| **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (1,000 $SKR/week), Rich Notification Ads (1,500 $SKR/week, SPONSORED) via FCM push on all devices — premium campaigns with title, body, CTA button, image URL, duration selector, live preview, volume discounts, and Free vs Sponsored comparison UI, DOOH Worldwide campaign briefs |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
 
 ### Key Differentiators
@@ -52,7 +52,7 @@
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
 - **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)
 - **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
-- **Push Notification Ads** — Push notification ads delivered via FCM (500 $SKR/week), full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — works on all devices including Seeker (no SYSTEM_ALERT_WINDOW needed)
+- **Rich Notification Ads** — SPONSORED premium push campaigns via FCM (1,500 $SKR/week), full creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — Free vs Sponsored comparison UI clearly differentiates from free hub notifications — works on all devices including Seeker
 - **DOOH Worldwide** — Digital Out-Of-Home campaign brief form accessible from HubDashboard, enabling global billboard/screen campaigns
 - **Hub Lifecycle** — Creating a hub adds it to admin pending queue; admin approves; hub then appears on Discover for users to subscribe
 - **Discord integration** — Brands connect their Discord #announcements channel to auto-forward major announcements as push notifications to hub subscribers
@@ -588,11 +588,11 @@ firebase deploy --only hosting
 | Feedback Deposit | 300 $SKR | `constants.rs`, `constants.js` |
 | DAO Proposal Deposit | 100 $SKR | `constants.rs`, `constants.js` |
 | Talent Deposit | 50 $SKR | `constants.rs`, `constants.js` |
-| Top Ad Price | 1,500 $SKR/week | `constants.rs`, `constants.js` |
-| Bottom Ad Price | 800 $SKR/week | `constants.rs`, `constants.js` |
-| Lock Screen Ad | 2,000 $SKR/week | `constants.js` |
+| Top Ad Price | 800 $SKR/week | `constants.rs`, `constants.js` |
+| Bottom Ad Price | 600 $SKR/week | `constants.rs`, `constants.js` |
+| Lock Screen Ad | 1,000 $SKR/week | `constants.js` |
 | Global Notification | 1,000 $SKR | `constants.js` |
-| Push Notification Ad | 500 $SKR/week | `constants.js` |
+| Rich Notification Ad | 1,500 $SKR/week | `constants.js` |
 | DAO Brand Share | 95% (9500 bps) | `constants.rs` |
 | DAO Platform Share | 5% (500 bps) | `constants.rs` |
 | Min Vault Contribution | 10 $SKR | `constants.rs` |
@@ -780,8 +780,8 @@ All critical and high severity issues have been fixed in the deployed smart cont
 | Rejected talent | 50 $SKR | Brand rejects talent submission |
 | DAO vault fee | 5% of total raised | Vault reaches funding target |
 | Ad slot purchase | Variable (with discounts) | Advertiser buys a slot |
-| Lock screen ad | 2,000 $SKR/week | Advertiser targets lock screen users |
-| Push Notification Ad | 500 $SKR/week | Push notification ad via FCM to all devices — full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts |
+| Lock screen ad | 1,000 $SKR/week | Advertiser targets lock screen users |
+| Rich Notification Ad | 1,500 $SKR/week | SPONSORED premium push campaign via FCM — title, body, CTA button, image URL, duration selector, live preview, volume discounts, Free vs Sponsored comparison |
 
 ### Deposit Economics
 
@@ -923,4 +923,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Push Notification Ads (500 $SKR/week, FCM push, full campaign creation flow) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓
+**Status:** Smart contracts compiled + security-audited (18 issues fixed) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with optional Link URL ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓

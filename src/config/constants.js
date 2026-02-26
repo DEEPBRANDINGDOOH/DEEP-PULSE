@@ -249,11 +249,11 @@ export const PRICING = {
   TALENT: 50,                 // $SKR per talent submission
   DAO_BOOST: 100,             // $SKR per proposal deposit
   HUB_CREATION: 2000,         // $SKR per month
-  TOP_AD_SLOT: 1500,          // $SKR per week
-  BOTTOM_AD_SLOT: 800,        // $SKR per week
-  LOCKSCREEN_AD: 2000,        // $SKR per week (premium lock screen overlay)
+  TOP_AD_SLOT: 800,           // $SKR per week
+  BOTTOM_AD_SLOT: 600,        // $SKR per week
+  LOCKSCREEN_AD: 1000,        // $SKR per week (premium lock screen overlay)
   GLOBAL_NOTIFICATION: 1000,  // $SKR per notification
-  PUSH_NOTIFICATION_AD: 500,  // $SKR per week (daily push to all hub subscribers)
+  PUSH_NOTIFICATION_AD: 1500, // $SKR per week (sponsored rich push to all hub subscribers)
 };
 
 // ========================================
