@@ -252,7 +252,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         richTitle: a.richTitle,
         richBody: a.richBody,
       }));
-    return [...fromStore, ...MOCK_MY_ADS];
+    return fromStore.length > 0 ? fromStore : MOCK_MY_ADS;
   }, [storePendingAds, storeApprovedAds]);
   const [myAds, setMyAds] = useState(storeMyAds);
 

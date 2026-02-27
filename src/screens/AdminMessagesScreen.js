@@ -215,7 +215,14 @@ export default function AdminMessagesScreen({ navigation, route }) {
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="p-4 pb-3 flex-row items-center border-b border-border">
-        <TouchableOpacity onPress={() => setSelectedConv(null)} className="mr-3">
+        <TouchableOpacity onPress={() => {
+          // If brand came from hub dashboard and only has one conversation, go straight back
+          if (isFromBrand && brandHubName) {
+            navigation.goBack();
+          } else {
+            setSelectedConv(null);
+          }
+        }} className="mr-3">
           <Ionicons name="arrow-back" size={24} color="#FF9F66" />
         </TouchableOpacity>
         <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center mr-3">

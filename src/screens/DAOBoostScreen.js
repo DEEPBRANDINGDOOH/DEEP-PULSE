@@ -17,6 +17,7 @@ const MOCK_PROPOSALS = [
     backers: 24,
     daysLeft: 12,
     status: 'FUNDING',
+    hub: 'Solana Gaming',
   },
   {
     id: '2',
@@ -28,6 +29,7 @@ const MOCK_PROPOSALS = [
     backers: 18,
     daysLeft: 5,
     status: 'FUNDING',
+    hub: 'NFT Artists',
   },
 ];
 
@@ -53,11 +55,10 @@ export default function DAOBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
   // Read active hubs from Zustand store (includes user-created hubs)
   const storeHubs = useAppStore((state) => state.hubs);
-  const activeHubs = storeHubs.length > 0
-    ? storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }))
-    : FALLBACK_HUBS;
+  const filteredHubs = storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }));
+  const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
   const [activeTab, setActiveTab] = useState('propose');
-  const [selectedHub, setSelectedHub] = useState(activeHubs[0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || FALLBACK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -222,9 +223,17 @@ export default function DAOBoostScreen({ navigation }) {
     setFundProposal(null);
   };
 
-  const renderVotesTab = () => (
+  const renderVotesTab = () => {
+    const hubProposals = proposals.filter(p => p.hub === selectedHub?.name);
+    return (
     <ScrollView className="px-6 py-4">
-      {proposals.map((proposal) => (
+      {hubProposals.length === 0 ? (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="document-text-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">No proposals yet for {selectedHub?.name}</Text>
+          <Text className="text-text-muted text-sm mt-2 text-center">Be the first to propose an idea!</Text>
+        </View>
+      ) : hubProposals.map((proposal) => (
         <View
           key={proposal.id}
           className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
@@ -295,6 +304,7 @@ export default function DAOBoostScreen({ navigation }) {
       ))}
     </ScrollView>
   );
+  };
 
   const renderVaultTab = () => (
     <ScrollView className="px-6 py-4">

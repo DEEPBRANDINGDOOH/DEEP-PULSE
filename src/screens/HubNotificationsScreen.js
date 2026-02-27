@@ -54,7 +54,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
   const hubIcon = route.params?.hubIcon || 'apps';
   const hubLogoUrl = route.params?.hubLogoUrl || null;
   const subscribers = route.params?.subscribers || 0;
-  const { wallet } = useAppStore();
+  const { wallet, getHubFeedbacks } = useAppStore();
   const storeNotifications = useAppStore((state) => state.hubNotifications[hubName] || []);
 
   // Merge mock notifications + store notifications (store first = newest)
@@ -167,8 +167,15 @@ export default function HubNotificationsScreen({ navigation, route }) {
                     <Ionicons name="chatbox" size={14} color="#FF9F66" />
                     <Text className="text-primary font-semibold text-sm ml-1">Feedback</Text>
                     <View className="ml-1 bg-primary/20 rounded-md px-1.5 py-0.5">
-                      <Text className="text-primary font-bold" style={{ fontSize: 9 }}>300</Text>
+                      <Text className="text-primary font-bold" style={{ fontSize: 9 }}>
+                        {(() => { const count = getHubFeedbacks(notif.hubName || hubName).length; return count > 0 ? count : '300'; })()}
+                      </Text>
                     </View>
+                    {getHubFeedbacks(notif.hubName || hubName).length > 0 && (
+                      <View className="ml-1 bg-yellow-500/20 rounded-md px-1.5 py-0.5">
+                        <Ionicons name="shield-checkmark" size={10} color="#EAB308" />
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
               </View>

@@ -16,6 +16,7 @@ const MOCK_TALENTS = [
     availability: '2 weeks',
     rate: 5000,
     anonymous: true,
+    hub: 'NFT Artists',
   },
   {
     id: '2',
@@ -26,6 +27,7 @@ const MOCK_TALENTS = [
     availability: '1 month',
     rate: 8000,
     anonymous: true,
+    hub: 'Solana Gaming',
   },
 ];
 
@@ -51,14 +53,13 @@ export default function TalentScreen({ navigation }) {
   const { wallet } = useAppStore();
   // Read active hubs from Zustand store (includes user-created hubs)
   const storeHubs = useAppStore((state) => state.hubs);
-  const activeHubs = storeHubs.length > 0
-    ? storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }))
-    : FALLBACK_HUBS;
+  const filteredHubs = storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }));
+  const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
   // Read talent submissions from Zustand store (persisted)
   const mySubmissions = useAppStore((state) => state.talentSubmissions);
   const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
-  const [selectedHub, setSelectedHub] = useState(activeHubs[0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || FALLBACK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [role, setRole] = useState(ROLE_OPTIONS[0]);
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -205,6 +206,7 @@ export default function TalentScreen({ navigation }) {
                     availability: 'Available',
                     rate: 0,
                     anonymous: true,
+                    hub: selectedHub?.name,
                   }]);
                   Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
                   setExperience('');
@@ -225,9 +227,17 @@ export default function TalentScreen({ navigation }) {
     </ScrollView>
   );
 
-  const renderBrowseTab = () => (
+  const renderBrowseTab = () => {
+    const hubTalents = talents.filter(t => t.hub === selectedHub?.name);
+    return (
     <ScrollView className="px-6 py-4">
-      {talents.map((talent) => (
+      {hubTalents.length === 0 ? (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="people-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">No talent profiles for {selectedHub?.name}</Text>
+          <Text className="text-text-muted text-sm mt-2 text-center">Submit your profile in the Submit tab!</Text>
+        </View>
+      ) : hubTalents.map((talent) => (
         <View
           key={talent.id}
           className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
@@ -305,6 +315,7 @@ export default function TalentScreen({ navigation }) {
       ))}
     </ScrollView>
   );
+  };
 
   const renderMineTab = () => (
     <ScrollView className="px-6 py-4">

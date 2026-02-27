@@ -55,7 +55,8 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadCount, hubNotifications, addHubFeedback } = useAppStore();
+  const { wallet, getUnreadCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore();
+  const approvedAds = useAppStore((state) => state.approvedAds);
   const unreadCount = getUnreadCount();
 
   // Merge store notifications (from brand-sent notifs) with mock data
@@ -205,10 +206,15 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* TOP AD SLOT */}
+        {/* TOP AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mb-5">
           <AdRotation
-            ads={MOCK_ADS.TOP}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'top' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.TOP,
+            ]}
             slotType="top"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}
@@ -327,8 +333,15 @@ export default function HomeScreen({ navigation }) {
                     <Ionicons name="chatbox" size={14} color="#FF9F66" />
                     <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
                     <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
-                      <Text className="text-primary font-black" style={{ fontSize: 9 }}>300</Text>
+                      <Text className="text-primary font-black" style={{ fontSize: 9 }}>
+                        {(() => { const count = getHubFeedbacks(notif.hubName).length; return count > 0 ? count : '300'; })()}
+                      </Text>
                     </View>
+                    {getHubFeedbacks(notif.hubName).length > 0 && (
+                      <View className="ml-1.5 bg-yellow-500/20 rounded-md px-1.5 py-0.5">
+                        <Ionicons name="shield-checkmark" size={10} color="#EAB308" />
+                      </View>
+                    )}
                   </View>
                 </TouchableOpacity>
               </View>
@@ -336,10 +349,15 @@ export default function HomeScreen({ navigation }) {
           ))}
         </View>
 
-        {/* BOTTOM AD SLOT */}
+        {/* BOTTOM AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mt-2 mb-6">
           <AdRotation
-            ads={MOCK_ADS.BOTTOM}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'bottom' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.BOTTOM,
+            ]}
             slotType="bottom"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}
