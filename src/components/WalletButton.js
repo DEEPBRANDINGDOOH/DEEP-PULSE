@@ -10,6 +10,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-na
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter, formatPublicKey } from '../services/walletAdapter';
+import { setWalletState } from '../services/transactionHelper';
 
 export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
   const { wallet, setWallet, clearWallet } = useAppStore();
@@ -24,12 +25,15 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
         ? await walletAdapter.signInWithSolana()
         : await walletAdapter.connect();
 
-      // Save wallet state
+      // Save wallet state (store as string for Zustand persistence)
+      const pubKeyStr = result.publicKey?.toString ? result.publicKey.toString() : result.publicKey;
       setWallet({
         connected: true,
-        publicKey: result.publicKey,
+        publicKey: pubKeyStr,
         authToken: result.authToken,
       });
+      // Sync transactionHelper state (required for on-chain transactions)
+      setWalletState(result.publicKey, result.authToken);
 
       Alert.alert(
         'Wallet Connected',

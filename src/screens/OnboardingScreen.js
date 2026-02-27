@@ -291,9 +291,10 @@ export default function OnboardingScreen({ navigation }) {
     setIsConnecting(true);
     try {
       const result = await walletAdapter.connect();
+      const pubKeyStr = result.publicKey?.toString ? result.publicKey.toString() : result.publicKey;
       setWallet({
         connected: true,
-        publicKey: result.publicKey,
+        publicKey: pubKeyStr,
         authToken: result.authToken,
       });
       setWalletState(result.publicKey, result.authToken);

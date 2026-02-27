@@ -149,7 +149,7 @@ export default function MyHubsScreen({ navigation }) {
                         )}
                       </View>
                       <Text className="text-text-secondary text-sm">
-                        {hub.subscribers.toLocaleString()} subscribers
+                        {(hub.subscribers || 0).toLocaleString()} subscribers
                       </Text>
                     </View>
                   </View>

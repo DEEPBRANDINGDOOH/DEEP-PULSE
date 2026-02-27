@@ -10,6 +10,7 @@ import { notificationService } from './src/services/notificationService';
 import { registerFcmToken } from './src/services/firebaseService';
 import { useAppStore } from './src/store/appStore';
 import { logger } from './src/utils/security';
+import { setWalletState } from './src/services/transactionHelper';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -168,6 +169,13 @@ const App = () => {
     };
 
     bootstrapNotifications();
+
+    // Restore wallet state for transactionHelper on app restart
+    const storedWallet = useAppStore.getState().wallet;
+    if (storedWallet?.connected && storedWallet?.publicKey) {
+      logger.log('[App] Restoring wallet state from persisted store');
+      setWalletState(storedWallet.publicKey, storedWallet.authToken);
+    }
 
     return () => {
       notificationService.removeForegroundListener();

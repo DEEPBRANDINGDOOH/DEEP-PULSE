@@ -50,8 +50,26 @@ const STATS_DATA = {
 
 export default function AdminScreen({ navigation }) {
   const { wallet, platformPricing: prices, updateSinglePrice, loadPlatformPricingFromChain } = useAppStore();
+  // ALL hooks MUST be called before any early return (Rules of Hooks)
+  const pendingHubs = useAppStore((state) => state.pendingHubs);
+  const storeHubs = useAppStore((state) => state.hubs);
+  const storeApproveHub = useAppStore((state) => state.approveHub);
+  const storeRejectHub = useAppStore((state) => state.rejectHub);
+  const storeSuspendHub = useAppStore((state) => state.suspendHub);
+  const storeDeleteHub = useAppStore((state) => state.deleteHub);
+  const storeReactivateHub = useAppStore((state) => state.reactivateHub);
+  const checkHubSubscriptions = useAppStore((state) => state.checkHubSubscriptions);
+  const [activeSection, setActiveSection] = useState('overview');
+  const [globalNotifTitle, setGlobalNotifTitle] = useState('');
+  const [globalNotifMessage, setGlobalNotifMessage] = useState('');
+  const pendingAds = useAppStore((state) => state.pendingAdCreatives);
+  const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
+  const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
+  const [savingPrice, setSavingPrice] = useState(false);
+  const [statsPeriod, setStatsPeriod] = useState('30d');
+  const [statsTab, setStatsTab] = useState('global');
 
-  // ── NAVIGATION GUARD: Block non-admin access ──
+  // ── NAVIGATION GUARD: Block non-admin access (after all hooks) ──
   if (!isAdmin(wallet?.publicKey)) {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center">
@@ -67,26 +85,6 @@ export default function AdminScreen({ navigation }) {
       </SafeAreaView>
     );
   }
-  const pendingHubs = useAppStore((state) => state.pendingHubs);
-  const storeHubs = useAppStore((state) => state.hubs);
-  const storeApproveHub = useAppStore((state) => state.approveHub);
-  const storeRejectHub = useAppStore((state) => state.rejectHub);
-  const storeSuspendHub = useAppStore((state) => state.suspendHub);
-  const storeDeleteHub = useAppStore((state) => state.deleteHub);
-  const storeReactivateHub = useAppStore((state) => state.reactivateHub);
-  const checkHubSubscriptions = useAppStore((state) => state.checkHubSubscriptions);
-  const [activeSection, setActiveSection] = useState('overview');
-  const [globalNotifTitle, setGlobalNotifTitle] = useState('');
-  const [globalNotifMessage, setGlobalNotifMessage] = useState('');
-  // Read pending ads from Zustand store (shared with AdSlotsScreen)
-  const pendingAds = useAppStore((state) => state.pendingAdCreatives);
-  const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
-  const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
-  const [savingPrice, setSavingPrice] = useState(false);
-
-  // Stats state
-  const [statsPeriod, setStatsPeriod] = useState('30d');
-  const [statsTab, setStatsTab] = useState('global');
 
   // Pricing edit state
   const [editingPrice, setEditingPrice] = useState(null);

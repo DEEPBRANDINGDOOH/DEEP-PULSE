@@ -215,7 +215,7 @@ export const useAppStore = create(
             h.id === hubId ? { ...h, status: 'SUSPENDED', suspendedAt: new Date().toISOString() } : h
           ),
         }));
-        suspendHubInFirestore(hubId, wallet.publicKey)
+        suspendHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore suspendHub failed, rolling back');
@@ -261,7 +261,7 @@ export const useAppStore = create(
             } : h
           ),
         }));
-        reactivateHubInFirestore(hubId, wallet.publicKey)
+        reactivateHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore reactivateHub failed, rolling back');
@@ -302,7 +302,7 @@ export const useAppStore = create(
           hubs: state.hubs.filter(h => h.id !== hubId),
           subscribedProjects: state.subscribedProjects.filter(id => id !== hubId),
         }));
-        deleteHubInFirestore(hubId, wallet.publicKey)
+        deleteHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore deleteHub failed, rolling back');

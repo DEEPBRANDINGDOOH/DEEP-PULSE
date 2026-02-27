@@ -41,6 +41,12 @@ export default function DiscoverScreen({ navigation }) {
     const hub = hubs.find(h => h.id === hubId);
     if (!hub) return;
 
+    // Wallet check for on-chain operations
+    if (hub.hubPda && !__DEV__ && !wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your wallet to subscribe on-chain.');
+      return;
+    }
+
     // If already subscribed, unsubscribe
     if (hub.subscribed) {
       if (hub.hubPda) {
@@ -86,8 +92,8 @@ export default function DiscoverScreen({ navigation }) {
   };
 
   const filteredHubs = hubs.filter(hub =>
-    hub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    hub.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (hub.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (hub.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
