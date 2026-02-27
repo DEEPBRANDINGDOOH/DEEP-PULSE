@@ -243,6 +243,36 @@ Hub creators can upload a custom logo instead of using Ionicons:
 - HubDashboardScreen + AdTypeSelectorScreen — `hubId` passed through navigation chain
 - transactionHelper — correct lockscreen price in onSuccess alert
 
+### 6. Bug Fixes — Build 5–6 (Seeker device testing)
+- **AdminScreen.js** — Hub auto-seed loop fixed (moved INITIAL_PENDING_HUBS to appStore initial state, persisted)
+- **appStore.js** — Auto-subscribe creator to FCM topic on hub approval
+- **localNotificationService.js** — NEW: @notifee/react-native local push notifications (lock screen + tray)
+- **HubDashboardScreen.js** — Triggers local push + Cloud Function push when sending hub notifications
+- **AdminScreen.js** — Triggers local push for global notifications
+- **android/settings.gradle + android/app/build.gradle** — Notifee native module linked
+
+### 7. Bug Fixes — Build 7 (5 critical fixes, 9 files, audit pass)
+
+**Push notifications fix:**
+- `localNotificationService.js` — `smallIcon: 'ic_notification'` → `'ic_launcher'` (ic_notification drawable didn't exist → silent crash) + `await channelReady` before displaying (race condition fix)
+
+**Hub logo in dev mode:**
+- `storageService.js` — `uploadHubLogo` now returns local `imageAsset.uri` directly in `__DEV__` mode (Firebase Storage requires auth which isn't available in debug → logo was always null)
+
+**Feedback → Moderation data flow:**
+- `appStore.js` — NEW: `hubFeedbacks` persisted state + `addHubFeedback()` action + persisted in `partialize`
+- `HomeScreen.js` — Stores feedback in Zustand via `addHubFeedback()` after both on-chain and mock submissions
+- `HubDashboardScreen.js` — Passes `hubName` + `hubId` to `BrandModeration` navigation params
+- `BrandModerationScreen.js` — **REWRITTEN**: reads `hubFeedbacks` from store, accepts `hubName` route param, generates hub-specific mock data (no more generic "Re: Game Launch"), shows "REAL" badge on user-submitted feedbacks, re-syncs when store changes
+
+**Audit fixes:**
+- `transactionHelper.js` — `logger.info()` → `logger.log()` (logger has no `info` method → crashed all dev mock transactions silently)
+- `AdminScreen.js` — PRICE_LABELS null guard (`if (!info) return null`) for unknown pricing keys
+- `AdSlotsScreen.js` — My Ads visible in dev mode (`__DEV__ || wallet.connected`), on-chain `programService.hashContent` skipped in dev mode (`hubId && !__DEV__`)
+- `appStore.js` — `pushNotificationAd` preserved in `loadPlatformPricingFromChain()` (was being dropped from pricing object on chain config load)
+
+**Files modified (9):** `transactionHelper.js`, `storageService.js`, `localNotificationService.js`, `appStore.js`, `HomeScreen.js`, `HubDashboardScreen.js`, `BrandModerationScreen.js`, `AdminScreen.js`, `AdSlotsScreen.js`
+
 ---
 
 ## 🎯 FONCTIONNALITÉS COMPLÈTES

@@ -643,3 +643,23 @@ After Audit #3, the **only remaining item** preventing a 10/10 overall score is:
 | **Firebase Authentication** | Firestore rules currently use `allow write: if true`. Adding Firebase Auth with wallet-signature sign-in would enable `request.auth != null` checks, closing C-01, C-02, C-03, and C-06. | Post-hackathon |
 
 **Current Score: 9.5/10** — The 0.5 point deduction is solely for the lack of Firebase Authentication, which is a known limitation documented for post-hackathon implementation.
+
+---
+
+### 3.6 Build 7 — Post-Audit Fixes (5 critical, 9 files)
+
+Following comprehensive 4-agent code audit and Seeker device testing, 5 critical issues were identified and fixed:
+
+| # | Issue | Severity | File | Fix |
+|---|-------|----------|------|-----|
+| 1 | `logger.info()` doesn't exist — crashes all dev mock transactions silently | **CRITICAL** | `transactionHelper.js` | Changed to `logger.log()` |
+| 2 | Push notification `smallIcon: 'ic_notification'` doesn't exist as Android drawable | **CRITICAL** | `localNotificationService.js` | Changed to `'ic_launcher'` + `await channelReady` |
+| 3 | `uploadHubLogo` blocked in dev mode (no Firebase auth) | **HIGH** | `storageService.js` | Returns local `imageAsset.uri` in `__DEV__` |
+| 4 | BrandModerationScreen disconnected from store (only static MOCK_SUBMISSIONS) | **HIGH** | `BrandModerationScreen.js` | Rewritten: reads `hubFeedbacks` from Zustand, accepts `hubName` param |
+| 5 | Feedback submitted by users never stored — not visible in moderation | **HIGH** | `HomeScreen.js`, `appStore.js` | New `hubFeedbacks` persisted state + `addHubFeedback()` action |
+| 6 | `PRICE_LABELS[key]` crash when unknown pricing key exists | **MEDIUM** | `AdminScreen.js` | Null guard: `if (!info) return null` |
+| 7 | My Ads section invisible in dev mode (`wallet.connected` always false) | **MEDIUM** | `AdSlotsScreen.js` | Guard: `__DEV__ \|\| wallet.connected` |
+| 8 | `programService.hashContent` called with mock hubId in dev mode | **MEDIUM** | `AdSlotsScreen.js` | Guard: `hubId && !__DEV__` |
+| 9 | `pushNotificationAd` price dropped from pricing on chain config load | **LOW** | `appStore.js` | Preserved in `loadPlatformPricingFromChain()` |
+
+**Assessment:** All 5 critical/high issues were silent failures — they didn't crash the app but caused features to not work (no push notifications, no logo, no feedback in moderation). The fixes restore full functionality for both debug and release APKs.
