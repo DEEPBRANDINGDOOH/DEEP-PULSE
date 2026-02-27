@@ -87,11 +87,14 @@ match /fcmTokens/{walletAddress} {
 ### C-03: Firestore Rules — Hub Data Manipulation
 **Severity:** CRITICAL | **File:** `firestore.rules:16-21`
 
-**Issue:** Hubs collection allows unrestricted create AND update. Any client can:
+**Issue:** Hubs collection allows unrestricted create, update, AND delete. Any client can:
 1. Create hubs with `status: 'ACTIVE'` (bypassing admin approval)
 2. Set `active: true` on any hub
 3. Modify subscriber counts to any value
 4. Change hub creator/ownership
+5. Set `status: 'SUSPENDED'` on a competitor's hub (Build 11 — new attack vector)
+6. Delete any hub document via `deleteHubInFirestore()` (Build 11 — no server-side admin validation)
+7. Manipulate `subscriptionExpiresAt` to force OVERDUE status on any hub
 
 **Impact:** Complete bypass of the hub lifecycle (PENDING -> admin review -> ACTIVE).
 
@@ -455,6 +458,8 @@ No WebView components found, eliminating an entire class of injection attacks.
 | **No Private Key Storage** | Excellent: only auth tokens stored, never seeds/keys |
 | **Upload Validation** | Good: MIME type + file size validation in storageService |
 | **Hub Logo Upload Validation** | Good: 500KB max file size, 200x200px dimensions, PNG/JPG/WebP only, wallet connection required (no anonymous uploads), circular crop display via HubIcon component |
+| **Admin Hub Lifecycle** | Good: suspend/reactivate/delete actions require `wallet.connected` in release mode + confirmation alerts. Hub deletion is double-confirmed with IRREVERSIBLE warning. Suspended hubs hidden from Discover but preserved in store (no data loss). OVERDUE status invisible to regular users (privacy-preserving) |
+| **Subscription Expiry Detection** | Good: `checkHubSubscriptions()` runs on AdminScreen mount, auto-detects expired subscriptions from `subscriptionExpiresAt` timestamp. Status transitions are deterministic (ACTIVE→OVERDUE if expired, OVERDUE→ACTIVE if renewed). SUSPENDED/PENDING hubs are skipped |
 
 ---
 

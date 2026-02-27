@@ -26,11 +26,11 @@
 - ✅ `src/screens/ProfileScreen.js` - Profil utilisateur + "My Created Hubs" section
 - ✅ `src/screens/DAOBoostScreen.js` - DAO voting
 - ✅ `src/screens/TalentScreen.js` - Talent marketplace
-- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord + Firebase push)
+- ✅ `src/screens/HubDashboardScreen.js` - Dashboard marque (dynamic stats + DOOH + Discord + Firebase push + dynamic billing with days remaining + OVERDUE/SUSPENDED banners)
 - ✅ `src/screens/BrandModerationScreen.js` - Modération
 - ✅ `src/screens/AdSlotsScreen.js` - Gestion ads + Rich Notification Ads (1,500 $SKR/week, SPONSORED badge, Free vs Sponsored comparison) + proper URL hashing
 - ✅ `src/screens/BrandBoostScreen.js` - Brand boost (hub creation → store)
-- ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval, pricing, deals, Firebase moderation sync)
+- ✅ `src/screens/AdminScreen.js` - Admin panel (hub approval/suspend/reactivate/delete, pricing, deals, Firebase moderation sync, overdue detection)
 - ✅ `src/screens/NotificationsScreen.js` - Notifications globales
 - ✅ `src/screens/HubNotificationsScreen.js` - Notifications d'un hub spécifique
 - ✅ `src/screens/NotificationDetailScreen.js` - Détail notification + feedback
@@ -54,19 +54,19 @@
 
 - ✅ `src/services/walletAdapter.js` - **IMPROVED** MWA 2.1.0
 - ✅ `src/services/notificationService.js` - FCM registration + listeners
-- ✅ `src/services/firebaseService.js` - **NEW** Firebase backend wiring (Firestore + Cloud Functions + FCM topics)
+- ✅ `src/services/firebaseService.js` - **NEW** Firebase backend wiring (Firestore + Cloud Functions + FCM topics + suspendHub/reactivateHub/deleteHub)
 - ✅ `src/services/programService.js` - Anchor program interactions (21 instructions)
 - ✅ `src/services/transactionHelper.js` - Transaction builder + MWA signing
 - ✅ `src/services/storageService.js` - Firebase Storage uploads (ad creatives + hub logo upload with 500KB/200x200px/format validation)
 
 ### 📐 Configuration (1 fichier)
 
-- ✅ `src/config/constants.js` - **FIXED** avec APP_IDENTITY
+- ✅ `src/config/constants.js` - **FIXED** avec APP_IDENTITY + GRACE_PERIOD_DAYS (7 jours)
 
 ### 💾 Data & State (2 fichiers)
 
 - ✅ `src/data/mockData.js` - Données de développement
-- ✅ `src/store/appStore.js` - State management
+- ✅ `src/store/appStore.js` - State management (14 persisted slices + suspendHub/reactivateHub/deleteHub/checkHubSubscriptions actions)
 
 ### 🌍 Utils (2 fichiers)
 
@@ -273,6 +273,32 @@ Hub creators can upload a custom logo instead of using Ionicons:
 
 **Files modified (9):** `transactionHelper.js`, `storageService.js`, `localNotificationService.js`, `appStore.js`, `HomeScreen.js`, `HubDashboardScreen.js`, `BrandModerationScreen.js`, `AdminScreen.js`, `AdSlotsScreen.js`
 
+### 8. Bug Fixes — Build 9 & 10 (19 data flow fixes)
+Complete data persistence overhaul: all user actions now survive navigation. Ad purchase → admin moderation wired end-to-end. Admin messages filtered for brand view. Dynamic pricing from store across all screens. 4 new Zustand slices (talentSubmissions, customDeals, adminConversations, doohCampaigns).
+
+**Files modified (8):** `appStore.js`, `AdSlotsScreen.js`, `AdminScreen.js`, `AdminMessagesScreen.js`, `TalentScreen.js`, `AdTypeSelectorScreen.js`, `DOOHScreen.js`, `NotificationsScreen.js`
+
+### 9. Hub Grace Period + Admin Hub Management — Build 11
+**Hub subscription lifecycle:**
+- Hubs now track `subscriptionExpiresAt` — computed as creation date + 30 days
+- When subscription expires, `checkHubSubscriptions()` auto-sets status to **OVERDUE** (invisible to regular users — only creator and admin see it)
+- 7-day grace period (`GRACE_PERIOD_DAYS = 7`) before admin can suspend
+- Admin can **suspend** (SUSPENDED — hidden from Discover), **reactivate** (resets 30-day sub), or **permanently delete** any hub
+- Hubs NEVER disappear automatically — only admin manual action removes them
+
+**Admin Manage Hubs refactored into 3 sections:**
+1. Pending Approval (Approve / Reject)
+2. Active & Overdue Hubs (subscription days remaining, Suspend / Delete)
+3. Suspended Hubs (Reactivate / Delete)
+
+**Dynamic billing in HubDashboard** — real days remaining computed from `subscriptionExpiresAt` (replaces hardcoded "23 days"). OVERDUE banner (orange) and SUSPENDED banner (red) visible to hub creator only.
+
+**3 new Firebase functions:** `suspendHubInFirestore()`, `reactivateHubInFirestore()`, `deleteHubInFirestore()`
+**4 new store actions:** `suspendHub`, `reactivateHub`, `deleteHub`, `checkHubSubscriptions`
+**New statuses:** OVERDUE (visible in Discover, invisible to users), SUSPENDED (hidden from Discover, greyed in MyHubs)
+
+**Files modified (8):** `constants.js`, `appStore.js`, `firebaseService.js`, `AdminScreen.js`, `HubDashboardScreen.js`, `DiscoverScreen.js`, `MyHubsScreen.js`, `ProfileScreen.js`
+
 ---
 
 ## 🎯 FONCTIONNALITÉS COMPLÈTES
@@ -289,8 +315,11 @@ Hub creators can upload a custom logo instead of using Ionicons:
 ### Brand Features ✅
 - Hub Dashboard (dynamic subscriber count, notification history, Firebase push)
 - Send notifications with "HubName: Title" format (Zustand + Cloud Function → FCM push to all subscribers)
-- Hub creation lifecycle (create → Firestore PENDING → admin approval → ACTIVE → Discover)
-- "My Created Hubs" in Profile (brands manage hubs, direct access to Dashboard)
+- Hub creation lifecycle (create → Firestore PENDING → admin approval → ACTIVE → OVERDUE grace period → SUSPENDED/deletion by admin)
+- Hub Grace Period — 7-day OVERDUE period after subscription expires (invisible to regular users, only creator + admin see)
+- Admin Hub Management — suspend (hide from Discover), reactivate (reset 30-day sub), permanently delete any hub
+- Dynamic Billing — HubDashboard shows real subscription days remaining + OVERDUE/SUSPENDED banners (creator-only)
+- "My Created Hubs" in Profile (brands manage hubs, direct access to Dashboard, OVERDUE/SUSPENDED badge styles)
 - Hub Logo Upload (200x200px, max 500KB, PNG/JPG/WebP — circular crop via HubIcon component)
 - Moderation approve/reject (synced to Firestore + Cloud Functions)
 - Ad Type Selector screen (In-App: Top/Bottom vs Out-of-App: Lockscreen/Rich Notification)

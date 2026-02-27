@@ -76,13 +76,20 @@ Import recordings, add transitions, captions, and music.
 **[Show BrandBoost -> Create Hub -> Admin approves -> Hub in Discover -> User subscribes -> My Hubs]**
 "The full hub lifecycle: brands create a hub, admin reviews and approves, the hub appears in Discover, users subscribe for free, and the brand sends push notifications from their dashboard. Fully connected, fully on-chain."
 
-### SCREEN 12: SECURITY (3:25 - 3:35)
+### SCREEN 11.5: HUB GRACE PERIOD & ADMIN MANAGEMENT (3:25 - 3:40)
+**[Show Admin -> Manage Hubs -> 3 sections (Pending/Active-Overdue/Suspended) -> Suspend hub -> Hub disappears from Discover -> Reactivate -> Delete]**
+"When a hub subscription expires, it enters a 7-day grace period — the hub stays visible to users, but the brand sees a payment overdue warning. The admin can suspend hubs — hiding them from Discover — reactivate them with a fresh 30-day subscription, or permanently delete them. Hubs never disappear automatically — only admin action removes them."
+
+**[Show HubDashboard -> Billing button -> dynamic days remaining -> OVERDUE banner]**
+"The hub dashboard shows real-time billing: actual days remaining, overdue warnings. Only the hub creator sees payment status — regular users see no difference."
+
+### SCREEN 12: SECURITY (3:40 - 3:50)
 **[Show security stats overlay or architecture diagram]**
 "3 full security audits. 9.5 out of 10 security score. Over 90 console statements replaced with environment-aware logging — no sensitive data leaks in production. ProGuard enabled for code obfuscation. 145 total issues identified and fixed across smart contracts, mobile app, and Firebase backend."
 
 ### OUTRO (3:35 - 3:50)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 20 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Ad Type Selector, Hub Logo Upload, HubName notifications, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, 3 security audits with a 9.5/10 score, env-aware logging, ProGuard enabled — all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 20 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Ad Type Selector, Hub Logo Upload, HubName notifications, Hub Grace Period with admin suspend/reactivate/delete, dynamic billing, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, 3 security audits with a 9.5/10 score, env-aware logging, ProGuard enabled — all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
@@ -129,5 +136,10 @@ Take these screenshots from the emulator/device for the video or pitch deck:
 12. Hub Dashboard (send notification + Discord + DOOH)
 13. DOOH campaign form (inventory selection)
 14. Admin screen (platform management + hub approval)
-15. Notification detail (feedback submission) with "HubName: Title" format
-16. Hub with custom uploaded logo (circular crop in Discover / My Hubs)
+15. Admin Manage Hubs — 3 sections: Pending, Active/Overdue, Suspended
+16. Admin Manage Hubs — Suspend/Delete buttons on active hub
+17. HubDashboard — Billing button showing dynamic days remaining
+18. HubDashboard — OVERDUE banner (orange, creator-only)
+19. Notification detail (feedback submission) with "HubName: Title" format
+20. Hub with custom uploaded logo (circular crop in Discover / My Hubs)
+21. MyHubs — Suspended hub (greyed out with badge)

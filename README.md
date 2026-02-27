@@ -38,7 +38,7 @@
 | Role | Features |
 |------|----------|
 | **Users** | Free hub subscriptions, push notifications with "HubName: Title" format, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
-| **Brands** | Create notification hubs (2,000 $SKR/month) with lifecycle (creation -> admin approval -> Discover listing), upload custom hub logo (200x200px, max 500KB, PNG/JPG/WebP), moderate content, manage ad slots via Ad Type Selector (In-App / Out-of-App), receive DAO boost funding, launch DOOH campaigns |
+| **Brands** | Create notification hubs (2,000 $SKR/month) with full lifecycle (creation -> admin approval -> ACTIVE -> OVERDUE grace period -> SUSPENDED/deletion by admin), upload custom hub logo (200x200px, max 500KB, PNG/JPG/WebP), dynamic billing with days remaining, moderate content, manage ad slots via Ad Type Selector (In-App / Out-of-App), receive DAO boost funding, launch DOOH campaigns |
 | **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (1,000 $SKR/week), Rich Notification Ads (1,500 $SKR/week, SPONSORED) via FCM push on all devices — premium campaigns with title, body, CTA button, image URL, duration selector, live preview, volume discounts, and Free vs Sponsored comparison UI, DOOH Worldwide campaign briefs |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
 
@@ -54,7 +54,10 @@
 - **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
 - **Rich Notification Ads** — SPONSORED premium push campaigns via FCM (1,500 $SKR/week), full creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — Free vs Sponsored comparison UI clearly differentiates from free hub notifications — works on all devices including Seeker
 - **DOOH Worldwide** — Digital Out-Of-Home campaign brief form accessible from HubDashboard, enabling global billboard/screen campaigns
-- **Hub Lifecycle** — Creating a hub adds it to admin pending queue; admin approves; hub then appears on Discover for users to subscribe
+- **Hub Lifecycle** — Full lifecycle: PENDING (creation) -> ACTIVE (admin approval) -> OVERDUE (7-day grace period after subscription expires, invisible to regular users) -> SUSPENDED (admin action, hidden from Discover) -> permanent deletion (admin only). Hubs never disappear automatically — only admin can remove them
+- **Hub Grace Period** — When a hub's subscription expires, it enters a 7-day OVERDUE grace period. Only the hub creator (HubDashboard banner) and admin see the overdue status — regular users see no difference. Admin can suspend or delete overdue hubs
+- **Admin Hub Management** — Admin can suspend (hide from Discover), reactivate (reset 30-day subscription), or permanently delete any active hub. Three-section Manage Hubs UI: Pending Approval, Active & Overdue, Suspended
+- **Dynamic Billing** — HubDashboard shows real subscription days remaining (computed from `subscriptionExpiresAt`), replacing hardcoded values. Overdue/Suspended banners visible to hub creator only
 - **Hub Name in Notifications** — Notification titles display as "HubName: Title" so users instantly see which hub sent the message
 - **Ad Type Selector** — New intermediate screen when tapping "Manage Ad Slots" organizes ads by In-App (Top Banner / Bottom Banner) and Out-of-App (Lockscreen / Rich Notification), replacing the flat list with a clear two-category layout
 - **Hub Logo Upload** — Hub creators upload a custom logo (200x200px, max 500KB, PNG/JPG/WebP) instead of using Ionicons; logos display as a circular crop everywhere in the app via the reusable `HubIcon` component
@@ -550,7 +553,7 @@ The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 20) — **
 | Collection | Purpose | Client Write |
 |------------|---------|:------------:|
 | `notifications` | Push notification history (triggers FCM via onNewNotification) | ✅ create |
-| `hubs` | Hub data (status: PENDING/ACTIVE/REJECTED, subscribers, creator) | ✅ create + update |
+| `hubs` | Hub data (status: PENDING/ACTIVE/REJECTED/OVERDUE/SUSPENDED, subscribers, creator, subscriptionExpiresAt, suspendedAt) | ✅ create + update + delete |
 | `subscriptions` | User-hub subscriptions ({walletAddress}_{hubId}) + FCM topic sync | ✅ create + delete |
 | `fcmTokens` | FCM device tokens per wallet (targeted push delivery) | ✅ write |
 | `adCreatives` | Ad image metadata and moderation status | ❌ server-only |
@@ -592,6 +595,7 @@ firebase deploy --only hosting
 | **Program ID** | `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` | `lib.rs`, `Anchor.toml`, `constants.js`, `programService.js` |
 | **$SKR Mint** | `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` | `constants.rs`, `constants.js`, `programService.js` |
 | Hub Subscription | 2,000 $SKR/month | `constants.rs`, `constants.js` |
+| Grace Period | 7 days | `constants.js` (`GRACE_PERIOD_DAYS`) |
 | Feedback Deposit | 300 $SKR | `constants.rs`, `constants.js` |
 | DAO Proposal Deposit | 100 $SKR | `constants.rs`, `constants.js` |
 | Talent Deposit | 50 $SKR | `constants.rs`, `constants.js` |
