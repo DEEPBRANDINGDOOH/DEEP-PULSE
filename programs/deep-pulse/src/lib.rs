@@ -1,5 +1,8 @@
 use anchor_lang::prelude::*;
 
+// Re-export solana_program at crate root — required by the pubkey! macro
+pub use anchor_lang::solana_program;
+
 pub mod constants;
 pub mod errors;
 pub mod events;

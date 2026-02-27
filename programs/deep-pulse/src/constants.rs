@@ -1,5 +1,5 @@
 use anchor_lang::prelude::Pubkey;
-use anchor_lang::solana_program::pubkey;
+use solana_program::pubkey;
 
 /// PDA Seeds
 pub const PLATFORM_CONFIG_SEED: &[u8] = b"platform_config";
