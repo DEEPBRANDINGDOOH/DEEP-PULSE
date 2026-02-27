@@ -21,6 +21,20 @@ export default function HubDashboardScreen({ navigation, route }) {
   const pendingHubs = useAppStore((state) => state.pendingHubs);
   const hubNotifications = useAppStore((state) => state.hubNotifications);
   const hubData = storeHubs.find(h => h.name === hubName) || pendingHubs.find(h => h.name === hubName);
+
+  // Dynamic billing computation
+  const subscriptionExpiresAt = hubData?.subscriptionExpiresAt;
+  const daysRemaining = subscriptionExpiresAt
+    ? Math.ceil((new Date(subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const billingInfo = daysRemaining !== null
+    ? (daysRemaining > 0
+        ? `Next renewal in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`
+        : `Payment overdue by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`)
+    : 'Subscription info unavailable';
+  const isOverdue = hubData?.status === 'OVERDUE' || (daysRemaining !== null && daysRemaining <= 0);
+  const isSuspended = hubData?.status === 'SUSPENDED';
+
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -60,6 +74,26 @@ export default function HubDashboardScreen({ navigation, route }) {
                 <Ionicons name="time-outline" size={16} color="#EAB308" />
                 <Text className="text-yellow-400 text-sm ml-2 flex-1">
                   Your hub is pending admin approval. Once approved, it will be visible in Discover.
+                </Text>
+              </View>
+            </View>
+          )}
+          {isOverdue && !isSuspended && (
+            <View className="bg-orange-500/10 rounded-xl p-3 mt-3 border border-orange-500/20">
+              <View className="flex-row items-center">
+                <Ionicons name="warning" size={16} color="#FF9800" />
+                <Text className="text-orange-400 text-sm ml-2 flex-1">
+                  Payment Overdue — Your hub subscription is overdue. Please renew to avoid suspension.
+                </Text>
+              </View>
+            </View>
+          )}
+          {isSuspended && (
+            <View className="bg-red-500/10 rounded-xl p-3 mt-3 border border-red-500/20">
+              <View className="flex-row items-center">
+                <Ionicons name="ban" size={16} color="#f44336" />
+                <Text className="text-red-400 text-sm ml-2 flex-1">
+                  Hub Suspended — This hub has been suspended by the admin. Contact support.
                 </Text>
               </View>
             </View>
@@ -401,7 +435,7 @@ export default function HubDashboardScreen({ navigation, route }) {
           </View>
 
           <TouchableOpacity
-            onPress={() => Alert.alert("Hub's Billing", `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\nNext renewal in 23 days`, [
+            onPress={() => Alert.alert("Hub's Billing", `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\n${billingInfo}`, [
               { text: 'OK' },
             ])}
             className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"

@@ -256,6 +256,9 @@ export const PRICING = {
   PUSH_NOTIFICATION_AD: 1500, // $SKR per week (sponsored rich push to all hub subscribers)
 };
 
+// Hub subscription grace period before admin can suspend
+export const GRACE_PERIOD_DAYS = 7;
+
 // ========================================
 // AD SLOTS CONFIGURATION
 // ========================================
@@ -346,6 +349,7 @@ export const MOCK_HUBS = [
     subscribers: 12500,
     icon: 'game-controller',
     logoUrl: 'https://via.placeholder.com/200x200/9C27B0/FFFFFF?text=SG',
+    subscriptionExpiresAt: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days remaining
   },
   {
     id: '2',
@@ -355,6 +359,7 @@ export const MOCK_HUBS = [
     subscribers: 8200,
     icon: 'color-palette',
     logoUrl: null, // No logo — falls back to icon
+    subscriptionExpiresAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // OVERDUE: expired 3 days ago
   },
   {
     id: '3',
@@ -364,6 +369,7 @@ export const MOCK_HUBS = [
     subscribers: 15700,
     icon: 'trending-up',
     logoUrl: 'https://via.placeholder.com/200x200/4CAF50/FFFFFF?text=DA',
+    subscriptionExpiresAt: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days remaining
   },
 ];
 

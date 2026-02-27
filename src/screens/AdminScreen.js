@@ -51,8 +51,13 @@ const STATS_DATA = {
 export default function AdminScreen({ navigation }) {
   const { wallet, platformPricing: prices, updateSinglePrice, loadPlatformPricingFromChain } = useAppStore();
   const pendingHubs = useAppStore((state) => state.pendingHubs);
+  const storeHubs = useAppStore((state) => state.hubs);
   const storeApproveHub = useAppStore((state) => state.approveHub);
   const storeRejectHub = useAppStore((state) => state.rejectHub);
+  const storeSuspendHub = useAppStore((state) => state.suspendHub);
+  const storeDeleteHub = useAppStore((state) => state.deleteHub);
+  const storeReactivateHub = useAppStore((state) => state.reactivateHub);
+  const checkHubSubscriptions = useAppStore((state) => state.checkHubSubscriptions);
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
@@ -70,9 +75,10 @@ export default function AdminScreen({ navigation }) {
   const [editingPrice, setEditingPrice] = useState(null);
   const [editPriceValue, setEditPriceValue] = useState('');
 
-  // Fetch on-chain prices on mount (release mode only)
+  // Fetch on-chain prices + check hub subscriptions on mount
   useEffect(() => {
     loadPlatformPricingFromChain();
+    checkHubSubscriptions();
   }, []);
 
   // Custom deals from Zustand store (persisted)
@@ -181,7 +187,7 @@ export default function AdminScreen({ navigation }) {
     ]);
   };
 
-  const handleSuspendHub = (hubId, hubName) => {
+  const handleRejectHub = (hubId, hubName) => {
     if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
@@ -193,6 +199,58 @@ export default function AdminScreen({ navigation }) {
         Alert.alert('Hub Rejected', `"${hubName}" has been rejected.`);
       }},
     ]);
+  };
+
+  const handleSuspendActiveHub = (hubId, hubName) => {
+    if (!__DEV__ && !wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your admin wallet.');
+      return;
+    }
+    Alert.alert('Suspend Hub', `Suspend "${hubName}"?\n\nIt will be hidden from Discover and no new subscribers can join.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Suspend', style: 'destructive', onPress: () => {
+        storeSuspendHub(hubId);
+        Alert.alert('Hub Suspended', `"${hubName}" has been suspended.`);
+      }},
+    ]);
+  };
+
+  const handleReactivateHub = (hubId, hubName) => {
+    if (!__DEV__ && !wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your admin wallet.');
+      return;
+    }
+    Alert.alert('Reactivate Hub', `Reactivate "${hubName}"?\n\nSubscription will reset to 30 days.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reactivate', onPress: () => {
+        storeReactivateHub(hubId);
+        Alert.alert('Hub Reactivated', `"${hubName}" is now active again.`);
+      }},
+    ]);
+  };
+
+  const handleDeleteHub = (hubId, hubName) => {
+    if (!__DEV__ && !wallet.connected) {
+      Alert.alert('Wallet Required', 'Please connect your admin wallet.');
+      return;
+    }
+    Alert.alert('DELETE Hub', `Are you absolutely sure you want to permanently delete "${hubName}"?\n\nThis action is IRREVERSIBLE. All subscribers will lose access.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'DELETE', style: 'destructive', onPress: () => {
+        storeDeleteHub(hubId);
+        Alert.alert('Hub Deleted', `"${hubName}" has been permanently removed.`);
+      }},
+    ]);
+  };
+
+  // Helper: compute subscription days info for admin display
+  const getDaysInfo = (hub) => {
+    if (!hub.subscriptionExpiresAt) return { label: 'No expiry set', color: '#666' };
+    const diff = new Date(hub.subscriptionExpiresAt).getTime() - Date.now();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days > 7) return { label: `${days} days remaining`, color: '#4CAF50' };
+    if (days > 0) return { label: `${days} days remaining`, color: '#FF9800' };
+    return { label: `Overdue ${Math.abs(days)} days`, color: '#f44336' };
   };
 
   const handleSendGlobalNotification = () => {
@@ -574,48 +632,151 @@ export default function AdminScreen({ navigation }) {
   // ============================================
   // RENDER: Hubs Management
   // ============================================
-  const renderHubsManagement = () => (
-    <ScrollView className="px-6 py-4">
-      <TouchableOpacity onPress={() => setActiveSection('overview')} className="flex-row items-center mb-4">
-        <Ionicons name="arrow-back" size={24} color="#FF9F66" />
-        <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
-      </TouchableOpacity>
-      <Text className="text-text font-black text-2xl mb-4">Manage Hubs</Text>
-      <Text className="text-text font-semibold mb-3">Pending Approval</Text>
-      {pendingHubs.map((hub) => (
-        <View key={hub.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-text font-bold text-lg">{hub.name}</Text>
-            <View className="bg-primary/20 rounded-full px-3 py-1">
-              <Text className="text-primary text-xs font-bold">{hub.status}</Text>
+  const renderHubsManagement = () => {
+    const activeHubs = storeHubs.filter(h => h.status === 'ACTIVE' || h.status === 'OVERDUE' || !h.status);
+    const suspendedHubs = storeHubs.filter(h => h.status === 'SUSPENDED');
+
+    return (
+      <ScrollView className="px-6 py-4">
+        <TouchableOpacity onPress={() => setActiveSection('overview')} className="flex-row items-center mb-4">
+          <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+          <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
+        </TouchableOpacity>
+        <Text className="text-text font-black text-2xl mb-4">Manage Hubs</Text>
+
+        {/* ── Section 1: Pending Approval ── */}
+        <Text className="text-text font-semibold mb-3">Pending Approval ({pendingHubs.length})</Text>
+        {pendingHubs.length === 0 && (
+          <Text className="text-text-secondary text-sm mb-4 italic">No pending hubs</Text>
+        )}
+        {pendingHubs.map((hub) => (
+          <View key={hub.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-text font-bold text-lg">{hub.name}</Text>
+              <View className="bg-primary/20 rounded-full px-3 py-1">
+                <Text className="text-primary text-xs font-bold">PENDING</Text>
+              </View>
+            </View>
+            <Text className="text-text-secondary text-sm mb-1">Creator: {hub.creator}</Text>
+            <Text className="text-text-secondary text-sm mb-3">Created: {hub.createdDate}</Text>
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={() => handleApproveHub(hub.id, hub.name)}
+                className="flex-1 bg-success/20 rounded-xl py-2 mr-2 border border-success"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                  <Text className="text-success font-semibold ml-1 text-sm">Approve</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleRejectHub(hub.id, hub.name)}
+                className="flex-1 bg-error/20 rounded-xl py-2 ml-2 border border-error"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="close-circle" size={16} color="#f44336" />
+                  <Text className="text-error font-semibold ml-1 text-sm">Reject</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
-          <Text className="text-text-secondary text-sm mb-1">Creator: {hub.creator}</Text>
-          <Text className="text-text-secondary text-sm mb-3">Created: {hub.createdDate}</Text>
-          <View className="flex-row">
-            <TouchableOpacity
-              onPress={() => handleApproveHub(hub.id, hub.name)}
-              className="flex-1 bg-success/20 rounded-xl py-2 mr-2 border border-success"
-            >
-              <View className="flex-row items-center justify-center">
-                <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text className="text-success font-semibold ml-1 text-sm">Approve</Text>
+        ))}
+
+        {/* ── Section 2: Active & Overdue Hubs ── */}
+        <Text className="text-text font-semibold mb-3 mt-4">Active Hubs ({activeHubs.length})</Text>
+        {activeHubs.length === 0 && (
+          <Text className="text-text-secondary text-sm mb-4 italic">No active hubs</Text>
+        )}
+        {activeHubs.map((hub) => {
+          const daysInfo = getDaysInfo(hub);
+          const isOverdue = hub.status === 'OVERDUE';
+          return (
+            <View key={hub.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-text font-bold text-lg flex-1 mr-2" numberOfLines={1}>{hub.name}</Text>
+                <View className={`rounded-full px-3 py-1 ${isOverdue ? 'bg-orange-500/20' : 'bg-success/20'}`}>
+                  <Text className={`text-xs font-bold ${isOverdue ? 'text-orange-500' : 'text-success'}`}>
+                    {isOverdue ? 'OVERDUE' : 'ACTIVE'}
+                  </Text>
+                </View>
               </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleSuspendHub(hub.id, hub.name)}
-              className="flex-1 bg-error/20 rounded-xl py-2 ml-2 border border-error"
-            >
-              <View className="flex-row items-center justify-center">
-                <Ionicons name="close-circle" size={16} color="#f44336" />
-                <Text className="text-error font-semibold ml-1 text-sm">Reject</Text>
+              <View className="flex-row items-center mb-1">
+                <Ionicons name="people" size={14} color="#999" />
+                <Text className="text-text-secondary text-sm ml-1">{(hub.subscribers || 0).toLocaleString()} subscribers</Text>
               </View>
-            </TouchableOpacity>
+              <View className="flex-row items-center mb-3">
+                <Ionicons name="time" size={14} color={daysInfo.color} />
+                <Text className="text-sm ml-1" style={{ color: daysInfo.color }}>{daysInfo.label}</Text>
+              </View>
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={() => handleSuspendActiveHub(hub.id, hub.name)}
+                  className="flex-1 bg-orange-500/20 rounded-xl py-2 mr-2 border border-orange-500"
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="pause-circle" size={16} color="#FF9800" />
+                    <Text className="text-orange-500 font-semibold ml-1 text-sm">Suspend</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDeleteHub(hub.id, hub.name)}
+                  className="flex-1 bg-error/20 rounded-xl py-2 ml-2 border border-error"
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="trash" size={16} color="#f44336" />
+                    <Text className="text-error font-semibold ml-1 text-sm">Delete</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+
+        {/* ── Section 3: Suspended Hubs ── */}
+        <Text className="text-text font-semibold mb-3 mt-4">Suspended Hubs ({suspendedHubs.length})</Text>
+        {suspendedHubs.length === 0 && (
+          <Text className="text-text-secondary text-sm mb-4 italic">No suspended hubs</Text>
+        )}
+        {suspendedHubs.map((hub) => (
+          <View key={hub.id} className="bg-background-card rounded-xl p-4 mb-3 border border-border opacity-70">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-text font-bold text-lg flex-1 mr-2" numberOfLines={1}>{hub.name}</Text>
+              <View className="bg-error/20 rounded-full px-3 py-1">
+                <Text className="text-error text-xs font-bold">SUSPENDED</Text>
+              </View>
+            </View>
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="people" size={14} color="#999" />
+              <Text className="text-text-secondary text-sm ml-1">{(hub.subscribers || 0).toLocaleString()} subscribers</Text>
+            </View>
+            {hub.suspendedAt && (
+              <Text className="text-text-secondary text-sm mb-3">Suspended: {new Date(hub.suspendedAt).toLocaleDateString()}</Text>
+            )}
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={() => handleReactivateHub(hub.id, hub.name)}
+                className="flex-1 bg-success/20 rounded-xl py-2 mr-2 border border-success"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="play-circle" size={16} color="#4CAF50" />
+                  <Text className="text-success font-semibold ml-1 text-sm">Reactivate</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDeleteHub(hub.id, hub.name)}
+                className="flex-1 bg-error/20 rounded-xl py-2 ml-2 border border-error"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="trash" size={16} color="#f44336" />
+                  <Text className="text-error font-semibold ml-1 text-sm">Delete</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      ))}
-    </ScrollView>
-  );
+        ))}
+      </ScrollView>
+    );
+  };
 
   // ============================================
   // RENDER: Global Notification

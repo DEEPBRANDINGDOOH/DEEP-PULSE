@@ -12,10 +12,10 @@ export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const storeSubscribed = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
-  // Show only active hubs (or hubs without status = legacy mock hubs)
+  // Show active + overdue hubs (overdue is invisible to users — no badge). Exclude SUSPENDED.
   const [hubs, setHubs] = useState(
     storeHubs
-      .filter((h) => h.status === 'ACTIVE' || !h.status)
+      .filter((h) => h.status === 'ACTIVE' || h.status === 'OVERDUE' || !h.status)
       .map((h) => ({ ...h, subscribed: storeSubscribed.includes(h.id) }))
   );
   const [subscribing, setSubscribing] = useState(null);
@@ -24,7 +24,7 @@ export default function DiscoverScreen({ navigation }) {
   // Refresh hubs when store changes (e.g. admin approves a new hub)
   useEffect(() => {
     const activeHubs = storeHubs
-      .filter((h) => h.status === 'ACTIVE' || !h.status)
+      .filter((h) => h.status === 'ACTIVE' || h.status === 'OVERDUE' || !h.status)
       .map((h) => ({ ...h, subscribed: storeSubscribed.includes(h.id) }));
     setHubs(activeHubs);
   }, [storeHubs, storeSubscribed]);

@@ -16,13 +16,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
-import { PRICING, MOCK_HUBS } from '../config/constants';
+import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS } from '../config/constants';
 import {
   subscribeToHubBackend,
   unsubscribeFromHubBackend,
   createHubInFirestore,
   approveHubInFirestore,
   rejectHubInFirestore,
+  suspendHubInFirestore,
+  reactivateHubInFirestore,
+  deleteHubInFirestore,
 } from '../services/firebaseService';
 import { logger } from '../utils/security';
 
@@ -171,7 +174,7 @@ export const useAppStore = create(
             : [...subscribedProjects, hubId];
           set({
             pendingHubs: pendingHubs.filter((h) => h.id !== hubId),
-            hubs: [...hubs, { ...hub, status: 'ACTIVE', subscribers: (hub.subscribers || 0) + 1 }],
+            hubs: [...hubs, { ...hub, status: 'ACTIVE', subscribers: (hub.subscribers || 0) + 1, subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }],
             subscribedProjects: updatedSubs,
           });
           // 2. Sync with Firestore + subscribe to FCM topic
@@ -191,6 +194,67 @@ export const useAppStore = create(
         // 2. Sync with Firestore
         rejectHubInFirestore(hubId, wallet.publicKey || 'admin')
           .catch(e => logger.warn('[Store] Firestore rejectHub failed:', e));
+      },
+
+      // Suspend an active hub (admin only — hides from Discover)
+      suspendHub: (hubId) => {
+        const { wallet } = get();
+        set((state) => ({
+          hubs: state.hubs.map(h =>
+            h.id === hubId ? { ...h, status: 'SUSPENDED', suspendedAt: new Date().toISOString() } : h
+          ),
+        }));
+        suspendHubInFirestore(hubId, wallet.publicKey || 'admin')
+          .catch(e => logger.warn('[Store] Firestore suspendHub failed:', e));
+      },
+
+      // Reactivate a suspended hub (admin only — resets subscription to 30 days)
+      reactivateHub: (hubId) => {
+        const { wallet } = get();
+        set((state) => ({
+          hubs: state.hubs.map(h =>
+            h.id === hubId ? {
+              ...h,
+              status: 'ACTIVE',
+              suspendedAt: null,
+              subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            } : h
+          ),
+        }));
+        reactivateHubInFirestore(hubId, wallet.publicKey || 'admin')
+          .catch(e => logger.warn('[Store] Firestore reactivateHub failed:', e));
+      },
+
+      // Delete a hub permanently (admin only — IRREVERSIBLE)
+      deleteHub: (hubId) => {
+        const { wallet } = get();
+        set((state) => ({
+          hubs: state.hubs.filter(h => h.id !== hubId),
+          subscribedProjects: state.subscribedProjects.filter(id => id !== hubId),
+        }));
+        deleteHubInFirestore(hubId, wallet.publicKey || 'admin')
+          .catch(e => logger.warn('[Store] Firestore deleteHub failed:', e));
+      },
+
+      // Check all hubs for overdue subscriptions (auto-detect expired payments)
+      checkHubSubscriptions: () => {
+        const { hubs } = get();
+        const now = Date.now();
+        let changed = false;
+        const updated = hubs.map(h => {
+          if (!h.subscriptionExpiresAt || h.status === 'SUSPENDED' || h.status === 'PENDING') return h;
+          const expiresAt = new Date(h.subscriptionExpiresAt).getTime();
+          if (expiresAt < now && h.status !== 'OVERDUE') {
+            changed = true;
+            return { ...h, status: 'OVERDUE' };
+          }
+          if (expiresAt >= now && h.status === 'OVERDUE') {
+            changed = true;
+            return { ...h, status: 'ACTIVE' };
+          }
+          return h;
+        });
+        if (changed) set({ hubs: updated });
       },
 
       // ============================================

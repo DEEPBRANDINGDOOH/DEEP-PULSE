@@ -261,10 +261,16 @@ export default function ProfileScreen({ navigation }) {
                   </Text>
                 </View>
                 <View className={`rounded-full px-2 py-1 mr-2 ${
-                  hub.status === 'PENDING' ? 'bg-yellow-500/20' : 'bg-green-500/20'
+                  hub.status === 'PENDING' ? 'bg-yellow-500/20'
+                    : hub.status === 'OVERDUE' ? 'bg-orange-500/20'
+                    : hub.status === 'SUSPENDED' ? 'bg-red-500/20'
+                    : 'bg-green-500/20'
                 }`}>
                   <Text className={`text-xs font-bold ${
-                    hub.status === 'PENDING' ? 'text-yellow-400' : 'text-green-400'
+                    hub.status === 'PENDING' ? 'text-yellow-400'
+                      : hub.status === 'OVERDUE' ? 'text-orange-400'
+                      : hub.status === 'SUSPENDED' ? 'text-red-400'
+                      : 'text-green-400'
                   }`}>
                     {hub.status || 'ACTIVE'}
                   </Text>

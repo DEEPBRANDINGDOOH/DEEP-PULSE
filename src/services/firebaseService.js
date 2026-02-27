@@ -213,6 +213,78 @@ export async function rejectHubInFirestore(hubId, adminWallet) {
   }
 }
 
+/**
+ * Suspend a hub in Firestore (status: SUSPENDED)
+ * @param {string} hubId - Hub ID
+ * @param {string} adminWallet - Admin wallet address
+ */
+export async function suspendHubInFirestore(hubId, adminWallet) {
+  logger.log(`[FirebaseService] suspendHub: ${hubId}`);
+  const db = getDb();
+  if (!db) return { success: false };
+
+  try {
+    await db.collection('hubs').doc(hubId).update({
+      status: 'SUSPENDED',
+      active: false,
+      suspendedAt: firestore.FieldValue.serverTimestamp(),
+      suspendedBy: adminWallet || null,
+    });
+    logger.log('[FirebaseService] Hub suspended in Firestore:', hubId);
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] suspendHub failed:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Reactivate a suspended hub in Firestore (status: ACTIVE)
+ * @param {string} hubId - Hub ID
+ * @param {string} adminWallet - Admin wallet address
+ */
+export async function reactivateHubInFirestore(hubId, adminWallet) {
+  logger.log(`[FirebaseService] reactivateHub: ${hubId}`);
+  const db = getDb();
+  if (!db) return { success: false };
+
+  try {
+    await db.collection('hubs').doc(hubId).update({
+      status: 'ACTIVE',
+      active: true,
+      reactivatedAt: firestore.FieldValue.serverTimestamp(),
+      reactivatedBy: adminWallet || null,
+      suspendedAt: null,
+      suspendedBy: null,
+    });
+    logger.log('[FirebaseService] Hub reactivated in Firestore:', hubId);
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] reactivateHub failed:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Delete a hub permanently from Firestore
+ * @param {string} hubId - Hub ID
+ * @param {string} adminWallet - Admin wallet address
+ */
+export async function deleteHubInFirestore(hubId, adminWallet) {
+  logger.log(`[FirebaseService] deleteHub: ${hubId} by ${adminWallet}`);
+  const db = getDb();
+  if (!db) return { success: false };
+
+  try {
+    await db.collection('hubs').doc(hubId).delete();
+    logger.log('[FirebaseService] Hub deleted from Firestore:', hubId);
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] deleteHub failed:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // =====================================================
 //  3. SUBSCRIBE / UNSUBSCRIBE — Firestore + FCM Topics
 // =====================================================

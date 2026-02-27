@@ -121,66 +121,74 @@ export default function MyHubsScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           ) : (
-            myHubs.map((hub) => (
-              <TouchableOpacity
-                key={hub.id}
-                onPress={() => handleHubClick(hub)}
-                className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
-              >
-                {/* Hub Header */}
-                <View className="flex-row items-center mb-3">
-                  <HubIcon hub={hub} size={48} iconSize={24} />
-                  <View className="flex-1 ml-3">
-                    <View className="flex-row items-center">
-                      <Text className="text-text font-bold text-lg">{hub.name}</Text>
-                      {hub.unreadCount > 0 && (
-                        <View className="ml-2 bg-primary rounded-full w-6 h-6 items-center justify-center">
-                          <Text className="text-white text-xs font-bold">
-                            {hub.unreadCount}
-                          </Text>
-                        </View>
-                      )}
+            myHubs.map((hub) => {
+              const hubSuspended = hub.status === 'SUSPENDED';
+              return (
+                <TouchableOpacity
+                  key={hub.id}
+                  onPress={() => handleHubClick(hub)}
+                  className={`bg-background-card rounded-2xl p-5 mb-4 border border-border ${hubSuspended ? 'opacity-50' : ''}`}
+                >
+                  {/* Hub Header */}
+                  <View className="flex-row items-center mb-3">
+                    <HubIcon hub={hub} size={48} iconSize={24} />
+                    <View className="flex-1 ml-3">
+                      <View className="flex-row items-center">
+                        <Text className="text-text font-bold text-lg">{hub.name}</Text>
+                        {hubSuspended && (
+                          <View className="ml-2 bg-error/20 rounded-full px-2 py-0.5">
+                            <Text className="text-error text-xs font-bold">Suspended</Text>
+                          </View>
+                        )}
+                        {!hubSuspended && hub.unreadCount > 0 && (
+                          <View className="ml-2 bg-primary rounded-full w-6 h-6 items-center justify-center">
+                            <Text className="text-white text-xs font-bold">
+                              {hub.unreadCount}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-text-secondary text-sm">
+                        {hub.subscribers.toLocaleString()} subscribers
+                      </Text>
                     </View>
-                    <Text className="text-text-secondary text-sm">
-                      {hub.subscribers.toLocaleString()} subscribers
-                    </Text>
                   </View>
-                </View>
 
-                {/* Last Notification */}
-                <View className="bg-background-secondary rounded-xl p-3 mb-3">
-                  <Text className="text-text text-sm mb-1">{hub.lastNotification}</Text>
-                  <Text className="text-text-secondary text-xs">{hub.lastNotificationTime}</Text>
-                </View>
+                  {/* Last Notification */}
+                  <View className="bg-background-secondary rounded-xl p-3 mb-3">
+                    <Text className="text-text text-sm mb-1">{hub.lastNotification}</Text>
+                    <Text className="text-text-secondary text-xs">{hub.lastNotificationTime}</Text>
+                  </View>
 
-                {/* Actions */}
-                <View className="flex-row">
-                  <TouchableOpacity
-                    onPress={() => handleHubClick(hub)}
-                    className="flex-1 bg-primary/20 rounded-xl py-2 mr-2"
-                  >
-                    <View className="flex-row items-center justify-center">
-                      <Ionicons name="notifications" size={16} color="#FF9F66" />
-                      <Text className="text-primary font-semibold text-sm ml-1">
-                        View All
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    onPress={() => handleUnsubscribe(hub.id, hub.name)}
-                    className="flex-1 bg-error/20 rounded-xl py-2 ml-2"
-                  >
-                    <View className="flex-row items-center justify-center">
-                      <Ionicons name="close-circle" size={16} color="#f44336" />
-                      <Text className="text-error font-semibold text-sm ml-1">
-                        Unsubscribe
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            ))
+                  {/* Actions */}
+                  <View className="flex-row">
+                    <TouchableOpacity
+                      onPress={() => handleHubClick(hub)}
+                      className="flex-1 bg-primary/20 rounded-xl py-2 mr-2"
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Ionicons name="notifications" size={16} color="#FF9F66" />
+                        <Text className="text-primary font-semibold text-sm ml-1">
+                          View All
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => handleUnsubscribe(hub.id, hub.name)}
+                      className="flex-1 bg-error/20 rounded-xl py-2 ml-2"
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Ionicons name="close-circle" size={16} color="#f44336" />
+                        <Text className="text-error font-semibold text-sm ml-1">
+                          Unsubscribe
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
 
