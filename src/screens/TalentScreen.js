@@ -40,7 +40,8 @@ const MOCK_MY_SUBMISSIONS = [
   },
 ];
 
-const MOCK_HUBS = [
+// Fallback hubs if store is empty (first launch)
+const FALLBACK_HUBS = [
   { id: '1', name: 'Solana Gaming' },
   { id: '2', name: 'NFT Artists' },
   { id: '3', name: 'DeFi Alerts' },
@@ -57,8 +58,13 @@ const ROLE_OPTIONS = [
 
 export default function TalentScreen({ navigation }) {
   const { wallet } = useAppStore();
+  // Read active hubs from Zustand store (includes user-created hubs)
+  const storeHubs = useAppStore((state) => state.hubs);
+  const activeHubs = storeHubs.length > 0
+    ? storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }))
+    : FALLBACK_HUBS;
   const [activeTab, setActiveTab] = useState('submit');
-  const [selectedHub, setSelectedHub] = useState(MOCK_HUBS[0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [role, setRole] = useState(ROLE_OPTIONS[0]);
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -416,7 +422,7 @@ export default function TalentScreen({ navigation }) {
         {/* Hub Picker Dropdown */}
         {showHubPicker && (
           <View className="bg-background-card rounded-xl border border-border mb-2">
-            {MOCK_HUBS.map((hub) => (
+            {activeHubs.map((hub) => (
               <TouchableOpacity
                 key={hub.id}
                 onPress={() => {
