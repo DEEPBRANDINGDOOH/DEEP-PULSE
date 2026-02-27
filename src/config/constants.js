@@ -345,6 +345,7 @@ export const MOCK_HUBS = [
     category: 'Gaming',
     subscribers: 12500,
     icon: 'game-controller',
+    logoUrl: 'https://via.placeholder.com/200x200/9C27B0/FFFFFF?text=SG',
   },
   {
     id: '2',
@@ -353,6 +354,7 @@ export const MOCK_HUBS = [
     category: 'NFT',
     subscribers: 8200,
     icon: 'color-palette',
+    logoUrl: null, // No logo — falls back to icon
   },
   {
     id: '3',
@@ -361,6 +363,7 @@ export const MOCK_HUBS = [
     category: 'DeFi',
     subscribers: 15700,
     icon: 'trending-up',
+    logoUrl: 'https://via.placeholder.com/200x200/4CAF50/FFFFFF?text=DA',
   },
 ];
 

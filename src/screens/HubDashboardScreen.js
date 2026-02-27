@@ -9,6 +9,7 @@ import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
   const hubIcon = route.params?.hubIcon || 'rocket';
+  const hubLogoUrl = route.params?.hubLogoUrl || null;
   const hubStatus = route.params?.hubStatus || 'ACTIVE';
   const { wallet } = useAppStore();
   const lockscreenPrice = useAppStore((state) => state.platformPricing?.lockscreenAd || 1000);
@@ -220,33 +221,17 @@ export default function HubDashboardScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('AdSlots')}
+            onPress={() => navigation.navigate('AdTypeSelector')}
             className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
           >
             <View className="flex-row items-center">
               <Ionicons name="megaphone" size={24} color="#FF9F66" />
-              <Text className="text-text font-semibold text-base ml-3">Manage Ad Slots</Text>
+              <View className="ml-3">
+                <Text className="text-text font-semibold text-base">Manage Ad Slots</Text>
+                <Text className="text-text-secondary text-xs">In-app, lockscreen & push notification ads</Text>
+              </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('AdSlots')}
-            className="bg-primary/10 rounded-xl p-4 mb-3 flex-row items-center justify-between border border-primary/30"
-          >
-            <View className="flex-row items-center flex-1">
-              <Ionicons name="phone-portrait" size={24} color="#FF9F66" />
-              <View className="ml-3 flex-1">
-                <Text className="text-text font-semibold text-base">Lockscreen Ads</Text>
-                <Text className="text-text-secondary text-xs">Premium full-screen overlay - {lockscreenPrice.toLocaleString()} $SKR/week</Text>
-              </View>
-            </View>
-            <View className="flex-row items-center">
-              <View className="bg-primary/20 rounded-full px-2 py-0.5 mr-2">
-                <Text className="text-primary text-xs font-bold">NEW</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#FF9F66" />
-            </View>
           </TouchableOpacity>
 
           {/* Discord Integration */}

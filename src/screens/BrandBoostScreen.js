@@ -18,12 +18,15 @@ import {
   Alert,
   Modal,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { createHub } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { uploadHubLogo, validateHubLogo } from '../services/storageService';
 
 export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
@@ -32,6 +35,9 @@ export default function BrandBoostScreen({ navigation }) {
   const [hubDescription, setHubDescription] = useState('');
   const [hubCategory, setHubCategory] = useState('DeFi');
   const [hubIcon, setHubIcon] = useState('rocket');
+  const [hubLogoAsset, setHubLogoAsset] = useState(null);
+  const [hubLogoPreview, setHubLogoPreview] = useState(null); // Local URI for preview
+  const [logoUploadProgress, setLogoUploadProgress] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
 
   const CATEGORIES = ['DeFi', 'NFT', 'Gaming', 'Wallet', 'Infrastructure', 'DAO', 'Metaverse'];
@@ -91,15 +97,26 @@ export default function BrandBoostScreen({ navigation }) {
                   ? { success: true, signature: 'mock_tx_' + Date.now() }
                   : await createHub(hubName, hubDescription, categoryKey, hubIndex);
 
-                // Reset form
-                setHubName('');
-                setHubDescription('');
-                setHubCategory('DeFi');
-                setHubIcon('rocket');
-                setShowCreateModal(false);
-                setIsCreating(false);
-
                 if (result.success) {
+                  // Upload logo if one was selected
+                  let logoUrl = null;
+                  const hubId = `hub_${Date.now()}`;
+                  if (hubLogoAsset) {
+                    try {
+                      setLogoUploadProgress(0);
+                      const uploadResult = await uploadHubLogo(
+                        hubLogoAsset,
+                        hubId,
+                        (progress) => setLogoUploadProgress(progress),
+                      );
+                      if (uploadResult.success) {
+                        logoUrl = uploadResult.url;
+                      }
+                    } catch (e) {
+                      // Logo upload failed — continue without logo
+                    }
+                  }
+
                   // Add hub to store as pending (admin must approve)
                   const categoryIconMap = {
                     'DeFi': 'trending-up', 'NFT': 'color-palette', 'Gaming': 'game-controller',
@@ -107,17 +124,28 @@ export default function BrandBoostScreen({ navigation }) {
                     'Metaverse': 'globe',
                   };
                   const newHub = {
-                    id: `hub_${Date.now()}`,
+                    id: hubId,
                     name: createdHubName,
                     category: hubCategory,
                     description: hubDescription,
                     icon: hubIcon || categoryIconMap[hubCategory] || 'rocket',
+                    logoUrl: logoUrl, // null if no logo uploaded
                     subscribers: 0,
                     status: 'PENDING',
                     creator: wallet.publicKey || 'mock_admin',
                     createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                   };
                   useAppStore.getState().addPendingHub(newHub);
+
+                  // Reset form
+                  setHubName('');
+                  setHubDescription('');
+                  setHubCategory('DeFi');
+                  setHubIcon('rocket');
+                  setHubLogoAsset(null);
+                  setHubLogoPreview(null);
+                  setShowCreateModal(false);
+                  setIsCreating(false);
 
                   Alert.alert(
                     'Hub Created!',
@@ -127,11 +155,14 @@ export default function BrandBoostScreen({ navigation }) {
                       onPress: () => navigation.navigate('HubDashboard', {
                         hubName: createdHubName,
                         hubIcon: newHub.icon,
+                        hubLogoUrl: logoUrl,
                         hubStatus: 'PENDING',
                         subscribers: 0,
                       }),
                     }]
                   );
+                } else {
+                  setIsCreating(false);
                 }
               } catch (error) {
                 Alert.alert('Error', 'Failed to create hub. Please try again.');
@@ -368,6 +399,76 @@ export default function BrandBoostScreen({ navigation }) {
                   >
                     <Ionicons name="close" size={28} color="#ffffff" />
                   </TouchableOpacity>
+                </View>
+
+                {/* Hub Logo Upload (optional) */}
+                <Text className="text-text font-semibold mb-2">Hub Logo <Text className="text-text-secondary font-normal">(optional)</Text></Text>
+                <Text className="text-text-secondary text-xs mb-3">
+                  200 x 200 px recommended  ·  Max 500 KB  ·  PNG, JPG, or WebP
+                </Text>
+
+                {hubLogoPreview ? (
+                  <View className="flex-row items-center mb-4">
+                    <Image
+                      source={{ uri: hubLogoPreview }}
+                      style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,159,102,0.1)' }}
+                    />
+                    <View className="flex-1 ml-4">
+                      <Text className="text-text text-sm font-semibold mb-1">Logo selected</Text>
+                      <Text className="text-text-secondary text-xs">
+                        {hubLogoAsset?.fileSize ? `${Math.round(hubLogoAsset.fileSize / 1024)} KB` : ''}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setHubLogoAsset(null);
+                        setHubLogoPreview(null);
+                      }}
+                      className="bg-red-500/20 rounded-lg px-3 py-2"
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      launchImageLibrary(
+                        {
+                          mediaType: 'photo',
+                          quality: 0.9,
+                          maxWidth: 400,
+                          maxHeight: 400,
+                          includeBase64: false,
+                        },
+                        (response) => {
+                          if (response.didCancel || response.errorCode) return;
+                          const asset = response.assets?.[0];
+                          if (!asset) return;
+                          // Client-side validation
+                          const validation = validateHubLogo(asset);
+                          if (!validation.valid) {
+                            Alert.alert('Invalid Logo', validation.errors.join('\n'));
+                            return;
+                          }
+                          setHubLogoAsset(asset);
+                          setHubLogoPreview(asset.uri);
+                        },
+                      );
+                    }}
+                    disabled={isCreating}
+                    className="bg-background-card border-2 border-dashed border-primary/40 rounded-2xl p-5 items-center mb-4"
+                  >
+                    <Ionicons name="image-outline" size={32} color="#FF9F66" />
+                    <Text className="text-primary font-semibold text-sm mt-2">Upload Logo</Text>
+                    <Text className="text-text-secondary text-xs mt-1">Tap to choose from gallery</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Divider */}
+                <View className="flex-row items-center mb-4">
+                  <View className="flex-1 h-px bg-border" />
+                  <Text className="text-text-secondary text-xs mx-3">OR choose an icon</Text>
+                  <View className="flex-1 h-px bg-border" />
                 </View>
 
                 {/* Icon Selector */}

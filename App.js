@@ -20,6 +20,7 @@ import DAOBoostScreen from './src/screens/DAOBoostScreen';
 import TalentScreen from './src/screens/TalentScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AdSlotsScreen from './src/screens/AdSlotsScreen';
+import AdTypeSelectorScreen from './src/screens/AdTypeSelectorScreen';
 import HubDashboardScreen from './src/screens/HubDashboardScreen';
 import BrandModerationScreen from './src/screens/BrandModerationScreen';
 import BrandBoostScreen from './src/screens/BrandBoostScreen';
@@ -202,6 +203,11 @@ const App = () => {
           <Stack.Screen
             name="MainApp"
             component={MainTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AdTypeSelector"
+            component={AdTypeSelectorScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

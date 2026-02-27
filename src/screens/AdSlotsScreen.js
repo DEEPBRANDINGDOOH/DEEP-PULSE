@@ -167,8 +167,31 @@ const MOCK_MY_ADS = [
 ];
 
 export default function AdSlotsScreen({ route, navigation }) {
-  const { hubId } = route.params || {};
+  const { hubId, slotType } = route.params || {};
   const { wallet } = useAppStore();
+
+  // Dynamic header based on slotType
+  const headerTitle = {
+    top: 'Top Ad Slot',
+    bottom: 'Bottom Ad Slot',
+    lockscreen: 'Lockscreen Ad',
+    rich_notif: 'Rich Notification Ad',
+    my_ads: 'My Active Ads',
+  }[slotType] || 'Ad Slots';
+
+  const headerSubtitle = {
+    top: 'Premium placement above content feed',
+    bottom: 'Standard placement below content feed',
+    lockscreen: 'Full-screen premium overlay (Swipe-to-Earn)',
+    rich_notif: 'Branded push notification to all hub subscribers',
+    my_ads: 'Manage your active ad campaigns',
+  }[slotType] || 'Advertise on your hub with rotating ad slots';
+
+  // Helpers to check if a section should be visible
+  const showSection = (section) => !slotType || slotType === section;
+  const showMyAds = !slotType || slotType === 'my_ads';
+  const showInfoBanner = !slotType;
+  const showVolumeDiscounts = !slotType;
 
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -675,14 +698,14 @@ export default function AdSlotsScreen({ route, navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} className="mb-4">
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-text font-black text-3xl mb-2">Ad Slots</Text>
+          <Text className="text-text font-black text-3xl mb-2">{headerTitle}</Text>
           <Text className="text-text-secondary text-base">
-            Advertise on your hub with rotating ad slots
+            {headerSubtitle}
           </Text>
         </View>
 
         {/* My Active Ads — only show if wallet connected and has ads */}
-        {wallet.connected && myAds.length > 0 && (
+        {showMyAds && wallet.connected && myAds.length > 0 && (
           <View className="px-6 mb-6">
             <View className="flex-row items-center mb-3">
               <Ionicons name="image" size={20} color="#FF9F66" />
@@ -761,19 +784,22 @@ export default function AdSlotsScreen({ route, navigation }) {
         )}
 
         {/* Info Banner */}
-        <View className="mx-6 mb-6 bg-primary/10 rounded-2xl p-4 border border-primary/30">
-          <View className="flex-row items-start">
-            <Ionicons name="information-circle" size={24} color="#FF9F66" />
-            <View className="flex-1 ml-3">
-              <Text className="text-primary font-bold mb-1">How Ad Rotation Works</Text>
-              <Text className="text-text-secondary text-sm leading-5">
-                Each slot rotates every 15 seconds among up to 8 advertisers. Your ad gets equal exposure with automatic rotation. All ads are reviewed by the admin before going live.
-              </Text>
+        {showInfoBanner && (
+          <View className="mx-6 mb-6 bg-primary/10 rounded-2xl p-4 border border-primary/30">
+            <View className="flex-row items-start">
+              <Ionicons name="information-circle" size={24} color="#FF9F66" />
+              <View className="flex-1 ml-3">
+                <Text className="text-primary font-bold mb-1">How Ad Rotation Works</Text>
+                <Text className="text-text-secondary text-sm leading-5">
+                  Each slot rotates every 15 seconds among up to 8 advertisers. Your ad gets equal exposure with automatic rotation. All ads are reviewed by the admin before going live.
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
         {/* Rich Notification Ads — RECOMMENDED */}
+        {showSection('rich_notif') && (
         <View className="px-6 mb-4">
           <View className="bg-background-card rounded-2xl p-5 border border-border">
             {/* Header with badge */}
@@ -812,7 +838,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
                       <Text className="text-text-secondary text-xs">now</Text>
                     </View>
-                    <Text className="text-text font-bold text-sm mb-1">Your Campaign Title Here</Text>
+                    <Text className="text-text font-bold text-sm mb-1">Your Hub: Campaign Title Here</Text>
                     <Text className="text-text-secondary text-xs leading-4" numberOfLines={2}>
                       Your promotional message goes here. Reach all subscribers instantly.
                     </Text>
@@ -919,32 +945,38 @@ export default function AdSlotsScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+        )}
 
         {/* Ad Slots */}
         <View className="px-6 pb-6">
-          <SlotCard config={AD_CONFIG.TOP_SLOT} slots={topSlots} type="top" />
-          <SlotCard config={AD_CONFIG.BOTTOM_SLOT} slots={bottomSlots} type="bottom" />
+          {showSection('top') && <SlotCard config={AD_CONFIG.TOP_SLOT} slots={topSlots} type="top" />}
+          {showSection('bottom') && <SlotCard config={AD_CONFIG.BOTTOM_SLOT} slots={bottomSlots} type="bottom" />}
 
           {/* Lockscreen Ad Section — Premium */}
-          <View className="bg-primary/5 rounded-2xl p-4 mb-4 border border-primary/20">
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="phone-portrait" size={20} color="#FF9F66" />
-              <Text className="text-primary font-bold text-base ml-2">Premium: Lock Screen Ads</Text>
-              <View className="bg-primary/20 rounded-full px-2 py-0.5 ml-2">
-                <Text className="text-primary text-xs font-bold">PREMIUM</Text>
+          {showSection('lockscreen') && (
+            <>
+              <View className="bg-primary/5 rounded-2xl p-4 mb-4 border border-primary/20">
+                <View className="flex-row items-center mb-3">
+                  <Ionicons name="phone-portrait" size={20} color="#FF9F66" />
+                  <Text className="text-primary font-bold text-base ml-2">Premium: Lock Screen Ads</Text>
+                  <View className="bg-primary/20 rounded-full px-2 py-0.5 ml-2">
+                    <Text className="text-primary text-xs font-bold">PREMIUM</Text>
+                  </View>
+                </View>
+                <Text className="text-text-secondary text-sm mb-2">
+                  Full-screen overlay displayed when users unlock their phone. Users earn points by swiping (Swipe-to-Earn). Maximum engagement guaranteed.
+                </Text>
+                <Text className="text-text-secondary text-xs italic">
+                  Note: Requires SYSTEM_ALERT_WINDOW permission. For sideloaded APKs, users may need to grant this manually in Settings.
+                </Text>
               </View>
-            </View>
-            <Text className="text-text-secondary text-sm mb-2">
-              Full-screen overlay displayed when users unlock their phone. Users earn points by swiping (Swipe-to-Earn). Maximum engagement guaranteed.
-            </Text>
-            <Text className="text-text-secondary text-xs italic">
-              Note: Requires SYSTEM_ALERT_WINDOW permission. For sideloaded APKs, users may need to grant this manually in Settings.
-            </Text>
-          </View>
-          <SlotCard config={AD_CONFIG.LOCKSCREEN_SLOT} slots={lockscreenSlots} type="lockscreen" />
+              <SlotCard config={AD_CONFIG.LOCKSCREEN_SLOT} slots={lockscreenSlots} type="lockscreen" />
+            </>
+          )}
         </View>
 
         {/* Bulk Discount Info */}
+        {showVolumeDiscounts && (
         <View className="mx-6 mb-6 bg-background-card rounded-2xl p-5 border border-border">
           <Text className="text-text font-bold text-lg mb-3">
             <Ionicons name="pricetag" size={20} /> Volume Discounts
@@ -968,6 +1000,7 @@ export default function AdSlotsScreen({ route, navigation }) {
             </View>
           </View>
         </View>
+        )}
       </ScrollView>
 
       {/* Purchase Modal */}

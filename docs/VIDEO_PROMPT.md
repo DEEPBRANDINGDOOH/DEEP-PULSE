@@ -36,11 +36,15 @@ Import recordings, add transitions, captions, and music.
 **[Show Home screen with notification feed + rotating ads]**
 "Your personalized feed shows notifications from subscribed hubs. Above and below the feed, rotating ad banners cycle every 15 seconds — brands pay in $SKR to reach engaged users."
 
-### SCREEN 4: AD SLOTS — BRAND UPLOADS (1:10 - 1:30)
-**[Show Ad Slots screen -> Purchase flow -> Image picker -> Upload]**
-"Brands purchase ad slots directly with $SKR. They upload their creative from their device gallery — the image is stored in Firebase Storage and submitted for admin review. Top slots, bottom slots, and premium full-screen lock screen ads."
+### SCREEN 4: AD TYPE SELECTOR + AD SLOTS (1:10 - 1:35)
+**[Show Hub Dashboard -> Tap "Manage Ad Slots" -> Ad Type Selector screen -> Tap "In-App Ads" -> Ad Slots screen]**
+"When brands tap 'Manage Ad Slots', they see the new Ad Type Selector — a clean two-category layout. In-App Ads cover Top and Bottom banners inside the app. Out-of-App Ads cover Lockscreen and Rich Notification campaigns. Tap a category to manage those slots. Brands purchase directly with $SKR, upload creatives from their device gallery — stored in Firebase Storage and submitted for admin review."
 
-### SCREEN 5: SWIPE-TO-EARN (1:30 - 1:50)
+### SCREEN 4.5: HUB LOGO + HUB NAME IN NOTIFICATIONS (1:35 - 1:55)
+**[Show Hub Dashboard -> Upload Logo (200x200px) -> Show Discover screen with circular logo -> Show notification with "HubName: Title" format]**
+"Hub creators can upload a custom logo — 200 by 200 pixels, max 500KB, PNG, JPG, or WebP. The logo displays as a circular crop everywhere in the app: Discover, My Hubs, Home feed, notification cards. And notification titles now show the hub name first — 'Solana Gaming: New Tournament Live' — so users instantly know who sent it."
+
+### SCREEN 5: SWIPE-TO-EARN (1:55 - 2:10)
 **[Show SwipeEarn screen -> toggle ON -> lock screen demo if possible]**
 "Swipe-to-Earn turns the Android lock screen into a reward engine. Users see sponsored content when they unlock their phone. Swipe right to skip, swipe left to engage — earning DEEP Score points with every interaction. Max 15 per day, fully opt-in."
 
@@ -78,7 +82,7 @@ Import recordings, add transitions, captions, and music.
 
 ### OUTRO (3:35 - 3:50)
 **[Show app architecture diagram or logo]**
-"DEEP PULSE — 23 smart contract instructions, 19 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, 3 security audits with a 9.5/10 score, env-aware logging, ProGuard enabled — all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
+"DEEP PULSE — 23 smart contract instructions, 20 screens, Swipe-to-Earn, Push Notification Ads, DOOH Worldwide, Ad Type Selector, Hub Logo Upload, HubName notifications, Discord integration, Firebase Cloud Functions with Firestore sync, FCM topic-based push notifications, ad creative uploads, 3 security audits with a 9.5/10 score, env-aware logging, ProGuard enabled — all powered by $SKR on Solana Mobile. Ready for mainnet. Ready for Seeker."
 
 ---
 
@@ -114,8 +118,9 @@ Take these screenshots from the emulator/device for the video or pitch deck:
 3. Home screen (feed + rotating ad)
 4. Discover screen (hub list + subscribe)
 5. My Hubs screen (subscribed hubs + last notification)
-6. Ad Slots screen (Push Notification Ad card + purchase modal)
-7. Push Notification Ad campaign creation modal (live preview)
+6. Ad Type Selector screen (In-App / Out-of-App categories)
+7. Ad Slots screen (Push Notification Ad card + purchase modal)
+8. Push Notification Ad campaign creation modal (live preview)
 8. SwipeEarn screen (enabled, showing stats)
 9. Profile screen (DEEP Score + tier badge)
 10. Profile screen — "My Created Hubs" section (brand hub management)
@@ -124,4 +129,5 @@ Take these screenshots from the emulator/device for the video or pitch deck:
 12. Hub Dashboard (send notification + Discord + DOOH)
 13. DOOH campaign form (inventory selection)
 14. Admin screen (platform management + hub approval)
-15. Notification detail (feedback submission)
+15. Notification detail (feedback submission) with "HubName: Title" format
+16. Hub with custom uploaded logo (circular crop in Discover / My Hubs)

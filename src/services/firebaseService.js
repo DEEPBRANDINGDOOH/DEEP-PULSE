@@ -86,6 +86,8 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
   // Enforce field length limits (match Firestore rules)
   const safeTitle = title.slice(0, 100);
   const safeBody = body.slice(0, 500);
+  // Prefix title with hub name so recipients see the sender
+  const displayTitle = hubName ? `${hubName}: ${safeTitle}` : safeTitle;
 
   // Strategy 1: Call the Cloud Function directly (preferred)
   const fnInstance = getFunctions();
@@ -94,7 +96,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
       const sendPush = fnInstance.httpsCallable('sendPushToSubscribers');
       const result = await sendPush({
         hubId,
-        title: safeTitle,
+        title: displayTitle,
         body: safeBody,
         walletAddress,
         data: { hubName, hubId, ...(link ? { link } : {}) },
@@ -113,7 +115,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
       const notifRef = await db.collection('notifications').add({
         hubId,
         hubName,
-        title: safeTitle,
+        title: displayTitle,
         body: safeBody,
         link: link || null,
         createdAt: firestore.FieldValue.serverTimestamp(),

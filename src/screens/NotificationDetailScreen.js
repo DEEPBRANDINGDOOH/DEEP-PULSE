@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import HubIcon from '../components/HubIcon';
 import { useAppStore } from '../store/appStore';
 import GradientButton from '../components/ui/GradientButton';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
@@ -75,8 +76,8 @@ export default function NotificationDetailScreen({ navigation, route }) {
 
           {/* Hub info */}
           <View className="flex-row items-center mb-4">
-            <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center mr-3">
-              <Ionicons name={notification.hubIcon || 'apps'} size={24} color="#FF9F66" />
+            <View className="mr-3">
+              <HubIcon icon={notification.hubIcon || 'apps'} logoUrl={notification.hubLogoUrl} size={48} iconSize={24} />
             </View>
             <View className="flex-1">
               <Text className="text-text font-bold">{notification.hubName || 'Hub'}</Text>

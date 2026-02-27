@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import HubIcon from '../components/HubIcon';
 import { useAppStore } from '../store/appStore';
 
 const MOCK_HUB_NOTIFICATIONS = {
@@ -51,6 +52,7 @@ const MOCK_HUB_NOTIFICATIONS = {
 export default function HubNotificationsScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'Hub';
   const hubIcon = route.params?.hubIcon || 'apps';
+  const hubLogoUrl = route.params?.hubLogoUrl || null;
   const subscribers = route.params?.subscribers || 0;
   const { wallet } = useAppStore();
   const storeNotifications = useAppStore((state) => state.hubNotifications[hubName] || []);
@@ -83,8 +85,8 @@ export default function HubNotificationsScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={24} color="#FF9F66" />
         </TouchableOpacity>
         <View className="flex-row items-center mb-2">
-          <View className="w-14 h-14 rounded-full bg-primary/20 items-center justify-center mr-4">
-            <Ionicons name={hubIcon} size={28} color="#FF9F66" />
+          <View className="mr-4">
+            <HubIcon icon={hubIcon} logoUrl={hubLogoUrl} size={56} iconSize={28} />
           </View>
           <View className="flex-1">
             <Text className="text-text font-black text-2xl">{hubName}</Text>

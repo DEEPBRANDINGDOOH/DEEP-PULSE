@@ -454,6 +454,7 @@ No WebView components found, eliminating an entire class of injection attacks.
 | **Firebase Safe Imports** | Good: try-catch on all Firebase module imports |
 | **No Private Key Storage** | Excellent: only auth tokens stored, never seeds/keys |
 | **Upload Validation** | Good: MIME type + file size validation in storageService |
+| **Hub Logo Upload Validation** | Good: 500KB max file size, 200x200px dimensions, PNG/JPG/WebP only, wallet connection required (no anonymous uploads), circular crop display via HubIcon component |
 
 ---
 
@@ -615,7 +616,25 @@ This strips `Log.v`, `Log.d`, `Log.i`, and `Log.w` calls from the release APK. `
 
 ---
 
-### 3.4 Audit #3 — Remaining Recommendations
+### 3.4 Hub Logo Upload — Validation Controls
+
+**Feature Added:** Hub creators can upload a custom logo image instead of using Ionicons.
+
+| Control | Implementation |
+|---------|----------------|
+| **Max file size** | 500KB — enforced client-side before upload to Firebase Storage |
+| **Dimensions** | 200x200px — validated before upload |
+| **Accepted formats** | PNG, JPG, WebP only — MIME type check (image/png, image/jpeg, image/webp) |
+| **Wallet required** | Upload blocked if no wallet connected (prevents anonymous uploads, addresses H-08) |
+| **Display** | Circular crop via reusable `HubIcon` component — no raw URL rendering, no user-controlled HTML |
+| **Fallback** | If no logo uploaded, displays Ionicon icon (existing behavior) |
+| **Storage path** | `hub-logos/{walletAddress}/{timestamp}.{ext}` — scoped to creator wallet |
+
+**Assessment:** The hub logo upload follows the same validated upload pattern as ad creatives in `storageService.js`, with stricter size constraints (500KB vs 5MB for ads). No new security issues introduced.
+
+---
+
+### 3.5 Audit #3 — Remaining Recommendations
 
 After Audit #3, the **only remaining item** preventing a 10/10 overall score is:
 

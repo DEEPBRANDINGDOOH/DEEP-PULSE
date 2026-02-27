@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ FICHIERS INCLUS (45 fichiers)
+## ✅ FICHIERS INCLUS (47 fichiers)
 
 ### 📱 Application Core (6 fichiers)
 
@@ -17,7 +17,7 @@
 - ✅ `metro.config.js` - Metro bundler config
 - ✅ `tailwind.config.js` - Tailwind CSS config
 
-### 📱 Screens (19 écrans)
+### 📱 Screens (20 écrans)
 
 - ✅ `src/screens/OnboardingScreen.js` - 4 slides intro (redesigned)
 - ✅ `src/screens/HomeScreen.js` - Écran principal
@@ -38,14 +38,16 @@
 - ✅ `src/screens/AdminMessagesScreen.js` - Messages admin ↔ marques
 - ✅ `src/screens/DOOHScreen.js` - Formulaire campagne DOOH Worldwide
 - ✅ `src/screens/AlertsScreen.js` - Centre d'alertes
+- ✅ `src/screens/AdTypeSelectorScreen.js` - **NEW** Sélection type d'ad (In-App: Top/Bottom vs Out-of-App: Lockscreen/Rich Notification)
 
-### 🧩 Components (6 composants)
+### 🧩 Components (7 composants)
 
 - ✅ `src/components/AdRotation.js` - Rotation ads 15s (local mock + remote)
 - ✅ `src/components/MockAdBanners.js` - Bannières pub locales (Jupiter, Marinade, Tensor, etc.)
 - ✅ `src/components/WalletButton.js` - Connexion wallet MWA
 - ✅ `src/components/AlertCard.js` - Cartes alerte
 - ✅ `src/components/ProjectCard.js` - Cartes projet
+- ✅ `src/components/HubIcon.js` - **NEW** Icône hub réutilisable — affiche logo uploadé (crop circulaire 200x200px) ou Ionicon fallback
 - ✅ `src/components/ui/PulseOrb.js` - Animation pulse onboarding
 
 ### ⚙️ Services (6 services)
@@ -55,7 +57,7 @@
 - ✅ `src/services/firebaseService.js` - **NEW** Firebase backend wiring (Firestore + Cloud Functions + FCM topics)
 - ✅ `src/services/programService.js` - Anchor program interactions (21 instructions)
 - ✅ `src/services/transactionHelper.js` - Transaction builder + MWA signing
-- ✅ `src/services/storageService.js` - Firebase Storage uploads (ad creatives)
+- ✅ `src/services/storageService.js` - Firebase Storage uploads (ad creatives + hub logo upload with 500KB/200x200px/format validation)
 
 ### 📐 Configuration (1 fichier)
 
@@ -194,6 +196,30 @@ dependencies {
 
 ---
 
+## ✨ DERNIÈRES ADDITIONS (3 features)
+
+### 1. Hub Name in Notifications
+Notification titles now display as **"HubName: Title"** so users instantly know which hub sent the message. Applied across `HubDashboardScreen.js`, `HubNotificationsScreen.js`, `HomeScreen.js`, `NotificationDetailScreen.js`, and `firebaseService.js`.
+
+### 2. Ad Type Selector Screen
+**NEW file:** `src/screens/AdTypeSelectorScreen.js`
+Intermediate screen displayed when tapping "Manage Ad Slots" from Hub Dashboard. Organizes ad slots into two categories:
+- **In-App Ads** — Top Banner / Bottom Banner
+- **Out-of-App Ads** — Lockscreen / Rich Notification
+Navigation updated in `App.js`. `BrandBoostScreen.js` and `AdSlotsScreen.js` adapted accordingly.
+
+### 3. Hub Logo Upload + HubIcon Component
+**NEW file:** `src/components/HubIcon.js`
+Hub creators can upload a custom logo instead of using Ionicons:
+- **Specs:** 200x200px, max 500KB, PNG/JPG/WebP only
+- **Display:** Circular crop everywhere in the app (Discover, My Hubs, Home, Dashboard, Notifications)
+- **Upload:** via `storageService.js` (Firebase Storage) with validation
+- **Component:** Reusable `HubIcon` renders the uploaded logo or falls back to the Ionicon
+
+**Files modified:** `firebaseService.js`, `storageService.js`, `BrandBoostScreen.js`, `AdSlotsScreen.js`, `HubDashboardScreen.js`, `App.js`, `MyHubsScreen.js`, `DiscoverScreen.js`, `HubNotificationsScreen.js`, `HomeScreen.js`, `NotificationDetailScreen.js`, `constants.js`
+
+---
+
 ## 🎯 FONCTIONNALITÉS COMPLÈTES
 
 ### User Features ✅
@@ -207,10 +233,12 @@ dependencies {
 
 ### Brand Features ✅
 - Hub Dashboard (dynamic subscriber count, notification history, Firebase push)
-- Send notifications (Zustand + Cloud Function → FCM push to all subscribers)
+- Send notifications with "HubName: Title" format (Zustand + Cloud Function → FCM push to all subscribers)
 - Hub creation lifecycle (create → Firestore PENDING → admin approval → ACTIVE → Discover)
 - "My Created Hubs" in Profile (brands manage hubs, direct access to Dashboard)
+- Hub Logo Upload (200x200px, max 500KB, PNG/JPG/WebP — circular crop via HubIcon component)
 - Moderation approve/reject (synced to Firestore + Cloud Functions)
+- Ad Type Selector screen (In-App: Top/Bottom vs Out-of-App: Lockscreen/Rich Notification)
 - Ad slots purchase (Top 800/Bottom 600/Lockscreen 1,000 $SKR/week)
 - Rich Notification Ads (1,500 $SKR/week, SPONSORED badge, Free vs Sponsored comparison)
 - DOOH Worldwide (campaign briefs for global venues)
@@ -376,7 +404,7 @@ Ces fichiers seront générés automatiquement:
 ## 🎉 RÉSUMÉ
 
 Ce package contient:
-- ✅ **43 fichiers** de code source
+- ✅ **45 fichiers** de code source
 - ✅ **Toutes corrections** appliquées
 - ✅ **100% conforme** Solana Mobile
 - ✅ **Production-ready**

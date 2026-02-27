@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
+import HubIcon from '../components/HubIcon';
 import { MOCK_ADS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
@@ -51,6 +52,7 @@ export default function MyHubsScreen({ navigation }) {
     navigation.navigate('HubNotifications', {
       hubName: hub.name,
       hubIcon: hub.icon,
+      hubLogoUrl: hub.logoUrl || null,
       subscribers: hub.subscribers,
     });
   };
@@ -127,9 +129,7 @@ export default function MyHubsScreen({ navigation }) {
               >
                 {/* Hub Header */}
                 <View className="flex-row items-center mb-3">
-                  <View className="w-12 h-12 bg-primary/20 rounded-full items-center justify-center">
-                    <Ionicons name={hub.icon} size={24} color="#FF9F66" />
-                  </View>
+                  <HubIcon hub={hub} size={48} iconSize={24} />
                   <View className="flex-1 ml-3">
                     <View className="flex-row items-center">
                       <Text className="text-text font-bold text-lg">{hub.name}</Text>

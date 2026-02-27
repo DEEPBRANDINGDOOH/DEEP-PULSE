@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Acti
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
+import HubIcon from '../components/HubIcon';
 import { MOCK_ADS } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import GlowCard from '../components/ui/GlowCard';
@@ -199,12 +200,7 @@ export default function HomeScreen({ navigation }) {
                 <View className="p-5 pb-3">
                   {/* Header */}
                   <View className="flex-row items-center mb-3">
-                    <View
-                      className="w-11 h-11 rounded-xl items-center justify-center"
-                      style={{ backgroundColor: 'rgba(255,159,102,0.15)' }}
-                    >
-                      <Ionicons name={notif.hubIcon} size={22} color="#FF9F66" />
-                    </View>
+                    <HubIcon icon={notif.hubIcon} logoUrl={notif.hubLogoUrl} size={44} iconSize={22} />
                     <View className="flex-1 ml-3">
                       <View className="flex-row items-center">
                         <Text className="text-text font-bold text-sm">{notif.hubName}</Text>

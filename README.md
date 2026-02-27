@@ -37,8 +37,8 @@
 
 | Role | Features |
 |------|----------|
-| **Users** | Free hub subscriptions, push notifications, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
-| **Brands** | Create notification hubs (2,000 $SKR/month) with lifecycle (creation -> admin approval -> Discover listing), moderate content, manage ad slots, receive DAO boost funding, launch DOOH campaigns |
+| **Users** | Free hub subscriptions, push notifications with "HubName: Title" format, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
+| **Brands** | Create notification hubs (2,000 $SKR/month) with lifecycle (creation -> admin approval -> Discover listing), upload custom hub logo (200x200px, max 500KB, PNG/JPG/WebP), moderate content, manage ad slots via Ad Type Selector (In-App / Out-of-App), receive DAO boost funding, launch DOOH campaigns |
 | **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (1,000 $SKR/week), Rich Notification Ads (1,500 $SKR/week, SPONSORED) via FCM push on all devices — premium campaigns with title, body, CTA button, image URL, duration selector, live preview, volume discounts, and Free vs Sponsored comparison UI, DOOH Worldwide campaign briefs |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
 
@@ -55,6 +55,9 @@
 - **Rich Notification Ads** — SPONSORED premium push campaigns via FCM (1,500 $SKR/week), full creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — Free vs Sponsored comparison UI clearly differentiates from free hub notifications — works on all devices including Seeker
 - **DOOH Worldwide** — Digital Out-Of-Home campaign brief form accessible from HubDashboard, enabling global billboard/screen campaigns
 - **Hub Lifecycle** — Creating a hub adds it to admin pending queue; admin approves; hub then appears on Discover for users to subscribe
+- **Hub Name in Notifications** — Notification titles display as "HubName: Title" so users instantly see which hub sent the message
+- **Ad Type Selector** — New intermediate screen when tapping "Manage Ad Slots" organizes ads by In-App (Top Banner / Bottom Banner) and Out-of-App (Lockscreen / Rich Notification), replacing the flat list with a clear two-category layout
+- **Hub Logo Upload** — Hub creators upload a custom logo (200x200px, max 500KB, PNG/JPG/WebP) instead of using Ionicons; logos display as a circular crop everywhere in the app via the reusable `HubIcon` component
 - **Discord integration** — Brands connect their Discord #announcements channel to auto-forward major announcements as push notifications to hub subscribers
 - **Solscan integration** — Transaction history links directly to Solscan filtered by wallet address
 - **Global notification mute** — Users can mute all push notifications with a single toggle
@@ -73,7 +76,7 @@
 |  React Native App |  Firebase Backend   |  Anchor Program         |
 |  (Solana Mobile)  |  (Cloud Functions)  |  (Solana Blockchain)    |
 |                   |                     |                         |
-|  19 screens       |  10 serverless      |  23 instructions        |
+|  20 screens       |  10 serverless      |  23 instructions        |
 |  MWA 2.0          |  functions          |  8 account types        |
 |  NativeWind UI    |  FCM push delivery  |  19 events              |
 |  Zustand store    |  Analytics engine   |  33 error codes         |
@@ -213,7 +216,7 @@ deep-pulse-complete/
 |   +-- deep-pulse.ts                 # === TEST SUITE (TypeScript / Mocha) ===
 |
 |-- src/                               # === REACT NATIVE APP ===
-|   |-- screens/                       # 19 screens
+|   |-- screens/                       # 20 screens
 |   |   |-- OnboardingScreen.js        # Wallet connect + onboarding slides
 |   |   |-- HomeScreen.js              # Feed + rotating ad banners
 |   |   |-- DiscoverScreen.js          # Browse and search hubs
@@ -232,12 +235,14 @@ deep-pulse-complete/
 |   |   |-- NotificationDetailScreen.js # Full notification detail view
 |   |   |-- SwipeEarnScreen.js          # Swipe-to-Earn dashboard (lock screen ads)
 |   |   |-- DOOHScreen.js              # DOOH Worldwide campaign brief form
-|   |   +-- PushNotificationAdScreen.js # Push Notification Ads management (campaign creation flow)
+|   |   |-- PushNotificationAdScreen.js # Push Notification Ads management (campaign creation flow)
+|   |   +-- AdTypeSelectorScreen.js    # Ad type selection — In-App vs Out-of-App ad categories
 |   |-- components/
 |   |   |-- WalletButton.js            # MWA connect / disconnect + SIWS
 |   |   |-- AdRotation.js              # 15-second rotating banner ads
 |   |   |-- AlertCard.js               # Notification cards
 |   |   |-- ProjectCard.js             # Hub listing cards
+|   |   |-- HubIcon.js                # Reusable hub icon/logo — displays uploaded logo (circular crop) or Ionicon fallback
 |   |   +-- MockAdBanners.js          # Local React Native ad banners (real mock ads)
 |   |-- services/
 |   |   |-- programService.js          # Anchor client SDK (PDA helpers + MWA wrappers)
@@ -949,4 +954,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18+37+90 issues fixed, 3 full security audits, 9.5/10) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled (code obfuscation + optimization) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with optional Link URL ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓
+**Status:** Smart contracts compiled + security-audited (18+37+90 issues fixed, 3 full security audits, 9.5/10) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled (code obfuscation + optimization) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with "HubName: Title" format + optional Link URL ✓ | Ad Type Selector (In-App / Out-of-App categories) ✓ | Hub Logo Upload (200x200px, 500KB, PNG/JPG/WebP, circular crop, HubIcon component) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~57MB) ✓
