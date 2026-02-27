@@ -730,6 +730,7 @@ export default function AdminScreen({ navigation }) {
     bottomAdSlot: { label: 'Bottom Ad Slot', icon: 'arrow-down-circle', unit: '$SKR/week' },
     lockscreenAd: { label: 'Lockscreen Ad', icon: 'phone-portrait', unit: '$SKR/week' },
     globalNotification: { label: 'Global Notification', icon: 'megaphone', unit: '$SKR' },
+    pushNotificationAd: { label: 'Push Notification Ad', icon: 'notifications', unit: '$SKR/week' },
   };
 
   // Map frontend key → on-chain parameter name

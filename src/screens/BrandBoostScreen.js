@@ -361,19 +361,7 @@ export default function BrandBoostScreen({ navigation }) {
           </View>
         </View>
 
-        {/* CTA */}
-        <View className="px-5 mb-8">
-          <TouchableOpacity
-            onPress={() => setShowCreateModal(true)}
-            className="bg-primary py-6 rounded-2xl"
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center justify-center">
-              <Ionicons name="rocket" size={20} color="#fff" />
-              <Text className="text-white font-bold text-lg ml-2">Create Your Hub Now</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        {/* Bottom spacing */}
 
         {/* Bottom spacing */}
         <View className="h-8" />

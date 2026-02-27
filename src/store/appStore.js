@@ -182,12 +182,20 @@ export const useAppStore = create(
       hubNotifications: {},
 
       addHubNotification: (hubName, notification) => {
-        set((state) => ({
-          hubNotifications: {
-            ...state.hubNotifications,
-            [hubName]: [notification, ...(state.hubNotifications[hubName] || [])],
-          },
-        }));
+        set((state) => {
+          // Enrich notification with hub logoUrl if not already present
+          const hub = state.hubs.find(h => h.name === hubName);
+          const enriched = {
+            ...notification,
+            hubLogoUrl: notification.hubLogoUrl || hub?.logoUrl || null,
+          };
+          return {
+            hubNotifications: {
+              ...state.hubNotifications,
+              [hubName]: [enriched, ...(state.hubNotifications[hubName] || [])],
+            },
+          };
+        });
       },
 
       getHubNotifications: (hubName) => {

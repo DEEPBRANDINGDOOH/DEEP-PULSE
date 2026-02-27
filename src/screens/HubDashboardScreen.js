@@ -154,6 +154,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                       title: notifTitle,
                       hubName: hubName,
                       hubIcon: hubIcon,
+                      hubLogoUrl: hubLogoUrl,
                       message: notifMessage,
                       fullMessage: notifMessage,
                       link: linkUrl.trim() || null,

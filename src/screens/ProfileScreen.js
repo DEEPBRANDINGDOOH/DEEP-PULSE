@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import HubIcon from '../components/HubIcon';
 import { MOCK_USER, SOLANA_CONFIG, getTierFromScore, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
@@ -245,15 +246,14 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('HubDashboard', {
                 hubName: hub.name,
                 hubIcon: hub.icon || 'rocket',
+                hubLogoUrl: hub.logoUrl || null,
                 hubStatus: hub.status || 'ACTIVE',
                 subscribers: hub.subscribers || 0,
               })}
               className="bg-background-card rounded-xl p-4 mb-2 flex-row items-center justify-between border border-border"
             >
               <View className="flex-row items-center flex-1">
-                <View className="w-10 h-10 bg-primary/20 rounded-full items-center justify-center">
-                  <Ionicons name={hub.icon || 'rocket'} size={20} color="#FF9F66" />
-                </View>
+                <HubIcon hub={hub} size={40} iconSize={20} />
                 <View className="ml-3 flex-1">
                   <Text className="text-text font-bold">{hub.name}</Text>
                   <Text className="text-text-secondary text-xs">
