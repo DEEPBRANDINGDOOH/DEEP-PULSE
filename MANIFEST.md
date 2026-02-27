@@ -218,6 +218,31 @@ Hub creators can upload a custom logo instead of using Ionicons:
 
 **Files modified:** `firebaseService.js`, `storageService.js`, `BrandBoostScreen.js`, `AdSlotsScreen.js`, `HubDashboardScreen.js`, `App.js`, `MyHubsScreen.js`, `DiscoverScreen.js`, `HubNotificationsScreen.js`, `HomeScreen.js`, `NotificationDetailScreen.js`, `constants.js`
 
+### 4. Bug Fixes — Build 3 (4 critical fixes)
+- **AdSlotsScreen.js** — Rich Notification Ad modal scrolls fully (flex-1 + paddingBottom)
+- **AdminMessagesScreen.js** — Dynamic conversation creation for brand→admin messaging
+- **transactionHelper.js** — `__DEV__` mock bypass in executeTransaction (all blockchain ops work without wallet in debug)
+- **AdminScreen.js** — All 7 moderation wallet checks bypassed in `__DEV__`
+
+### 5. Bug Fixes — Build 4 (25+ fixes across 14 files)
+
+**Wallet bypass in debug (9 screens):**
+- AdSlotsScreen, HubNotificationsScreen, NotificationDetailScreen, HomeScreen, DAOBoostScreen (2x), TalentScreen, HubDashboardScreen, storageService — all skip `wallet.connected` check in `__DEV__`
+
+**State updates after mock submissions:**
+- DAOBoostScreen — new proposals appear in Votes tab after mock submission
+- TalentScreen — new submissions appear in Browse + Mine tabs
+- AdSlotsScreen — slot occupancy updates after purchase + rich notif campaigns added to My Ads
+
+**UI sync & other fixes:**
+- HomeScreen — merges Zustand store notifications into feed (brand-sent notifs visible)
+- AdminScreen — pending hubs no longer re-seed after admin approval + badge hidden when count=0
+- BrandModerationScreen — imports + handles `approveDaoProposal` for DAO boost approval
+- ProfileScreen — `isAdmin()` uses full wallet address (production fix)
+- NotificationsScreen — maps alert schema to notification schema for detail view
+- HubDashboardScreen + AdTypeSelectorScreen — `hubId` passed through navigation chain
+- transactionHelper — correct lockscreen price in onSuccess alert
+
 ---
 
 ## 🎯 FONCTIONNALITÉS COMPLÈTES
@@ -319,8 +344,8 @@ Hub creators can upload a custom logo instead of using Ionicons:
 ### Taille du Package
 - **Source code:** ~250 KB
 - **node_modules:** ~350 MB (après install)
-- **APK Debug:** ~138 MB (with Firestore + Functions native modules)
-- **APK Release:** ~57 MB (optimized, ProGuard/R8 enabled — code obfuscation + dead code elimination)
+- **APK Debug:** ~141 MB (with Firestore + Functions native modules)
+- **APK Release:** ~53 MB (optimized, ProGuard/R8 enabled — code obfuscation + dead code elimination)
 
 ---
 
