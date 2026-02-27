@@ -50,13 +50,19 @@ export default function ProfileScreen({ navigation }) {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
 
-  // Get hubs created by this user (pending + active)
-  const myCreatedHubs = [...pendingHubs, ...storeHubs].filter(h => h.creator != null);
-
   // Use real wallet if connected, otherwise fall back to mock
   const connectedPubkey = getWalletPublicKey();
   const walletDisplay = connectedPubkey ? formatWallet(connectedPubkey) : MOCK_USER.wallet;
   const fullWalletAddress = connectedPubkey ? connectedPubkey.toString() : MOCK_USER.wallet;
+
+  // Get hubs created by this user only (pending + active)
+  // Production: strict wallet match; Dev: show all for demo
+  const myCreatedHubs = [...pendingHubs, ...storeHubs].filter(h => {
+    if (!h.creator) return false;
+    if (__DEV__) return true;
+    return fullWalletAddress && h.creator === fullWalletAddress;
+  });
+
   const user = {
     ...MOCK_USER,
     wallet: walletDisplay,

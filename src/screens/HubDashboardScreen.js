@@ -22,7 +22,11 @@ export default function HubDashboardScreen({ navigation, route }) {
   const hubNotifications = useAppStore((state) => state.hubNotifications);
   const hubData = storeHubs.find(h => h.name === hubName) || pendingHubs.find(h => h.name === hubName);
 
-  // Dynamic billing computation
+  // Check if current user is the hub creator (billing info is creator-only)
+  const walletAddress = wallet?.publicKey;
+  const isCreator = __DEV__ || (walletAddress && hubData?.creator === walletAddress);
+
+  // Dynamic billing computation (only meaningful for creator)
   const subscriptionExpiresAt = hubData?.subscriptionExpiresAt;
   const daysRemaining = subscriptionExpiresAt
     ? Math.ceil((new Date(subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -78,7 +82,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               </View>
             </View>
           )}
-          {isOverdue && !isSuspended && (
+          {isCreator && isOverdue && !isSuspended && (
             <View className="bg-orange-500/10 rounded-xl p-3 mt-3 border border-orange-500/20">
               <View className="flex-row items-center">
                 <Ionicons name="warning" size={16} color="#FF9800" />
@@ -88,7 +92,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               </View>
             </View>
           )}
-          {isSuspended && (
+          {isCreator && isSuspended && (
             <View className="bg-red-500/10 rounded-xl p-3 mt-3 border border-red-500/20">
               <View className="flex-row items-center">
                 <Ionicons name="ban" size={16} color="#f44336" />
@@ -434,21 +438,24 @@ export default function HubDashboardScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            onPress={() => Alert.alert("Hub's Billing", `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\n${billingInfo}`, [
-              { text: 'OK' },
-            ])}
-            className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"
-          >
-            <View className="flex-row items-center">
-              <Ionicons name="card" size={24} color="#FF9F66" />
-              <Text className="text-text font-semibold text-base ml-3">Hub's Billing</Text>
-            </View>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-sm mr-2">{hubCreationPrice.toLocaleString()} $SKR/month</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </View>
-          </TouchableOpacity>
+          {/* Billing — creator-only (subscribers should not see billing info) */}
+          {isCreator && (
+            <TouchableOpacity
+              onPress={() => Alert.alert("Hub's Billing", `Current subscription: ${hubCreationPrice.toLocaleString()} $SKR/month\n${billingInfo}`, [
+                { text: 'OK' },
+              ])}
+              className="bg-background-card rounded-xl p-4 mb-6 flex-row items-center justify-between border border-border"
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="card" size={24} color="#FF9F66" />
+                <Text className="text-text font-semibold text-base ml-3">Hub's Billing</Text>
+              </View>
+              <View className="flex-row items-center">
+                <Text className="text-text-secondary text-sm mr-2">{hubCreationPrice.toLocaleString()} $SKR/month</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

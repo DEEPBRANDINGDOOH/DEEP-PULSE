@@ -22,7 +22,9 @@ service cloud.firestore {
 
     // ── Hubs ──
     // Readable by anyone; client creates must have status PENDING (enforced)
-    // Updates restricted to subscriber count + status fields only
+    // Updates: subscriber count changes allowed for any client;
+    // Admin status changes (suspend/reactivate/delete) routed through Cloud Functions (Admin SDK)
+    // Client-side status updates restricted to valid transitions with value validation
     match /hubs/{hubId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'status', 'creator'])
@@ -32,8 +34,20 @@ service cloud.firestore {
         && request.resource.data.name.size() <= 64
         && request.resource.data.creator is string
         && request.resource.data.creator.size() >= 32;
-      allow update: if request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['subscribers', 'status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy']);
+      allow update: if (
+        // Case 1: Subscriber count change only (any authenticated client)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
+        && request.resource.data.subscribers is int
+        && request.resource.data.subscribers >= 0
+      ) || (
+        // Case 2: Hub approval/rejection (admin operations via client — status value validated)
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
+                    'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
+                    'subscriptionExpiresAt'])
+        && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
+      );
+      // Deletion only via Cloud Functions (Admin SDK bypasses rules)
       allow delete: if false;
     }
 

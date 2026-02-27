@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getTierFromScore, PRICING } from '../config/constants';
+import { getTierFromScore, PRICING, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { programService } from '../services/programService';
 import { approveAdCreative, rejectAdCreative, sendGlobalNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
-import { logger } from '../utils/security';
+import { checkRateLimit, logger } from '../utils/security';
 
 // ============================================
 // MOCK DATA
@@ -50,6 +50,23 @@ const STATS_DATA = {
 
 export default function AdminScreen({ navigation }) {
   const { wallet, platformPricing: prices, updateSinglePrice, loadPlatformPricingFromChain } = useAppStore();
+
+  // ── NAVIGATION GUARD: Block non-admin access ──
+  if (!isAdmin(wallet?.publicKey)) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <Ionicons name="shield-outline" size={48} color="#f44336" />
+        <Text className="text-error text-lg font-bold mt-4">Access Denied</Text>
+        <Text className="text-text-secondary text-sm mt-2">Admin wallet required.</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="bg-primary/20 rounded-xl px-6 py-3 mt-6"
+        >
+          <Text className="text-primary font-bold">Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
   const pendingHubs = useAppStore((state) => state.pendingHubs);
   const storeHubs = useAppStore((state) => state.hubs);
   const storeApproveHub = useAppStore((state) => state.approveHub);
@@ -206,6 +223,10 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
+    if (!checkRateLimit('admin_hub_action')) {
+      Alert.alert('Rate Limited', 'Please wait before performing another admin action.');
+      return;
+    }
     Alert.alert('Suspend Hub', `Suspend "${hubName}"?\n\nIt will be hidden from Discover and no new subscribers can join.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Suspend', style: 'destructive', onPress: () => {
@@ -220,6 +241,10 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
+    if (!checkRateLimit('admin_hub_action')) {
+      Alert.alert('Rate Limited', 'Please wait before performing another admin action.');
+      return;
+    }
     Alert.alert('Reactivate Hub', `Reactivate "${hubName}"?\n\nSubscription will reset to 30 days.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Reactivate', onPress: () => {
@@ -232,6 +257,10 @@ export default function AdminScreen({ navigation }) {
   const handleDeleteHub = (hubId, hubName) => {
     if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
+      return;
+    }
+    if (!checkRateLimit('admin_hub_action')) {
+      Alert.alert('Rate Limited', 'Please wait before performing another admin action.');
       return;
     }
     Alert.alert('DELETE Hub', `Are you absolutely sure you want to permanently delete "${hubName}"?\n\nThis action is IRREVERSIBLE. All subscribers will lose access.`, [

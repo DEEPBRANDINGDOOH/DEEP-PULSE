@@ -216,9 +216,17 @@ export async function rejectHubInFirestore(hubId, adminWallet) {
 /**
  * Suspend a hub in Firestore (status: SUSPENDED)
  * @param {string} hubId - Hub ID
- * @param {string} adminWallet - Admin wallet address
+ * @param {string} adminWallet - Admin wallet address (must be valid Solana address)
  */
 export async function suspendHubInFirestore(hubId, adminWallet) {
+  if (!hubId || typeof hubId !== 'string') {
+    logger.warn('[FirebaseService] suspendHub: invalid hubId');
+    return { success: false, error: 'Invalid hubId' };
+  }
+  if (!adminWallet || typeof adminWallet !== 'string' || adminWallet.length < 32) {
+    logger.warn('[FirebaseService] suspendHub: invalid adminWallet');
+    return { success: false, error: 'Invalid admin wallet' };
+  }
   logger.log(`[FirebaseService] suspendHub: ${hubId}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -228,7 +236,7 @@ export async function suspendHubInFirestore(hubId, adminWallet) {
       status: 'SUSPENDED',
       active: false,
       suspendedAt: firestore.FieldValue.serverTimestamp(),
-      suspendedBy: adminWallet || null,
+      suspendedBy: adminWallet,
     });
     logger.log('[FirebaseService] Hub suspended in Firestore:', hubId);
     return { success: true };
@@ -241,9 +249,17 @@ export async function suspendHubInFirestore(hubId, adminWallet) {
 /**
  * Reactivate a suspended hub in Firestore (status: ACTIVE)
  * @param {string} hubId - Hub ID
- * @param {string} adminWallet - Admin wallet address
+ * @param {string} adminWallet - Admin wallet address (must be valid Solana address)
  */
 export async function reactivateHubInFirestore(hubId, adminWallet) {
+  if (!hubId || typeof hubId !== 'string') {
+    logger.warn('[FirebaseService] reactivateHub: invalid hubId');
+    return { success: false, error: 'Invalid hubId' };
+  }
+  if (!adminWallet || typeof adminWallet !== 'string' || adminWallet.length < 32) {
+    logger.warn('[FirebaseService] reactivateHub: invalid adminWallet');
+    return { success: false, error: 'Invalid admin wallet' };
+  }
   logger.log(`[FirebaseService] reactivateHub: ${hubId}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -253,7 +269,7 @@ export async function reactivateHubInFirestore(hubId, adminWallet) {
       status: 'ACTIVE',
       active: true,
       reactivatedAt: firestore.FieldValue.serverTimestamp(),
-      reactivatedBy: adminWallet || null,
+      reactivatedBy: adminWallet,
       suspendedAt: null,
       suspendedBy: null,
     });
@@ -266,18 +282,34 @@ export async function reactivateHubInFirestore(hubId, adminWallet) {
 }
 
 /**
- * Delete a hub permanently from Firestore
+ * Soft-delete a hub in Firestore (sets status to DELETED + active: false).
+ * Firestore rules block .delete() — we use a status update instead.
+ * The hub remains in Firestore for audit trail but is excluded from all queries.
  * @param {string} hubId - Hub ID
- * @param {string} adminWallet - Admin wallet address
+ * @param {string} adminWallet - Admin wallet address (must be valid Solana address)
  */
 export async function deleteHubInFirestore(hubId, adminWallet) {
+  if (!hubId || typeof hubId !== 'string') {
+    logger.warn('[FirebaseService] deleteHub: invalid hubId');
+    return { success: false, error: 'Invalid hubId' };
+  }
+  if (!adminWallet || typeof adminWallet !== 'string' || adminWallet.length < 32) {
+    logger.warn('[FirebaseService] deleteHub: invalid adminWallet');
+    return { success: false, error: 'Invalid admin wallet' };
+  }
   logger.log(`[FirebaseService] deleteHub: ${hubId} by ${adminWallet}`);
   const db = getDb();
   if (!db) return { success: false };
 
   try {
-    await db.collection('hubs').doc(hubId).delete();
-    logger.log('[FirebaseService] Hub deleted from Firestore:', hubId);
+    // Soft-delete: mark as DELETED (Firestore rules block hard .delete())
+    await db.collection('hubs').doc(hubId).update({
+      status: 'DELETED',
+      active: false,
+      suspendedAt: firestore.FieldValue.serverTimestamp(),
+      suspendedBy: adminWallet,
+    });
+    logger.log('[FirebaseService] Hub soft-deleted in Firestore:', hubId);
     return { success: true };
   } catch (error) {
     logger.warn('[FirebaseService] deleteHub failed:', error.message);

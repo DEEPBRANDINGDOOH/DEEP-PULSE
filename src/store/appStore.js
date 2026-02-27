@@ -16,7 +16,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
-import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS } from '../config/constants';
+import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS, isAdmin } from '../config/constants';
 import {
   subscribeToHubBackend,
   unsubscribeFromHubBackend,
@@ -198,42 +198,121 @@ export const useAppStore = create(
 
       // Suspend an active hub (admin only — hides from Discover)
       suspendHub: (hubId) => {
-        const { wallet } = get();
+        if (!hubId || typeof hubId !== 'string') {
+          logger.warn('[Store] suspendHub: invalid hubId');
+          return;
+        }
+        const { wallet, hubs } = get();
+        if (!isAdmin(wallet.publicKey)) {
+          logger.warn('[Store] suspendHub blocked: not admin');
+          return;
+        }
+        const prevHub = hubs.find(h => h.id === hubId);
+        if (!prevHub || prevHub.status === 'SUSPENDED') return;
+
         set((state) => ({
           hubs: state.hubs.map(h =>
             h.id === hubId ? { ...h, status: 'SUSPENDED', suspendedAt: new Date().toISOString() } : h
           ),
         }));
-        suspendHubInFirestore(hubId, wallet.publicKey || 'admin')
-          .catch(e => logger.warn('[Store] Firestore suspendHub failed:', e));
+        suspendHubInFirestore(hubId, wallet.publicKey)
+          .then(result => {
+            if (!result.success) {
+              logger.warn('[Store] Firestore suspendHub failed, rolling back');
+              set((state) => ({
+                hubs: state.hubs.map(h =>
+                  h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null } : h
+                ),
+              }));
+            }
+          })
+          .catch(e => {
+            logger.warn('[Store] Firestore suspendHub error, rolling back:', e);
+            set((state) => ({
+              hubs: state.hubs.map(h =>
+                h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null } : h
+              ),
+            }));
+          });
       },
 
       // Reactivate a suspended hub (admin only — resets subscription to 30 days)
       reactivateHub: (hubId) => {
-        const { wallet } = get();
+        if (!hubId || typeof hubId !== 'string') {
+          logger.warn('[Store] reactivateHub: invalid hubId');
+          return;
+        }
+        const { wallet, hubs } = get();
+        if (!isAdmin(wallet.publicKey)) {
+          logger.warn('[Store] reactivateHub blocked: not admin');
+          return;
+        }
+        const prevHub = hubs.find(h => h.id === hubId);
+        if (!prevHub) return;
+
+        const newExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         set((state) => ({
           hubs: state.hubs.map(h =>
             h.id === hubId ? {
               ...h,
               status: 'ACTIVE',
               suspendedAt: null,
-              subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              subscriptionExpiresAt: newExpiry,
             } : h
           ),
         }));
-        reactivateHubInFirestore(hubId, wallet.publicKey || 'admin')
-          .catch(e => logger.warn('[Store] Firestore reactivateHub failed:', e));
+        reactivateHubInFirestore(hubId, wallet.publicKey)
+          .then(result => {
+            if (!result.success) {
+              logger.warn('[Store] Firestore reactivateHub failed, rolling back');
+              set((state) => ({
+                hubs: state.hubs.map(h =>
+                  h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null, subscriptionExpiresAt: prevHub.subscriptionExpiresAt } : h
+                ),
+              }));
+            }
+          })
+          .catch(e => {
+            logger.warn('[Store] Firestore reactivateHub error, rolling back:', e);
+            set((state) => ({
+              hubs: state.hubs.map(h =>
+                h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null, subscriptionExpiresAt: prevHub.subscriptionExpiresAt } : h
+              ),
+            }));
+          });
       },
 
       // Delete a hub permanently (admin only — IRREVERSIBLE)
       deleteHub: (hubId) => {
-        const { wallet } = get();
+        if (!hubId || typeof hubId !== 'string') {
+          logger.warn('[Store] deleteHub: invalid hubId');
+          return;
+        }
+        const { wallet, hubs, subscribedProjects } = get();
+        if (!isAdmin(wallet.publicKey)) {
+          logger.warn('[Store] deleteHub blocked: not admin');
+          return;
+        }
+        if (!hubs.find(h => h.id === hubId)) return;
+
+        // Save previous state for rollback
+        const prevHubs = [...hubs];
+        const prevSubs = [...subscribedProjects];
         set((state) => ({
           hubs: state.hubs.filter(h => h.id !== hubId),
           subscribedProjects: state.subscribedProjects.filter(id => id !== hubId),
         }));
-        deleteHubInFirestore(hubId, wallet.publicKey || 'admin')
-          .catch(e => logger.warn('[Store] Firestore deleteHub failed:', e));
+        deleteHubInFirestore(hubId, wallet.publicKey)
+          .then(result => {
+            if (!result.success) {
+              logger.warn('[Store] Firestore deleteHub failed, rolling back');
+              set({ hubs: prevHubs, subscribedProjects: prevSubs });
+            }
+          })
+          .catch(e => {
+            logger.warn('[Store] Firestore deleteHub error, rolling back:', e);
+            set({ hubs: prevHubs, subscribedProjects: prevSubs });
+          });
       },
 
       // Check all hubs for overdue subscriptions (auto-detect expired payments)
@@ -244,6 +323,11 @@ export const useAppStore = create(
         const updated = hubs.map(h => {
           if (!h.subscriptionExpiresAt || h.status === 'SUSPENDED' || h.status === 'PENDING') return h;
           const expiresAt = new Date(h.subscriptionExpiresAt).getTime();
+          // Guard against corrupted/invalid date values
+          if (isNaN(expiresAt)) {
+            logger.warn(`[Store] Invalid subscriptionExpiresAt for hub ${h.id}`);
+            return h;
+          }
           if (expiresAt < now && h.status !== 'OVERDUE') {
             changed = true;
             return { ...h, status: 'OVERDUE' };
