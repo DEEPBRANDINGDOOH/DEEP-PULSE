@@ -65,6 +65,8 @@ export default function TalentScreen({ navigation }) {
   const [experience, setExperience] = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [email, setEmail] = useState('');
+  const [mySubmissions, setMySubmissions] = useState(MOCK_MY_SUBMISSIONS);
+  const [talents, setTalents] = useState(MOCK_TALENTS);
 
   const renderSubmitTab = () => (
     <ScrollView className="px-6 py-4">
@@ -149,7 +151,7 @@ export default function TalentScreen({ navigation }) {
         className="bg-primary rounded-xl py-4"
         onPress={() => {
           if (!checkRateLimit('submit_talent')) return;
-          if (!wallet.connected) {
+          if (!__DEV__ && !wallet.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a talent profile.\n\nA 50 $SKR deposit is required.');
             return;
           }
@@ -178,7 +180,26 @@ export default function TalentScreen({ navigation }) {
                     setEmail('');
                   }
                 } else {
-                  // Mock fallback
+                  // Mock fallback — add to mySubmissions + talents lists
+                  const newSubmission = {
+                    id: `sub_${Date.now()}`,
+                    role: role,
+                    hub: selectedHub.name,
+                    status: 'REVIEW',
+                    submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+                    expectedDays: '3-5',
+                  };
+                  setMySubmissions(prev => [newSubmission, ...prev]);
+                  setTalents(prev => [...prev, {
+                    id: `talent_${Date.now()}`,
+                    role: role,
+                    rating: 0,
+                    experience: experience.trim(),
+                    skills: experience.split(',').map(s => s.trim()).slice(0, 3),
+                    availability: 'Available',
+                    rate: 0,
+                    anonymous: true,
+                  }]);
                   Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
                   setExperience('');
                   setPortfolio('');
@@ -200,7 +221,7 @@ export default function TalentScreen({ navigation }) {
 
   const renderBrowseTab = () => (
     <ScrollView className="px-6 py-4">
-      {MOCK_TALENTS.map((talent) => (
+      {talents.map((talent) => (
         <View
           key={talent.id}
           className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
@@ -283,7 +304,7 @@ export default function TalentScreen({ navigation }) {
     <ScrollView className="px-6 py-4">
       <Text className="text-text font-semibold text-lg mb-4">Current Submission</Text>
 
-      {MOCK_MY_SUBMISSIONS.map((sub) => (
+      {mySubmissions.map((sub) => (
         <View
           key={sub.id}
           className="bg-background-card rounded-2xl p-5 mb-4 border border-border"

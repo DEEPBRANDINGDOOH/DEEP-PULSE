@@ -261,7 +261,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   ]);
 
   const handlePurchaseSlot = (slotType) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Connect Wallet', 'Please connect your wallet to purchase ad slots');
       return;
     }
@@ -434,6 +434,20 @@ export default function AdSlotsScreen({ route, navigation }) {
                 impressions: 0,
                 clicks: 0,
               }]);
+
+              // Update slot occupancy in UI
+              const updateSlot = (slots) => {
+                const firstAvailable = slots.findIndex(s => !s.active);
+                if (firstAvailable !== -1) {
+                  const updated = [...slots];
+                  updated[firstAvailable] = { ...updated[firstAvailable], advertiser: 'You (pending)', active: true, remaining: duration * 7 };
+                  return updated;
+                }
+                return slots;
+              };
+              if (selectedSlot === 'top') setTopSlots(prev => updateSlot(prev));
+              else if (selectedSlot === 'bottom') setBottomSlots(prev => updateSlot(prev));
+              else if (selectedSlot === 'lockscreen') setLockscreenSlots(prev => updateSlot(prev));
 
               setImageUrl('');
               setImageAsset(null);
@@ -934,6 +948,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 setRichCtaLabel('');
                 setRichCtaUrl('');
                 setRichImageUrl('');
+                setDuration(1);
                 setShowRichNotifModal(true);
               }}
               className="bg-success rounded-xl p-4"
@@ -1468,6 +1483,20 @@ export default function AdSlotsScreen({ route, navigation }) {
                           text: 'Purchase & Submit',
                           onPress: () => {
                             setTimeout(() => {
+                              // Add to my ads list
+                              setMyAds(prev => [...prev, {
+                                id: `my_rich_${Date.now()}`,
+                                slotType: 'rich_notif',
+                                imageUrl: richImageUrl.trim() || null,
+                                landingUrl: richCtaUrl.trim() || null,
+                                status: 'PENDING_REVIEW',
+                                remainingDays: duration * 7,
+                                totalWeeks: duration,
+                                impressions: 0,
+                                clicks: 0,
+                                richTitle: richTitle.trim(),
+                                richBody: richBody.trim(),
+                              }]);
                               setIsSubmittingRich(false);
                               setShowRichNotifModal(false);
                               Alert.alert(

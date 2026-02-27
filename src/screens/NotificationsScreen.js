@@ -135,7 +135,17 @@ export default function NotificationsScreen({ navigation, route }) {
             onMarkAsRead={markAlertAsRead}
             onPress={() => {
               markAlertAsRead(item.id);
-              navigation.navigate('NotificationDetail', { notification: item });
+              // Map alert schema to notification schema for NotificationDetailScreen
+              const notification = {
+                ...item,
+                hubName: item.hubName || item.projectName || 'Alert',
+                hubIcon: item.hubIcon || item.projectIcon || 'notifications',
+                fullMessage: item.fullMessage || item.message || '',
+                reactions: item.reactions || 0,
+                comments: item.comments || 0,
+                isNew: !item.read,
+              };
+              navigation.navigate('NotificationDetail', { notification });
             }}
           />
         )}

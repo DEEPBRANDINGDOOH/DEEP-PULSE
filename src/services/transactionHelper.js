@@ -268,7 +268,7 @@ export const purchaseAdSlot = async (hubPda, slotType, slotIndex, imageUrlHash, 
     return result;
   }, {
     onSuccess: () => {
-      const price = slotType === 'top' ? PRICING.TOP_AD_SLOT : PRICING.BOTTOM_AD_SLOT;
+      const price = slotType === 'top' ? PRICING.TOP_AD_SLOT : slotType === 'lockscreen' ? PRICING.LOCKSCREEN_AD : PRICING.BOTTOM_AD_SLOT;
       Alert.alert(
         'Ad Slot Purchased',
         `Your ${slotType} ad slot has been purchased for ${durationWeeks} week(s) at ${price * durationWeeks} $SKR.`

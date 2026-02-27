@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { approveFeedback, approveTalent, rejectDeposit } from '../services/transactionHelper';
+import { approveFeedback, approveTalent, approveDaoProposal, rejectDeposit } from '../services/transactionHelper';
 
 const MOCK_SUBMISSIONS = {
   feedback: [
@@ -66,6 +66,8 @@ export default function BrandModerationScreen({ navigation }) {
                 result = await approveFeedback(item.depositPda, item.hubPda, item.depositorPubkey);
               } else if (type === 'talent') {
                 result = await approveTalent(item.depositPda, item.hubPda, item.depositorPubkey);
+              } else if (type === 'boost') {
+                result = await approveDaoProposal(item.depositPda, item.hubPda, item.depositorPubkey, 0, item.title, item.description, item.targetAmount, Date.now() + 30 * 24 * 60 * 60 * 1000);
               }
               if (result?.success) {
                 const updated = { ...submissions };

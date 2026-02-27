@@ -88,11 +88,11 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
 
     // [H-08 FIX] Require wallet connection — no anonymous uploads
     const walletPubkey = getWalletPublicKey();
-    if (!walletPubkey) {
+    if (!walletPubkey && !__DEV__) {
       Alert.alert('Wallet Required', 'Please connect your wallet before uploading ad creatives.');
       return { success: false, error: 'Wallet not connected' };
     }
-    const walletStr = walletPubkey.toString();
+    const walletStr = walletPubkey ? walletPubkey.toString() : 'dev_mock_wallet';
 
     // Generate unique filename
     const timestamp = Date.now();

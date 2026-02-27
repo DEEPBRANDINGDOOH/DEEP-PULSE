@@ -114,7 +114,7 @@ export default function DAOBoostScreen({ navigation }) {
       <TouchableOpacity
         onPress={async () => {
           if (!checkRateLimit('dao_submit')) return;
-          if (!wallet.connected) {
+          if (!__DEV__ && !wallet.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
             return;
           }
@@ -139,7 +139,20 @@ export default function DAOBoostScreen({ navigation }) {
               setTitle(''); setDescription(''); setTargetAmount('');
             }
           } else {
-            // Mock fallback
+            // Mock fallback — add to proposals list so it appears in Votes tab
+            const newProposal = {
+              id: `prop_${Date.now()}`,
+              creator: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : 'You',
+              title: title.trim(),
+              description: description.trim(),
+              targetAmount: parseInt(targetAmount, 10) || 10000,
+              currentAmount: 0,
+              backers: 0,
+              hub: selectedHub?.name || 'Unknown',
+              status: 'ACTIVE',
+              daysLeft: 30,
+            };
+            setProposals(prev => [newProposal, ...prev]);
             Alert.alert(
               'Proposal submitted',
               `"${title}" submitted with 100 $SKR deposit. Community can now fund it.`,
@@ -159,7 +172,7 @@ export default function DAOBoostScreen({ navigation }) {
   );
 
   const openFundModal = (proposal) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to fund a DAO proposal.');
       return;
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -55,12 +55,33 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadCount } = useAppStore();
+  const { wallet, getUnreadCount, hubNotifications } = useAppStore();
   const unreadCount = getUnreadCount();
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+
+  // Merge store notifications (from brand-sent notifs) with mock data
+  const storeNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
+    ...n,
+    hubIcon: n.hubIcon || 'apps',
+    reactions: n.reactions || 0,
+    comments: n.comments || 0,
+    isNew: true,
+  }));
+  const [notifications, setNotifications] = useState([...storeNotifs, ...MOCK_NOTIFICATIONS]);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
+
+  // Re-sync when brand sends new notifications
+  useEffect(() => {
+    const freshStoreNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
+      ...n,
+      hubIcon: n.hubIcon || 'apps',
+      reactions: n.reactions || 0,
+      comments: n.comments || 0,
+      isNew: true,
+    }));
+    setNotifications([...freshStoreNotifs, ...MOCK_NOTIFICATIONS]);
+  }, [hubNotifications]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -71,7 +92,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleSendFeedback = (notification) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }

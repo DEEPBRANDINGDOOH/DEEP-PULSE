@@ -81,11 +81,12 @@ const VOLUME_DISCOUNTS = [
   { weeks: 52, discount: '40%' },
 ];
 
-export default function AdTypeSelectorScreen({ navigation }) {
+export default function AdTypeSelectorScreen({ navigation, route }) {
   const { wallet } = useAppStore();
+  const hubId = route.params?.hubId;
 
   const handleSelectType = (slotType) => {
-    navigation.navigate('AdSlots', { slotType });
+    navigation.navigate('AdSlots', { slotType, hubId });
   };
 
   const AdTypeCard = ({ adType }) => {

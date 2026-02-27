@@ -277,7 +277,7 @@ export default function ProfileScreen({ navigation }) {
       )}
 
       {/* Admin Access */}
-      {isAdmin(user.wallet) && (
+      {isAdmin(fullWalletAddress) && (
         <TouchableOpacity
           onPress={() => navigation.navigate('Admin')}
           className="bg-primary/20 rounded-xl p-4 mb-3 flex-row items-center justify-between border border-primary"

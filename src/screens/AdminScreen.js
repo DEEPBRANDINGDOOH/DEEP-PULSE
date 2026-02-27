@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -132,12 +132,16 @@ export default function AdminScreen({ navigation }) {
   const [editingPrice, setEditingPrice] = useState(null);
   const [editPriceValue, setEditPriceValue] = useState('');
 
+  // Track whether we already seeded hubs in this session
+  const hasSeeded = useRef(false);
+
   // Fetch on-chain prices on mount (release mode only)
-  // Seed initial pending hubs if store is empty (first launch)
+  // Seed initial pending hubs ONLY on first mount & if never seeded before
   useEffect(() => {
     loadPlatformPricingFromChain();
-    if (pendingHubs.length === 0) {
+    if (pendingHubs.length === 0 && !hasSeeded.current) {
       INITIAL_PENDING_HUBS.forEach((hub) => storeAddPendingHub(hub));
+      hasSeeded.current = true;
     }
   }, []);
 
@@ -423,9 +427,11 @@ export default function AdminScreen({ navigation }) {
             <Text className="text-text font-semibold ml-3">Manage Hubs</Text>
           </View>
           <View className="flex-row items-center">
-            <View className="bg-primary rounded-full w-6 h-6 items-center justify-center mr-2">
-              <Text className="text-white text-xs font-bold">{pendingHubs.length}</Text>
-            </View>
+            {pendingHubs.length > 0 && (
+              <View className="bg-primary rounded-full w-6 h-6 items-center justify-center mr-2">
+                <Text className="text-white text-xs font-bold">{pendingHubs.length}</Text>
+              </View>
+            )}
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </View>
         </TouchableOpacity>

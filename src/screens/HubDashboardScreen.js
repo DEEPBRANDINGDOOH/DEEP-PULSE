@@ -134,7 +134,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               className="bg-primary rounded-xl py-4"
               onPress={() => {
                 if (!checkRateLimit('send_notification')) return;
-                if (!wallet.connected) {
+                if (!__DEV__ && !wallet.connected) {
                   Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
                   return;
                 }
@@ -221,7 +221,7 @@ export default function HubDashboardScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('AdTypeSelector')}
+            onPress={() => navigation.navigate('AdTypeSelector', { hubId: hubData?.id || `hub_${hubName}` })}
             className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
           >
             <View className="flex-row items-center">
