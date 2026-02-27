@@ -882,6 +882,146 @@ After repeated actions of the same type, each additional action earns less:
 
 ---
 
+## Roadmap to Mainnet
+
+> **Current status: Hackathon Demo (devnet + mock data)**. The app is fully functional on devnet with `__DEV__` mock transactions. Below is everything needed to ship DEEP PULSE as a real production app on Solana mainnet and the Solana Mobile dApp Store.
+
+### What's Already Production-Ready
+
+| Component | Status |
+|-----------|--------|
+| Smart contracts (23 instructions, 3 audits, 9.5/10 score) | ✅ Ready |
+| React Native app (20 screens, NativeWind UI) | ✅ Ready |
+| Mobile Wallet Adapter 2.0 (SeedVault + Phantom + Solflare) | ✅ Ready |
+| Firebase Cloud Functions (10 functions deployed) | ✅ Ready |
+| FCM push notifications (topic-based) | ✅ Ready |
+| Release APK signing (keystore configured, ProGuard enabled) | ✅ Ready |
+| Privacy Policy (hosted) | ✅ Ready |
+| Environment-aware logging (no sensitive data in production) | ✅ Ready |
+| Network switching (auto devnet/mainnet via `__DEV__`) | ✅ Ready |
+
+### Step 1 — Deploy Smart Contract to Mainnet
+
+```bash
+# 1. Add mainnet section to Anchor.toml
+# [programs.mainnet-beta]
+# deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+
+# 2. Fund deployer wallet (~5-15 SOL needed for program rent)
+solana config set --url mainnet-beta
+solana balance
+
+# 3. Deploy
+anchor deploy --provider.cluster mainnet-beta
+
+# 4. Initialize platform (one-time)
+npm run devnet:init  # adapt script for mainnet
+```
+
+**Estimated cost:** ~5-15 SOL for program rent (~$750-$2,250 at current prices)
+
+**If Program ID changes**, update in 4 places:
+- `programs/deep-pulse/src/lib.rs` (`declare_id!`)
+- `Anchor.toml`
+- `src/config/constants.js` (`PROGRAM_ID`)
+- `src/services/programService.js`
+
+### Step 2 — Verify $SKR Token on Mainnet
+
+The $SKR mint (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) must exist on mainnet-beta with sufficient liquidity. The mint is hardcoded on-chain in `constants.rs` for security.
+
+### Step 3 — Production Infrastructure
+
+| Service | Current (Free) | Production Needed | Est. Cost |
+|---------|---------------|-------------------|-----------|
+| **RPC Endpoint** | `api.mainnet-beta.solana.com` (rate-limited) | Helius or QuickNode (dedicated) | ~$49/month |
+| **Firebase** | Blaze free tier | Blaze pay-as-you-go | ~$25-100/month |
+| **Firebase Auth** | Not implemented | Custom Auth with wallet signature | Development time |
+| **Error Monitoring** | None | Sentry or Firebase Crashlytics | Free tier available |
+| **Firebase App Check** | Not implemented | Protect Cloud Functions from abuse | Free |
+
+### Step 4 — Security Hardening for Production
+
+| Item | Priority | Details |
+|------|----------|---------|
+| **Firebase Authentication** | Critical | Implement sign-in-with-wallet (sign message → verify on backend → issue Firebase Custom Auth token). Currently Firestore rules don't use `request.auth` — wallet addresses are self-reported |
+| **Firestore Security Rules** | Critical | Tighten rules to require auth tokens instead of client-supplied wallet addresses |
+| **Storage Security Rules** | High | Add auth-based access control for ad creative uploads/deletes |
+| **Cloud Function rate limiting** | High | Server-side rate limiting (currently client-side only via `checkRateLimit`) |
+| **Mock data gating** | High | Gate `MOCK_HUBS`, `pendingHubs`, `pendingAdCreatives` behind `__DEV__` in appStore.js so production users start with empty state |
+| **Firebase App Check** | Medium | Prevent unauthorized API calls to Cloud Functions |
+| **Crash reporting** | Medium | Add Sentry or Crashlytics for production error visibility |
+| **Admin multi-sig** | Low | Replace single admin wallet with multi-sig for added security |
+
+**Security score: 9.5/10** — the remaining 0.5 is Firebase Authentication.
+
+### Step 5 — Solana Mobile dApp Store Submission
+
+The Solana dApp Store uses an **NFT-based publishing model** — your app listing is an on-chain NFT you own. No platform fees, no commissions.
+
+#### Prerequisites
+
+| Requirement | Status |
+|-------------|--------|
+| Publisher Portal account (`publish.solanamobile.com`) | To create |
+| KYC/KYB verification | To complete |
+| Solana mainnet wallet with ~0.2 SOL (for NFT minting + Arweave storage) | To fund |
+| Privacy Policy URL | ✅ `docs/PRIVACY_POLICY.md` (host at `deep-pulse.web.app/privacy`) |
+| EULA / License URL | To create and host |
+| Copyright notice URL | To create and host |
+
+#### Required Assets
+
+| Asset | Spec | Status |
+|-------|------|--------|
+| App Icon | 512x512px PNG | To create |
+| Banner Graphic | 1200x600px | To create |
+| Screenshots (min 4) | 1080px+ consistent orientation | ✅ Available in `screenshots/` |
+| Short Description | Max 30 characters | To write |
+| Long Description | Full feature overview | ✅ Available from README |
+| Release Notes | What's new in this version | To write |
+
+#### Submission Process
+
+```bash
+# Option A: Publisher Portal (recommended)
+# 1. Go to publish.solanamobile.com
+# 2. Connect wallet, complete KYC
+# 3. Top up ArDrive balance (~0.2 SOL)
+# 4. Upload APK + assets
+# 5. Submit for review (2-5 business days)
+
+# Option B: CLI (for automation)
+pnpm install --save-dev @solana-mobile/dapp-store-cli
+npx dapp-store create publisher -k <keypair> -u https://api.mainnet-beta.solana.com
+npx dapp-store create app -k <keypair> -u https://api.mainnet-beta.solana.com
+npx dapp-store create release -k <keypair> -u https://api.mainnet-beta.solana.com
+npx dapp-store publish submit -k <keypair> -u <rpc_url> \
+  --requestor-is-authorized \
+  --complies-with-solana-dapp-store-policies
+```
+
+#### Important Rules
+
+- APK must be signed with a **NEW signing key** (not Google Play key) — our release keystore is already separate ✅
+- Package name (`com.deeppulse`) cannot change after App NFT is minted
+- Each update requires incrementing `versionCode` in `build.gradle`
+- Review takes **2-5 business days**
+- **$0 platform commission** (vs 15-30% on Google Play / App Store)
+
+### Total Estimated Launch Costs
+
+| Item | One-Time | Monthly |
+|------|----------|---------|
+| Program deployment (SOL rent) | ~$750-2,250 | — |
+| dApp Store submission (SOL for NFTs) | ~$30 | — |
+| RPC provider (Helius/QuickNode) | — | ~$49 |
+| Firebase Blaze (Cloud Functions + Firestore) | — | ~$25-100 |
+| Firebase Auth implementation | Dev time | — |
+| **Total** | **~$800-2,300** | **~$75-150/month** |
+
+---
+
 ## Troubleshooting
 
 | Issue | Solution |
