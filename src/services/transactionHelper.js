@@ -45,7 +45,7 @@ export const executeTransaction = async (actionName, txFn, options = {}) => {
 
   // In __DEV__ mode, skip wallet check and return mock success
   if (__DEV__ && requiresWallet && !isWalletConnected()) {
-    logger.info(`[Transaction] ${actionName} — DEV mock (no wallet)`);
+    logger.log(`[Transaction] ${actionName} — DEV mock (no wallet)`);
     const mockResult = {
       signature: `mock_${actionName.replace(/\s/g, '_')}_${Date.now()}`,
       message: `${actionName} completed (dev mock)`,

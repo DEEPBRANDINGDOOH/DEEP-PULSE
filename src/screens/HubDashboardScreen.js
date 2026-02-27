@@ -219,7 +219,7 @@ export default function HubDashboardScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('BrandModeration')}
+            onPress={() => navigation.navigate('BrandModeration', { hubName, hubId: hubData?.id })}
             className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
           >
             <View className="flex-row items-center">

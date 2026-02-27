@@ -387,8 +387,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                 finalImageUrl = uploadResult.url;
               }
 
-              // Attempt real on-chain ad purchase if hubId is available
-              if (hubId) {
+              // Attempt real on-chain ad purchase if hubId is available (skip in dev mode)
+              if (hubId && !__DEV__) {
                 const slotIndex = Date.now() % 100000;
                 // Hash URLs properly for on-chain storage
                 const imageUrlHash = finalImageUrl
@@ -718,8 +718,8 @@ export default function AdSlotsScreen({ route, navigation }) {
           </Text>
         </View>
 
-        {/* My Active Ads — only show if wallet connected and has ads */}
-        {showMyAds && wallet.connected && myAds.length > 0 && (
+        {/* My Active Ads — show if wallet connected (or dev mode) and has ads */}
+        {showMyAds && (__DEV__ || wallet.connected) && myAds.length > 0 && (
           <View className="px-6 mb-6">
             <View className="flex-row items-center mb-3">
               <Ionicons name="image" size={20} color="#FF9F66" />

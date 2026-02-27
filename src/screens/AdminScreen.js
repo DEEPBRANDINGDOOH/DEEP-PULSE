@@ -791,6 +791,7 @@ export default function AdminScreen({ navigation }) {
 
       {Object.entries(prices).map(([key, value]) => {
         const info = PRICE_LABELS[key];
+        if (!info) return null; // Skip unknown pricing keys
         const isEditing = editingPrice === key;
         return (
           <View key={key} className="bg-background-card rounded-xl p-4 mb-3 border border-border">

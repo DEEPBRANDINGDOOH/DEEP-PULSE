@@ -236,6 +236,13 @@ export async function uploadHubLogo(imageAsset, hubId, onProgress = null) {
       return { success: false, error: validation.errors.join(', ') };
     }
 
+    // In dev mode, skip Firebase Storage and use local URI directly
+    if (__DEV__) {
+      logger.log('[Storage] Dev mode — using local URI as logo:', imageAsset.uri);
+      if (onProgress) onProgress(100);
+      return { success: true, url: imageAsset.uri, path: `dev/${hubId}` };
+    }
+
     // Require wallet connection
     const walletPubkey = getWalletPublicKey();
     if (!walletPubkey) {

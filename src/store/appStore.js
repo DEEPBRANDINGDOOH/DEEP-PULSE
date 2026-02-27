@@ -194,6 +194,25 @@ export const useAppStore = create(
       },
 
       // ============================================
+      // HUB FEEDBACKS STATE (persisted — submitted by users)
+      // ============================================
+      hubFeedbacks: {},
+
+      addHubFeedback: (hubName, feedback) => {
+        set((state) => ({
+          hubFeedbacks: {
+            ...state.hubFeedbacks,
+            [hubName]: [feedback, ...(state.hubFeedbacks[hubName] || [])],
+          },
+        }));
+      },
+
+      getHubFeedbacks: (hubName) => {
+        const { hubFeedbacks } = get();
+        return hubFeedbacks[hubName] || [];
+      },
+
+      // ============================================
       // HUB NOTIFICATIONS STATE (persisted)
       // ============================================
       hubNotifications: {},
@@ -280,6 +299,7 @@ export const useAppStore = create(
                 bottomAdSlot: config.bottomAdPricePerWeek.toNumber() / DECIMALS,
                 lockscreenAd: 1000, // Not in PlatformConfig — keep default
                 globalNotification: 1000, // Not in PlatformConfig — keep default
+                pushNotificationAd: get().platformPricing?.pushNotificationAd || 1500, // Preserve existing value
               },
             });
           }
@@ -307,6 +327,7 @@ export const useAppStore = create(
         hubs: state.hubs,
         pendingHubs: state.pendingHubs,
         hubNotifications: state.hubNotifications,
+        hubFeedbacks: state.hubFeedbacks,
       }),
     }
   )

@@ -1,53 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { approveFeedback, approveTalent, approveDaoProposal, rejectDeposit } from '../services/transactionHelper';
+import { useAppStore } from '../store/appStore';
 
-const MOCK_SUBMISSIONS = {
-  feedback: [
-    {
-      id: '1',
-      wallet: '7xK...9Qz',
-      title: 'Re: Game Launch',
-      message: 'Great timing! More details next time would help...',
-      deposit: 300,
-      timestamp: '2 hours ago',
-    },
-    {
-      id: '2',
-      wallet: '2pQ...mNp',
-      title: 'Re: NFT Drop',
-      message: 'Suggestion for improvement: Add rarity tiers info',
-      deposit: 300,
-      timestamp: '5 hours ago',
-    },
-  ],
-  boost: [
-    {
-      id: '3',
-      wallet: '8vN...4Wp',
-      title: 'Leaderboard System',
-      description: 'Weekly rankings with prizes',
-      targetAmount: 25000,
-      deposit: 100,
-    },
-  ],
-  talent: [
-    {
-      id: '4',
-      wallet: '5tY...2Lm',
-      role: 'Community Manager',
-      experience: '3+ years managing Discord communities',
-      portfolio: 'https://portfolio.example.com',
-      deposit: 50,
-    },
-  ],
-};
+/**
+ * Generate contextual mock submissions for a specific hub.
+ * These are shown only when the store has no real feedbacks yet,
+ * so the screen doesn't look empty during demo.
+ */
+function getMockSubmissions(hubName) {
+  return {
+    feedback: [
+      {
+        id: 'mock_fb_1',
+        wallet: '7xK...9Qz',
+        title: `Re: ${hubName} Update`,
+        message: `Great notification from ${hubName}! Would love more detailed info next time.`,
+        deposit: 300,
+        timestamp: '2 hours ago',
+        isMock: true,
+      },
+      {
+        id: 'mock_fb_2',
+        wallet: '2pQ...mNp',
+        title: `Re: ${hubName} Announcement`,
+        message: `Suggestion: Add more context about upcoming events for ${hubName} subscribers.`,
+        deposit: 300,
+        timestamp: '5 hours ago',
+        isMock: true,
+      },
+    ],
+    boost: [
+      {
+        id: 'mock_boost_1',
+        wallet: '8vN...4Wp',
+        title: `${hubName} Leaderboard`,
+        description: `Weekly rankings with prizes for top ${hubName} contributors`,
+        targetAmount: 25000,
+        deposit: 100,
+        isMock: true,
+      },
+    ],
+    talent: [
+      {
+        id: 'mock_talent_1',
+        wallet: '5tY...2Lm',
+        role: 'Community Manager',
+        experience: `3+ years managing communities similar to ${hubName}`,
+        portfolio: 'https://portfolio.example.com',
+        deposit: 50,
+        isMock: true,
+      },
+    ],
+  };
+}
 
-export default function BrandModerationScreen({ navigation }) {
+export default function BrandModerationScreen({ navigation, route }) {
+  const hubName = route.params?.hubName || 'My Hub';
+  const hubId = route.params?.hubId || null;
+
+  // Read real feedbacks from Zustand store
+  const storeFeedbacks = useAppStore((state) => state.hubFeedbacks[hubName] || []);
+
   const [activeTab, setActiveTab] = useState('feedback');
-  const [submissions, setSubmissions] = useState(MOCK_SUBMISSIONS);
+
+  // Merge store feedbacks with contextual mocks
+  const initialSubmissions = useMemo(() => {
+    const mocks = getMockSubmissions(hubName);
+    // Convert store feedbacks to the format expected by this screen
+    const realFeedbacks = storeFeedbacks.map((fb) => ({
+      id: fb.id,
+      wallet: fb.wallet || '???...???',
+      title: fb.title || 'Feedback',
+      message: fb.message,
+      deposit: fb.deposit || 300,
+      timestamp: fb.timestamp || 'Recently',
+      isMock: false,
+    }));
+    return {
+      feedback: [...realFeedbacks, ...mocks.feedback],
+      boost: mocks.boost,
+      talent: mocks.talent,
+    };
+  }, [storeFeedbacks, hubName]);
+
+  const [submissions, setSubmissions] = useState(initialSubmissions);
+
+  // Re-sync when store feedbacks change
+  React.useEffect(() => {
+    const mocks = getMockSubmissions(hubName);
+    const realFeedbacks = storeFeedbacks.map((fb) => ({
+      id: fb.id,
+      wallet: fb.wallet || '???...???',
+      title: fb.title || 'Feedback',
+      message: fb.message,
+      deposit: fb.deposit || 300,
+      timestamp: fb.timestamp || 'Recently',
+      isMock: false,
+    }));
+    setSubmissions((prev) => ({
+      ...prev,
+      feedback: [...realFeedbacks, ...mocks.feedback],
+    }));
+  }, [storeFeedbacks, hubName]);
 
   const handleApprove = (type, id, deposit) => {
     const item = submissions[type]?.find(s => s.id === id);
@@ -136,7 +193,14 @@ export default function BrandModerationScreen({ navigation }) {
             className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
           >
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-text-secondary text-sm">{item.wallet}</Text>
+              <View className="flex-row items-center">
+                <Text className="text-text-secondary text-sm">{item.wallet}</Text>
+                {!item.isMock && (
+                  <View className="ml-2 bg-green-500/20 rounded-full px-2 py-0.5">
+                    <Text className="text-green-400 text-xs font-bold">REAL</Text>
+                  </View>
+                )}
+              </View>
               <View className="bg-primary/20 rounded-full px-3 py-1">
                 <Text className="text-primary text-xs font-bold">{item.deposit} $SKR</Text>
               </View>
@@ -291,8 +355,8 @@ export default function BrandModerationScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="p-6 pb-4">
-        <Text className="text-text font-black text-3xl mb-2">Moderation</Text>
-        <Text className="text-text-secondary text-base">Review submissions</Text>
+        <Text className="text-text font-black text-3xl mb-1">Moderation</Text>
+        <Text className="text-text-secondary text-base">{hubName} — Review submissions</Text>
       </View>
 
       {/* Tabs */}

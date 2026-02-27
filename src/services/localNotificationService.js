@@ -4,8 +4,9 @@
  * Uses @notifee/react-native to display real Android notifications
  * on the lock screen and notification tray.
  *
- * Used in debug/demo mode when Firebase Cloud Functions
- * are not deployed (no server-side FCM push).
+ * Works in both debug and release mode.
+ * In debug: local notifications are the primary delivery method.
+ * In release: local notifications supplement Firebase Cloud Messaging.
  */
 
 import { Platform } from 'react-native';
@@ -38,20 +39,21 @@ async function ensureChannel() {
       sound: 'default',
       vibration: true,
     });
+    logger.log('[LocalNotif] Channel created successfully');
   } catch (e) {
     logger.warn('[LocalNotif] createChannel failed:', e.message);
   }
 }
 
-// Create channel on import
-ensureChannel();
+// Store the promise so we can await it before first notification
+const channelReady = ensureChannel();
 
 /**
  * Display a local push notification (appears in tray + lock screen).
  *
- * @param {string} title   — Notification title (e.g. "Solana Gaming: New Launch")
- * @param {string} body    — Notification body text
- * @param {Object} [data]  — Optional data payload (hubName, hubId, link, etc.)
+ * @param {string} title   - Notification title (e.g. "Solana Gaming: New Launch")
+ * @param {string} body    - Notification body text
+ * @param {Object} [data]  - Optional data payload (hubName, hubId, link, etc.)
  */
 export async function showLocalNotification(title, body, data = {}) {
   if (!notifee) {
@@ -59,12 +61,15 @@ export async function showLocalNotification(title, body, data = {}) {
     return;
   }
   try {
+    // Wait for channel to be created before displaying
+    await channelReady;
+
     await notifee.displayNotification({
       title,
       body,
       android: {
         channelId: CHANNEL_ID,
-        smallIcon: 'ic_notification', // Falls back to app icon if not found
+        smallIcon: 'ic_launcher', // Default Android app icon (always exists)
         pressAction: { id: 'default' },
         importance: AndroidImportance.HIGH,
       },

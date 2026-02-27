@@ -55,7 +55,7 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadCount, hubNotifications } = useAppStore();
+  const { wallet, getUnreadCount, hubNotifications, addHubFeedback } = useAppStore();
   const unreadCount = getUnreadCount();
 
   // Merge store notifications (from brand-sent notifs) with mock data
@@ -121,11 +121,30 @@ export default function HomeScreen({ navigation }) {
       );
       setSubmitting(false);
       if (result.success) {
+        // Store in Zustand for moderation screen
+        addHubFeedback(selectedNotification?.hubName, {
+          id: `fb_${Date.now()}`,
+          wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
+          title: `Re: ${selectedNotification?.title || 'Notification'}`,
+          message: feedbackText.trim(),
+          deposit: 300,
+          timestamp: 'Just now',
+          hubName: selectedNotification?.hubName,
+        });
         setFeedbackText('');
         setFeedbackModalVisible(false);
       }
     } else {
-      // Mock mode fallback
+      // Mock mode fallback — store feedback in Zustand for moderation
+      addHubFeedback(selectedNotification?.hubName, {
+        id: `fb_${Date.now()}`,
+        wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
+        title: `Re: ${selectedNotification?.title || 'Notification'}`,
+        message: feedbackText.trim(),
+        deposit: 300,
+        timestamp: 'Just now',
+        hubName: selectedNotification?.hubName,
+      });
       setSubmitting(false);
       Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`);
       setFeedbackText('');
