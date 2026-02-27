@@ -441,7 +441,7 @@ export default function TalentScreen({ navigation }) {
         
         <Text className="text-text-secondary text-base">
           {activeTab === 'submit' && 'Get noticed'}
-          {activeTab === 'browse' && `${MOCK_TALENTS.length} talents`}
+          {activeTab === 'browse' && `${talents.length} talents`}
           {activeTab === 'mine' && 'Your submissions'}
         </Text>
       </View>
@@ -470,7 +470,7 @@ export default function TalentScreen({ navigation }) {
               activeTab === 'browse' ? 'text-primary' : 'text-text-secondary'
             }`}
           >
-            Browse ({MOCK_TALENTS.length})
+            Browse ({talents.length})
           </Text>
         </TouchableOpacity>
         
@@ -483,7 +483,7 @@ export default function TalentScreen({ navigation }) {
               activeTab === 'mine' ? 'text-primary' : 'text-text-secondary'
             }`}
           >
-            Mine (1)
+            Mine ({mySubmissions.length})
           </Text>
         </TouchableOpacity>
       </View>

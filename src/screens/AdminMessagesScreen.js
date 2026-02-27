@@ -146,44 +146,53 @@ export default function AdminMessagesScreen({ navigation, route }) {
         </View>
 
         <ScrollView className="px-6">
-          {conversations.length === 0 ? (
-            <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
-              <Ionicons name="chatbubbles-outline" size={48} color="#666" />
-              <Text className="text-text-secondary text-base mt-4 text-center">
-                No conversations yet
-              </Text>
-            </View>
-          ) : (
-            conversations.map((conv) => (
-              <TouchableOpacity
-                key={conv.id}
-                onPress={() => setSelectedConv(conv)}
-                className="bg-background-card rounded-2xl p-4 mb-3 border border-border"
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center">
-                  <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center mr-3">
-                    <Ionicons name={conv.hubIcon} size={24} color="#FF9F66" />
-                  </View>
-                  <View className="flex-1">
-                    <View className="flex-row items-center justify-between">
-                      <Text className="text-text font-bold">{conv.hubName}</Text>
-                      <Text className="text-text-secondary text-xs">{conv.lastMessageTime}</Text>
+          {/* FIX: Filter conversations for brand view — only show their hub */}
+          {(() => {
+            const displayedConversations = isFromBrand && brandHubName
+              ? conversations.filter(c => c.hubName === brandHubName)
+              : conversations;
+
+            return displayedConversations.length === 0 ? (
+              <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+                <Ionicons name="chatbubbles-outline" size={48} color="#666" />
+                <Text className="text-text-secondary text-base mt-4 text-center">
+                  No conversations yet
+                </Text>
+              </View>
+            ) : (
+              displayedConversations.map((conv) => (
+                <TouchableOpacity
+                  key={conv.id}
+                  onPress={() => setSelectedConv(conv)}
+                  className="bg-background-card rounded-2xl p-4 mb-3 border border-border"
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center">
+                    <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center mr-3">
+                      <Ionicons name={conv.hubIcon} size={24} color="#FF9F66" />
                     </View>
-                    <Text className="text-text-secondary text-xs mt-0.5">{conv.brandWallet}</Text>
-                    <Text className="text-text-secondary text-sm mt-1" numberOfLines={1}>
-                      {conv.lastMessageFrom === 'admin' ? 'You: ' : ''}{conv.lastMessage}
-                    </Text>
-                  </View>
-                  {conv.unreadCount > 0 && (
-                    <View className="bg-primary rounded-full w-6 h-6 items-center justify-center ml-2">
-                      <Text className="text-white text-xs font-bold">{conv.unreadCount}</Text>
+                    <View className="flex-1">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-text font-bold">{conv.hubName}</Text>
+                        <Text className="text-text-secondary text-xs">{conv.lastMessageTime}</Text>
+                      </View>
+                      <Text className="text-text-secondary text-xs mt-0.5">{conv.brandWallet}</Text>
+                      <Text className="text-text-secondary text-sm mt-1" numberOfLines={1}>
+                        {/* FIX: "You:" prefix depends on who is viewing */}
+                        {(isFromBrand ? conv.lastMessageFrom === 'brand' : conv.lastMessageFrom === 'admin') ? 'You: ' : ''}
+                        {conv.lastMessage}
+                      </Text>
                     </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
+                    {conv.unreadCount > 0 && (
+                      <View className="bg-primary rounded-full w-6 h-6 items-center justify-center ml-2">
+                        <Text className="text-white text-xs font-bold">{conv.unreadCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))
+            );
+          })()}
         </ScrollView>
       </SafeAreaView>
     );

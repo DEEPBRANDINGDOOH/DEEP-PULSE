@@ -194,6 +194,88 @@ export const useAppStore = create(
       },
 
       // ============================================
+      // AD CREATIVES STATE (persisted — submitted by brands, reviewed by admin)
+      // ============================================
+      pendingAdCreatives: [
+        {
+          id: 'ad_review_1',
+          brandName: 'Jupiter Exchange',
+          brandWallet: '7xK...9Qz',
+          hubName: 'DeFi Alerts',
+          slotType: 'top',
+          imageUrl: 'https://cdn.jupiter.com/ads/swap-promo-390x120.png',
+          landingUrl: 'https://jup.ag/swap',
+          duration: 4,
+          totalCost: 7200,
+          status: 'PENDING',
+          submittedDate: 'Feb 20, 2026',
+        },
+        {
+          id: 'ad_review_2',
+          brandName: 'NFT Marketplace',
+          brandWallet: '2pQ...mNp',
+          hubName: 'NFT Artists',
+          slotType: 'bottom',
+          imageUrl: 'https://cdn.nftmarket.io/banner-390x100.gif',
+          landingUrl: 'https://nftmarket.io/drops',
+          duration: 2,
+          totalCost: 2700,
+          status: 'PENDING',
+          submittedDate: 'Feb 21, 2026',
+        },
+        {
+          id: 'ad_review_3',
+          brandName: 'Suspicious Token',
+          brandWallet: '5tY...2Lm',
+          hubName: 'Solana Gaming',
+          slotType: 'top',
+          imageUrl: 'https://sketchy-site.xyz/free-tokens-390x120.png',
+          landingUrl: 'https://sketchy-site.xyz/claim',
+          duration: 1,
+          totalCost: 2000,
+          status: 'PENDING',
+          submittedDate: 'Feb 22, 2026',
+        },
+        {
+          id: 'ad_review_4',
+          brandName: 'Phantom Wallet',
+          brandWallet: '9kR...3Wp',
+          hubName: 'DeFi Alerts',
+          slotType: 'lockscreen',
+          imageUrl: 'https://cdn.phantom.app/lockscreen-promo-1080x1920.png',
+          landingUrl: 'https://phantom.app/download',
+          duration: 2,
+          totalCost: 4000,
+          status: 'PENDING',
+          submittedDate: 'Feb 23, 2026',
+        },
+      ],
+      approvedAds: [],
+
+      addPendingAdCreative: (ad) => {
+        set((state) => ({
+          pendingAdCreatives: [ad, ...state.pendingAdCreatives],
+        }));
+      },
+
+      approveAdCreativeInStore: (adId) => {
+        const { pendingAdCreatives, approvedAds } = get();
+        const ad = pendingAdCreatives.find(a => a.id === adId);
+        if (ad) {
+          set({
+            pendingAdCreatives: pendingAdCreatives.filter(a => a.id !== adId),
+            approvedAds: [...approvedAds, { ...ad, status: 'APPROVED' }],
+          });
+        }
+      },
+
+      rejectAdCreativeInStore: (adId) => {
+        set((state) => ({
+          pendingAdCreatives: state.pendingAdCreatives.filter(a => a.id !== adId),
+        }));
+      },
+
+      // ============================================
       // HUB FEEDBACKS STATE (persisted — submitted by users)
       // ============================================
       hubFeedbacks: {},
@@ -297,8 +379,8 @@ export const useAppStore = create(
                 hubCreation: config.hubSubscriptionPrice.toNumber() / DECIMALS,
                 topAdSlot: config.topAdPricePerWeek.toNumber() / DECIMALS,
                 bottomAdSlot: config.bottomAdPricePerWeek.toNumber() / DECIMALS,
-                lockscreenAd: 1000, // Not in PlatformConfig — keep default
-                globalNotification: 1000, // Not in PlatformConfig — keep default
+                lockscreenAd: get().platformPricing?.lockscreenAd || PRICING.LOCKSCREEN_AD,
+                globalNotification: get().platformPricing?.globalNotification || PRICING.GLOBAL_NOTIFICATION,
                 pushNotificationAd: get().platformPricing?.pushNotificationAd || 1500, // Preserve existing value
               },
             });
@@ -328,6 +410,8 @@ export const useAppStore = create(
         pendingHubs: state.pendingHubs,
         hubNotifications: state.hubNotifications,
         hubFeedbacks: state.hubFeedbacks,
+        pendingAdCreatives: state.pendingAdCreatives,
+        approvedAds: state.approvedAds,
       }),
     }
   )

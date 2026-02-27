@@ -84,9 +84,10 @@ const VOLUME_DISCOUNTS = [
 export default function AdTypeSelectorScreen({ navigation, route }) {
   const { wallet } = useAppStore();
   const hubId = route.params?.hubId;
+  const hubName = route.params?.hubName;
 
   const handleSelectType = (slotType) => {
-    navigation.navigate('AdSlots', { slotType, hubId });
+    navigation.navigate('AdSlots', { slotType, hubId, hubName });
   };
 
   const AdTypeCard = ({ adType }) => {
@@ -184,7 +185,7 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
         </View>
 
         {/* My Active Ads */}
-        {wallet.connected && MOCK_ACTIVE_ADS_COUNT > 0 && (
+        {(__DEV__ || wallet.connected) && MOCK_ACTIVE_ADS_COUNT > 0 && (
           <View className="px-6 mb-4">
             <TouchableOpacity
               onPress={() => handleSelectType('my_ads')}

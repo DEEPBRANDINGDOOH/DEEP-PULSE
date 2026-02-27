@@ -23,60 +23,7 @@ const MOCK_TOP_100 = [
 
 // Initial pending hubs are now pre-seeded in appStore (no more runtime seeding).
 
-const MOCK_PENDING_ADS = [
-  {
-    id: 'ad_review_1',
-    brandName: 'Jupiter Exchange',
-    brandWallet: '7xK...9Qz',
-    hubName: 'DeFi Alerts',
-    slotType: 'top',
-    imageUrl: 'https://cdn.jupiter.com/ads/swap-promo-390x120.png',
-    landingUrl: 'https://jup.ag/swap',
-    duration: 4,
-    totalCost: 7200,
-    status: 'PENDING',
-    submittedDate: 'Feb 20, 2026',
-  },
-  {
-    id: 'ad_review_2',
-    brandName: 'NFT Marketplace',
-    brandWallet: '2pQ...mNp',
-    hubName: 'NFT Artists',
-    slotType: 'bottom',
-    imageUrl: 'https://cdn.nftmarket.io/banner-390x100.gif',
-    landingUrl: 'https://nftmarket.io/drops',
-    duration: 2,
-    totalCost: 2700,
-    status: 'PENDING',
-    submittedDate: 'Feb 21, 2026',
-  },
-  {
-    id: 'ad_review_3',
-    brandName: 'Suspicious Token',
-    brandWallet: '5tY...2Lm',
-    hubName: 'Solana Gaming',
-    slotType: 'top',
-    imageUrl: 'https://sketchy-site.xyz/free-tokens-390x120.png',
-    landingUrl: 'https://sketchy-site.xyz/claim',
-    duration: 1,
-    totalCost: 2000,
-    status: 'PENDING',
-    submittedDate: 'Feb 22, 2026',
-  },
-  {
-    id: 'ad_review_4',
-    brandName: 'Phantom Wallet',
-    brandWallet: '9kR...3Wp',
-    hubName: 'DeFi Alerts',
-    slotType: 'lockscreen',
-    imageUrl: 'https://cdn.phantom.app/lockscreen-promo-1080x1920.png',
-    landingUrl: 'https://phantom.app/download',
-    duration: 2,
-    totalCost: 4000,
-    status: 'PENDING',
-    submittedDate: 'Feb 23, 2026',
-  },
-];
+// MOCK_PENDING_ADS moved to appStore.js (Zustand) for cross-screen data flow
 
 // Stats per period
 const STATS_DATA = {
@@ -109,7 +56,10 @@ export default function AdminScreen({ navigation }) {
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
-  const [pendingAds, setPendingAds] = useState(MOCK_PENDING_ADS);
+  // Read pending ads from Zustand store (shared with AdSlotsScreen)
+  const pendingAds = useAppStore((state) => state.pendingAdCreatives);
+  const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
+  const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
   const [savingPrice, setSavingPrice] = useState(false);
 
   // Stats state
@@ -141,13 +91,14 @@ export default function AdminScreen({ navigation }) {
     }
     Alert.alert(
       'Approve Ad',
-      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : 'Bottom'}\nDuration: ${ad.duration} week(s)\nCost: ${ad.totalCost.toLocaleString()} $SKR\n\nThe ad will go live immediately.`,
+      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom'}\nDuration: ${ad.duration} week(s)\nCost: ${ad.totalCost.toLocaleString()} $SKR\n\nThe ad will go live immediately.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Approve',
           onPress: async () => {
-            setPendingAds(prev => prev.filter(a => a.id !== ad.id));
+            // Update Zustand store (removes from pending, adds to approved)
+            storeApproveAd(ad.id);
             // Sync with Firebase backend
             approveAdCreative(ad.id, wallet.publicKey || 'admin')
               .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
@@ -172,7 +123,8 @@ export default function AdminScreen({ navigation }) {
           text: 'Reject & Note Refund',
           style: 'destructive',
           onPress: async () => {
-            setPendingAds(prev => prev.filter(a => a.id !== ad.id));
+            // Update Zustand store (removes from pending)
+            storeRejectAd(ad.id);
             // Sync with Firebase backend
             rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Rejected by admin — refund required')
               .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
@@ -200,7 +152,8 @@ export default function AdminScreen({ navigation }) {
           text: 'Flag Spam & Retain Funds',
           style: 'destructive',
           onPress: async () => {
-            setPendingAds(prev => prev.filter(a => a.id !== ad.id));
+            // Update Zustand store (removes from pending)
+            storeRejectAd(ad.id);
             // Sync with Firebase backend
             rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Flagged as spam — funds retained')
               .catch(e => logger.warn('[Admin] flagSpam backend failed:', e));
@@ -512,7 +465,7 @@ export default function AdminScreen({ navigation }) {
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Slot</Text>
-                <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : ad.slotType === 'lockscreen' ? 'Lockscreen (1080x1920)' : 'Bottom (390x100)'}</Text>
+                <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : ad.slotType === 'lockscreen' ? 'Lockscreen (1080x1920)' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom (390x100)'}</Text>
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Duration</Text>

@@ -40,10 +40,9 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
 import { safeOpenURL, MAX_LENGTHS } from '../utils/security';
 
-// Ad Slot Configuration
-const AD_CONFIG = {
+// Ad Slot Configuration — base specs (prices are overridden dynamically inside component)
+const AD_CONFIG_BASE = {
   TOP_SLOT: {
-    price: 800,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,
@@ -57,7 +56,6 @@ const AD_CONFIG = {
     maxFileSize: '2 MB',
   },
   BOTTOM_SLOT: {
-    price: 600,
     maxSlots: 8,
     rotationInterval: 15,
     width: 390,
@@ -71,7 +69,6 @@ const AD_CONFIG = {
     maxFileSize: '2 MB',
   },
   LOCKSCREEN_SLOT: {
-    price: 1000,
     maxSlots: 4,
     rotationInterval: 0,
     width: 1080,
@@ -127,7 +124,7 @@ function validateAdCreative(imageUrl, landingUrl, slotType) {
     }
   }
 
-  const config = slotType === 'top' ? AD_CONFIG.TOP_SLOT : slotType === 'lockscreen' ? AD_CONFIG.LOCKSCREEN_SLOT : AD_CONFIG.BOTTOM_SLOT;
+  const config = slotType === 'top' ? AD_CONFIG_BASE.TOP_SLOT : slotType === 'lockscreen' ? AD_CONFIG_BASE.LOCKSCREEN_SLOT : AD_CONFIG_BASE.BOTTOM_SLOT;
 
   return {
     valid: errors.length === 0,
@@ -167,8 +164,26 @@ const MOCK_MY_ADS = [
 ];
 
 export default function AdSlotsScreen({ route, navigation }) {
-  const { hubId, slotType } = route.params || {};
-  const { wallet } = useAppStore();
+  const { hubId, slotType, hubName: routeHubName } = route.params || {};
+  const { wallet, platformPricing } = useAppStore();
+  const storeHubs = useAppStore((state) => state.hubs);
+  const addPendingAdCreative = useAppStore((state) => state.addPendingAdCreative);
+  // Resolve hub name from route params or store lookup
+  const hubName = routeHubName || storeHubs.find(h => h.id === hubId)?.name || 'Hub';
+
+  // Use dynamic prices from store (admin can update via Pricing Management)
+  const dynamicPrices = {
+    top: platformPricing?.topAdSlot || PRICING.TOP_AD_SLOT,
+    bottom: platformPricing?.bottomAdSlot || PRICING.BOTTOM_AD_SLOT,
+    lockscreen: platformPricing?.lockscreenAd || PRICING.LOCKSCREEN_AD,
+  };
+
+  // Merge base config with dynamic prices
+  const AD_CONFIG = {
+    TOP_SLOT: { ...AD_CONFIG_BASE.TOP_SLOT, price: dynamicPrices.top },
+    BOTTOM_SLOT: { ...AD_CONFIG_BASE.BOTTOM_SLOT, price: dynamicPrices.bottom },
+    LOCKSCREEN_SLOT: { ...AD_CONFIG_BASE.LOCKSCREEN_SLOT, price: dynamicPrices.lockscreen },
+  };
 
   // Dynamic header based on slotType
   const headerTitle = {
@@ -422,9 +437,10 @@ export default function AdSlotsScreen({ route, navigation }) {
                 [{ text: 'OK', onPress: () => setShowPurchaseModal(false) }]
               );
 
-              // Add to my ads list
+              // Add to my ads list (local UI)
+              const adId = `my_ad_${Date.now()}`;
               setMyAds(prev => [...prev, {
-                id: `my_ad_${Date.now()}`,
+                id: adId,
                 slotType: selectedSlot,
                 imageUrl: finalImageUrl,
                 landingUrl: landingUrl.trim(),
@@ -434,6 +450,25 @@ export default function AdSlotsScreen({ route, navigation }) {
                 impressions: 0,
                 clicks: 0,
               }]);
+
+              // Wire to Zustand store → Admin sees this in Ad Moderation
+              addPendingAdCreative({
+                id: `ad_review_${Date.now()}`,
+                brandName: wallet.publicKey
+                  ? wallet.publicKey.toString().slice(0, 7) + '...'
+                  : 'You',
+                brandWallet: wallet.publicKey
+                  ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3)
+                  : 'Your Wallet',
+                hubName: hubName,
+                slotType: selectedSlot,
+                imageUrl: finalImageUrl,
+                landingUrl: landingUrl.trim(),
+                duration: duration,
+                totalCost: totalCost,
+                status: 'PENDING',
+                submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+              });
 
               // Update slot occupancy in UI
               const updateSlot = (slots) => {
@@ -1483,7 +1518,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                           text: 'Purchase & Submit',
                           onPress: () => {
                             setTimeout(() => {
-                              // Add to my ads list
+                              // Add to my ads list (local UI)
                               setMyAds(prev => [...prev, {
                                 id: `my_rich_${Date.now()}`,
                                 slotType: 'rich_notif',
@@ -1497,6 +1532,29 @@ export default function AdSlotsScreen({ route, navigation }) {
                                 richTitle: richTitle.trim(),
                                 richBody: richBody.trim(),
                               }]);
+
+                              // Wire to Zustand store → Admin sees this in Ad Moderation
+                              addPendingAdCreative({
+                                id: `ad_review_rich_${Date.now()}`,
+                                brandName: wallet.publicKey
+                                  ? wallet.publicKey.toString().slice(0, 7) + '...'
+                                  : 'You',
+                                brandWallet: wallet.publicKey
+                                  ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3)
+                                  : 'Your Wallet',
+                                hubName: hubName,
+                                slotType: 'rich_notif',
+                                imageUrl: richImageUrl.trim() || null,
+                                landingUrl: richCtaUrl.trim() || null,
+                                duration: duration,
+                                totalCost: totalCost,
+                                status: 'PENDING',
+                                submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+                                richTitle: richTitle.trim(),
+                                richBody: richBody.trim(),
+                                richCtaLabel: richCtaLabel.trim(),
+                              });
+
                               setIsSubmittingRich(false);
                               setShowRichNotifModal(false);
                               Alert.alert(
