@@ -75,11 +75,10 @@ export default function AdminScreen({ navigation }) {
     loadPlatformPricingFromChain();
   }, []);
 
-  // Custom deals state
-  const [customDeals, setCustomDeals] = useState([
-    { id: '1', brandName: 'Jupiter Exchange', brandWallet: '7xK...9Qz', type: 'Ad Slot', originalPrice: 1500, dealPrice: 1000, duration: '12 weeks', status: 'active', notes: 'Launch partner discount' },
-    { id: '2', brandName: 'Magic Eden', brandWallet: '2pQ...mNp', type: 'Hub Creation', originalPrice: 2000, dealPrice: 1500, duration: '6 months', status: 'active', notes: 'Strategic partner' },
-  ]);
+  // Custom deals from Zustand store (persisted)
+  const customDeals = useAppStore((state) => state.customDeals);
+  const storeAddDeal = useAppStore((state) => state.addCustomDeal);
+  const storeRemoveDeal = useAppStore((state) => state.removeCustomDeal);
   const [showDealModal, setShowDealModal] = useState(false);
   const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
 
@@ -821,7 +820,7 @@ export default function AdminScreen({ navigation }) {
       status: 'active',
       notes: newDeal.notes,
     };
-    setCustomDeals(prev => [...prev, deal]);
+    storeAddDeal(deal);
     setShowDealModal(false);
     setNewDeal({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
     Alert.alert('Deal Created', `Custom deal for "${deal.brandName}" is now active.\n\n${deal.type}: ${dealPrice} $SKR instead of ${originalPrice} $SKR`);
@@ -837,7 +836,7 @@ export default function AdminScreen({ navigation }) {
           text: 'Revoke',
           style: 'destructive',
           onPress: () => {
-            setCustomDeals(prev => prev.filter(d => d.id !== deal.id));
+            storeRemoveDeal(deal.id);
             Alert.alert('Deal Revoked', `${deal.brandName} is now on standard pricing.`);
           },
         },

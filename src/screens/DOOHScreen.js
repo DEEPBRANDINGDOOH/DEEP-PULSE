@@ -20,9 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { DOOH_INVENTORY } from '../config/constants';
 import { isValidEmail, checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { useAppStore } from '../store/appStore';
 
 export default function DOOHScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
+  const addDoohCampaign = useAppStore((state) => state.addDoohCampaign);
 
   // Form state
   const [campaignTitle, setCampaignTitle] = useState('');
@@ -86,7 +88,20 @@ export default function DOOHScreen({ navigation, route }) {
           text: 'Submit',
           onPress: () => {
             setIsSubmitting(true);
-            // Simulate submission
+            // Store campaign in Zustand + simulate submission
+            addDoohCampaign({
+              id: `dooh_${Date.now()}`,
+              hubName,
+              campaignTitle: campaignTitle.trim(),
+              description: description.trim(),
+              targetLocations: targetLocations.trim(),
+              preferredDates: preferredDates.trim(),
+              selectedInventory,
+              budget: parseInt(budget, 10),
+              contactEmail: contactEmail.trim(),
+              status: 'SUBMITTED',
+              submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+            });
             setTimeout(() => {
               setIsSubmitting(false);
               Alert.alert(

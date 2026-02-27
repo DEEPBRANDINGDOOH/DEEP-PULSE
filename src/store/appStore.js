@@ -322,6 +322,72 @@ export const useAppStore = create(
       },
 
       // ============================================
+      // TALENT SUBMISSIONS STATE (persisted)
+      // ============================================
+      talentSubmissions: [
+        {
+          id: 'tsub_1',
+          role: 'UI/UX Designer',
+          hub: 'Solana Gaming',
+          status: 'REVIEW',
+          submittedDate: 'Feb 07, 2026',
+          expectedDays: '3-5',
+        },
+      ],
+
+      addTalentSubmission: (submission) => {
+        set((state) => ({
+          talentSubmissions: [submission, ...state.talentSubmissions],
+        }));
+      },
+
+      // ============================================
+      // CUSTOM DEALS STATE (persisted — admin brand deals)
+      // ============================================
+      customDeals: [
+        { id: '1', brandName: 'Jupiter Exchange', brandWallet: '7xK...9Qz', type: 'Ad Slot', originalPrice: 1500, dealPrice: 1000, duration: '12 weeks', status: 'active', notes: 'Launch partner discount' },
+        { id: '2', brandName: 'Magic Eden', brandWallet: '2pQ...mNp', type: 'Hub Creation', originalPrice: 2000, dealPrice: 1500, duration: '6 months', status: 'active', notes: 'Strategic partner' },
+      ],
+
+      addCustomDeal: (deal) => {
+        set((state) => ({
+          customDeals: [...state.customDeals, deal],
+        }));
+      },
+
+      removeCustomDeal: (dealId) => {
+        set((state) => ({
+          customDeals: state.customDeals.filter(d => d.id !== dealId),
+        }));
+      },
+
+      // ============================================
+      // ADMIN MESSAGES STATE (persisted — conversations between admin & brands)
+      // ============================================
+      adminConversations: null, // null = use mock data on first load
+
+      setAdminConversations: (convs) => set({ adminConversations: convs }),
+
+      updateAdminConversation: (convId, updates) => {
+        set((state) => ({
+          adminConversations: (state.adminConversations || []).map(c =>
+            c.id === convId ? { ...c, ...updates } : c
+          ),
+        }));
+      },
+
+      // ============================================
+      // DOOH CAMPAIGNS STATE (persisted)
+      // ============================================
+      doohCampaigns: [],
+
+      addDoohCampaign: (campaign) => {
+        set((state) => ({
+          doohCampaigns: [campaign, ...state.doohCampaigns],
+        }));
+      },
+
+      // ============================================
       // PROJECTS STATE (not persisted — resets on app start)
       // ============================================
       projects: [...MOCK_PROJECTS],
@@ -412,6 +478,10 @@ export const useAppStore = create(
         hubFeedbacks: state.hubFeedbacks,
         pendingAdCreatives: state.pendingAdCreatives,
         approvedAds: state.approvedAds,
+        talentSubmissions: state.talentSubmissions,
+        customDeals: state.customDeals,
+        adminConversations: state.adminConversations,
+        doohCampaigns: state.doohCampaigns,
       }),
     }
   )

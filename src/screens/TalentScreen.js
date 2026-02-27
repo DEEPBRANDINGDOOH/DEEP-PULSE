@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -29,16 +29,7 @@ const MOCK_TALENTS = [
   },
 ];
 
-const MOCK_MY_SUBMISSIONS = [
-  {
-    id: '1',
-    role: 'UI/UX Designer',
-    hub: 'Solana Gaming',
-    status: 'REVIEW',
-    submittedDate: 'Feb 07, 2026',
-    expectedDays: '3-5',
-  },
-];
+// MOCK_MY_SUBMISSIONS moved to appStore.js (Zustand talentSubmissions) for persistence
 
 // Fallback hubs if store is empty (first launch)
 const FALLBACK_HUBS = [
@@ -63,6 +54,9 @@ export default function TalentScreen({ navigation }) {
   const activeHubs = storeHubs.length > 0
     ? storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }))
     : FALLBACK_HUBS;
+  // Read talent submissions from Zustand store (persisted)
+  const mySubmissions = useAppStore((state) => state.talentSubmissions);
+  const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedHub, setSelectedHub] = useState(activeHubs[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
@@ -71,8 +65,14 @@ export default function TalentScreen({ navigation }) {
   const [experience, setExperience] = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [email, setEmail] = useState('');
-  const [mySubmissions, setMySubmissions] = useState(MOCK_MY_SUBMISSIONS);
   const [talents, setTalents] = useState(MOCK_TALENTS);
+
+  // BUG #6 FIX: Re-sync selectedHub when store hubs change
+  useEffect(() => {
+    if (selectedHub && !activeHubs.find(h => h.id === selectedHub.id)) {
+      setSelectedHub(activeHubs[0] || FALLBACK_HUBS[0]);
+    }
+  }, [activeHubs.length]);
 
   const renderSubmitTab = () => (
     <ScrollView className="px-6 py-4">
@@ -186,7 +186,7 @@ export default function TalentScreen({ navigation }) {
                     setEmail('');
                   }
                 } else {
-                  // Mock fallback — add to mySubmissions + talents lists
+                  // Mock fallback — add to Zustand store + talents lists
                   const newSubmission = {
                     id: `sub_${Date.now()}`,
                     role: role,
@@ -195,7 +195,7 @@ export default function TalentScreen({ navigation }) {
                     submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                     expectedDays: '3-5',
                   };
-                  setMySubmissions(prev => [newSubmission, ...prev]);
+                  addTalentSubmission(newSubmission);
                   setTalents(prev => [...prev, {
                     id: `talent_${Date.now()}`,
                     role: role,

@@ -16,8 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { PRICING } from '../config/constants';
 
-// Mock active ads count (matches MOCK_MY_ADS in AdSlotsScreen)
-const MOCK_ACTIVE_ADS_COUNT = 2;
+// Active ads count is now derived dynamically from Zustand store inside the component
 
 // Ad type definitions
 const AD_TYPES = {
@@ -83,8 +82,22 @@ const VOLUME_DISCOUNTS = [
 
 export default function AdTypeSelectorScreen({ navigation, route }) {
   const { wallet } = useAppStore();
+  const pendingAdCreatives = useAppStore((state) => state.pendingAdCreatives);
+  const approvedAds = useAppStore((state) => state.approvedAds);
   const hubId = route.params?.hubId;
   const hubName = route.params?.hubName;
+
+  // BUG #8 FIX: Derive active ads count and slot occupancy from store
+  const allAds = [...pendingAdCreatives, ...approvedAds];
+  const myActiveAdsCount = allAds.filter(a => a.hubName === hubName || !hubName).length;
+  const topOccupied = approvedAds.filter(a => a.slotType === 'top').length;
+  const bottomOccupied = approvedAds.filter(a => a.slotType === 'bottom').length;
+  const lockscreenOccupied = approvedAds.filter(a => a.slotType === 'lockscreen').length;
+
+  // Override occupiedSlots dynamically
+  AD_TYPES.IN_APP[0].occupiedSlots = Math.min(topOccupied + 3, 8); // base mock + real
+  AD_TYPES.IN_APP[1].occupiedSlots = Math.min(bottomOccupied + 1, 8);
+  AD_TYPES.OUT_OF_APP[0].occupiedSlots = Math.min(lockscreenOccupied + 2, 4);
 
   const handleSelectType = (slotType) => {
     navigation.navigate('AdSlots', { slotType, hubId, hubName });
@@ -185,7 +198,7 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
         </View>
 
         {/* My Active Ads */}
-        {(__DEV__ || wallet.connected) && MOCK_ACTIVE_ADS_COUNT > 0 && (
+        {(__DEV__ || wallet.connected) && myActiveAdsCount > 0 && (
           <View className="px-6 mb-4">
             <TouchableOpacity
               onPress={() => handleSelectType('my_ads')}
@@ -198,11 +211,11 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
               <View className="flex-1">
                 <Text className="text-text font-bold text-base">My Active Ads</Text>
                 <Text className="text-text-secondary text-xs">
-                  {MOCK_ACTIVE_ADS_COUNT} active campaign{MOCK_ACTIVE_ADS_COUNT > 1 ? 's' : ''}
+                  {myActiveAdsCount} active campaign{myActiveAdsCount > 1 ? 's' : ''}
                 </Text>
               </View>
               <View className="bg-blue-500/20 rounded-full px-2.5 py-1 mr-2">
-                <Text className="text-blue-400 text-xs font-bold">{MOCK_ACTIVE_ADS_COUNT}</Text>
+                <Text className="text-blue-400 text-xs font-bold">{myActiveAdsCount}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#666" />
             </TouchableOpacity>

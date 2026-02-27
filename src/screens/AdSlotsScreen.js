@@ -168,6 +168,8 @@ export default function AdSlotsScreen({ route, navigation }) {
   const { wallet, platformPricing } = useAppStore();
   const storeHubs = useAppStore((state) => state.hubs);
   const addPendingAdCreative = useAppStore((state) => state.addPendingAdCreative);
+  const storePendingAds = useAppStore((state) => state.pendingAdCreatives);
+  const storeApprovedAds = useAppStore((state) => state.approvedAds);
   // Resolve hub name from route params or store lookup
   const hubName = routeHubName || storeHubs.find(h => h.id === hubId)?.name || 'Hub';
 
@@ -233,8 +235,31 @@ export default function AdSlotsScreen({ route, navigation }) {
   const [editLandingUrl, setEditLandingUrl] = useState('');
   const [editValidationErrors, setEditValidationErrors] = useState([]);
 
-  // My ads
-  const [myAds, setMyAds] = useState(MOCK_MY_ADS);
+  // BUG #15 FIX: Derive myAds from store + keep MOCK_MY_ADS as base
+  const storeMyAds = React.useMemo(() => {
+    const fromStore = [...storePendingAds, ...storeApprovedAds]
+      .filter(a => a.brandWallet === 'Your Wallet' || a.brandName === 'You' || a.brandName?.endsWith('...'))
+      .map(a => ({
+        id: a.id,
+        slotType: a.slotType,
+        imageUrl: a.imageUrl,
+        landingUrl: a.landingUrl,
+        status: a.status === 'PENDING' ? 'PENDING_REVIEW' : a.status,
+        remainingDays: (a.duration || 1) * 7,
+        totalWeeks: a.duration || 1,
+        impressions: 0,
+        clicks: 0,
+        richTitle: a.richTitle,
+        richBody: a.richBody,
+      }));
+    return [...fromStore, ...MOCK_MY_ADS];
+  }, [storePendingAds, storeApprovedAds]);
+  const [myAds, setMyAds] = useState(storeMyAds);
+
+  // Re-sync myAds when store changes
+  React.useEffect(() => {
+    setMyAds(storeMyAds);
+  }, [storeMyAds]);
 
   // Rich Notification campaign state
   const [showRichNotifModal, setShowRichNotifModal] = useState(false);
@@ -1068,7 +1093,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <Text className="text-text font-black text-2xl">
                   Purchase {selectedSlot === 'top' ? 'Top' : selectedSlot === 'lockscreen' ? 'Lockscreen' : 'Bottom'} Slot
                 </Text>
-                <TouchableOpacity onPress={() => { setShowPurchaseModal(false); setIsPurchasing(false); }}>
+                <TouchableOpacity onPress={() => { setShowPurchaseModal(false); setIsPurchasing(false); setDuration(1); }}>
                   <Ionicons name="close" size={28} color="#888" />
                 </TouchableOpacity>
               </View>
@@ -1327,7 +1352,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <Text className="text-text font-black text-2xl">
                   Push Notification Ad
                 </Text>
-                <TouchableOpacity onPress={() => setShowRichNotifModal(false)}>
+                <TouchableOpacity onPress={() => { setShowRichNotifModal(false); setDuration(1); }}>
                   <Ionicons name="close" size={28} color="#888" />
                 </TouchableOpacity>
               </View>

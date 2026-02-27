@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, FlatList, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useAppStore } from '../store/appStore';
 
 const MOCK_CONVERSATIONS = [
   {
@@ -61,9 +62,15 @@ export default function AdminMessagesScreen({ navigation, route }) {
   const brandHubName = route.params?.hubName || null;
   const hubIcon = route.params?.hubIcon || 'apps';
 
-  // If brand navigates with a hub name not in mocks, create a conversation for it
+  // Read persisted conversations from Zustand store (falls back to mock on first load)
+  const storeConversations = useAppStore((state) => state.adminConversations);
+  const setStoreConversations = useAppStore((state) => state.setAdminConversations);
+  const updateStoreConversation = useAppStore((state) => state.updateAdminConversation);
+
+  // If brand navigates with a hub name not in existing conversations, create one
   const getInitialConversations = () => {
-    if (brandHubName && !MOCK_CONVERSATIONS.find(c => c.hubName === brandHubName)) {
+    const base = storeConversations || MOCK_CONVERSATIONS;
+    if (brandHubName && !base.find(c => c.hubName === brandHubName)) {
       return [
         {
           id: `conv_${brandHubName.replace(/\s/g, '_')}`,
@@ -78,10 +85,10 @@ export default function AdminMessagesScreen({ navigation, route }) {
             { id: 'm1', from: 'admin', text: `Welcome! Your hub "${brandHubName}" is under review. Feel free to ask any questions about the approval process.`, time: 'Just now', tag: 'General' },
           ],
         },
-        ...MOCK_CONVERSATIONS,
+        ...base,
       ];
     }
-    return MOCK_CONVERSATIONS;
+    return base;
   };
 
   const initialConvs = getInitialConversations();
@@ -89,6 +96,11 @@ export default function AdminMessagesScreen({ navigation, route }) {
   const [selectedConv, setSelectedConv] = useState(
     brandHubName ? initialConvs.find(c => c.hubName === brandHubName) || null : null
   );
+
+  // Persist conversations to Zustand store whenever they change
+  useEffect(() => {
+    setStoreConversations(conversations);
+  }, [conversations]);
   const [messageText, setMessageText] = useState('');
   const [selectedTag, setSelectedTag] = useState('General');
 

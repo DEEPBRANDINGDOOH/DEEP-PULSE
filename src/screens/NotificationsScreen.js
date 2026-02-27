@@ -144,6 +144,7 @@ export default function NotificationsScreen({ navigation, route }) {
                 reactions: item.reactions || 0,
                 comments: item.comments || 0,
                 isNew: !item.read,
+                timestamp: item.timestamp || item.createdAt || 'Recently',
               };
               navigation.navigate('NotificationDetail', { notification });
             }}
