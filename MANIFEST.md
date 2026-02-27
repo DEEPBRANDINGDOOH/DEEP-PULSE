@@ -378,6 +378,74 @@ Hub creators can upload a custom logo instead of using Ionicons:
 
 ---
 
+## 🔴 MAINNET ROADMAP — Ce qu'il manque pour la production
+
+### 1. Smart Contract (Anchor/Rust) — NON DÉPLOYÉ
+- [ ] `anchor build` — le programme n'a jamais été compilé (pas de `target/`)
+- [ ] `anchor deploy --provider.cluster devnet` — tester d'abord sur devnet
+- [ ] `anchor deploy --provider.cluster mainnet-beta` — déployer en production
+- [ ] Le program ID `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` peut changer après deploy → mettre à jour `Anchor.toml`, `lib.rs`, `constants.js`
+- [ ] **Coût estimé :** ~3-5 SOL devnet (gratuit via faucet) / ~3-5 SOL mainnet (~$500-800)
+- [ ] Audit de sécurité du smart contract (Sec3, OtterSec, ou équivalent)
+
+### 2. $SKR Token
+- [ ] Le mint `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` existe uniquement sur **mainnet-beta**
+- [ ] Créer un mint $SKR de test sur **devnet** pour les tests end-to-end avec le contrat
+- [ ] Vérifier la supply, les décimales (6), et le mint authority
+- [ ] Intégrer le token dans le programme Anchor (initialize_platform avec le bon mint)
+
+### 3. Firebase Cloud Functions — PARTIELLEMENT DÉPLOYÉ
+- [ ] 10 Cloud Functions déployées (sendPushToSubscribers, moderateAdCreative, trackEvent, etc.)
+- [ ] Vérifier que toutes les fonctions sont live et fonctionnelles après mise à jour
+- [ ] Configurer les alertes et monitoring Firebase
+- [ ] Ajouter rate limiting côté serveur (anti-spam)
+
+### 4. Données mock → Données réelles
+- [ ] Remplacer `MOCK_NOTIFICATIONS`, `MOCK_ADS`, `MOCK_PROPOSALS`, `MOCK_TALENTS`, `MOCK_LEADERBOARD` par des données Firestore/on-chain
+- [ ] `HomeScreen` — feed réel depuis Firestore (`notifications/` collection)
+- [ ] `DiscoverScreen` — hubs réels depuis Firestore + on-chain
+- [ ] `ProfileScreen` — DEEP Score réel depuis on-chain (`fetchUserScore()` existe mais n'est jamais appelé)
+- [ ] `AdminScreen` — pending ads/hubs réels depuis Firestore
+- [ ] Leaderboard dynamique depuis on-chain scores
+
+### 5. Wallet & Transactions
+- [ ] Tester le flow MWA complet sur Seeker avec un vrai wallet (SeedVault)
+- [ ] `ADMIN_WALLET` (`89Ez94...`) — s'assurer que c'est le bon wallet de production
+- [ ] Remplacer `isAdmin(__DEV__) return true` par vérification réelle multi-sig
+- [ ] Tester toutes les 23 instructions Anchor avec des vrais tokens
+- [ ] Gérer les erreurs réseau / timeout / insufficient funds en production
+
+### 6. Sécurité Production
+- [ ] Retirer tous les `__DEV__` bypasses de transactionHelper + AdminScreen (déjà fait automatiquement par le bundler release `dev=false`)
+- [ ] Stocker les clés Firebase dans des variables d'environnement (pas hardcodées)
+- [ ] Activer App Check Firebase (anti-abuse)
+- [ ] Configurer CSP headers pour les Cloud Functions
+- [ ] Signing key de production pour le release APK (actuellement debug keystore)
+
+### 7. Distribution
+- [ ] Google Play Store submission (screenshots, description, listing)
+- [ ] Solana dApp Store listing
+- [ ] Privacy Policy hébergée sur un vrai domaine (pas localhost)
+- [ ] Terms of Service
+- [ ] Landing page / site web
+
+### 8. Infrastructure
+- [ ] RPC endpoint dédié (Helius, QuickNode, Triton) — `api.mainnet-beta.solana.com` a des rate limits
+- [ ] Monitoring (Sentry, DataDog, ou Firebase Crashlytics)
+- [ ] Analytics réelles (Firebase Analytics + custom events)
+- [ ] Backup strategy pour Firestore
+- [ ] CI/CD pipeline (GitHub Actions → build → test → deploy)
+
+### 9. Fonctionnalités manquantes pour production
+- [ ] Push notification deep linking (actuellement `// TODO` dans App.js)
+- [ ] SwipeEarn points → DEEP Score sync (points lockscreen pas persistés)
+- [ ] Discord bot réel pour le pipeline Hub → Discord
+- [ ] DOOH service : intégration réelle avec les fournisseurs d'écrans
+- [ ] Système de paiement réel pour les custom deals admin
+- [ ] Multi-langue (i18n existe mais pas complètement implémenté)
+
+---
+
 ## 📝 FICHIERS À GÉNÉRER
 
 Ces fichiers seront générés automatiquement:
