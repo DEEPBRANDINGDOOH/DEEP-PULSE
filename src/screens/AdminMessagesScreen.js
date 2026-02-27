@@ -59,10 +59,35 @@ const TAG_COLORS = {
 export default function AdminMessagesScreen({ navigation, route }) {
   const isFromBrand = route.params?.fromBrand || false;
   const brandHubName = route.params?.hubName || null;
+  const hubIcon = route.params?.hubIcon || 'apps';
 
-  const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
+  // If brand navigates with a hub name not in mocks, create a conversation for it
+  const getInitialConversations = () => {
+    if (brandHubName && !MOCK_CONVERSATIONS.find(c => c.hubName === brandHubName)) {
+      return [
+        {
+          id: `conv_${brandHubName.replace(/\s/g, '_')}`,
+          hubName: brandHubName,
+          hubIcon: hubIcon,
+          brandWallet: 'Your Wallet',
+          unreadCount: 1,
+          lastMessage: `Welcome! Your hub "${brandHubName}" is under review. You can message the admin here.`,
+          lastMessageTime: 'Just now',
+          lastMessageFrom: 'admin',
+          messages: [
+            { id: 'm1', from: 'admin', text: `Welcome! Your hub "${brandHubName}" is under review. Feel free to ask any questions about the approval process.`, time: 'Just now', tag: 'General' },
+          ],
+        },
+        ...MOCK_CONVERSATIONS,
+      ];
+    }
+    return MOCK_CONVERSATIONS;
+  };
+
+  const initialConvs = getInitialConversations();
+  const [conversations, setConversations] = useState(initialConvs);
   const [selectedConv, setSelectedConv] = useState(
-    brandHubName ? MOCK_CONVERSATIONS.find(c => c.hubName === brandHubName) || null : null
+    brandHubName ? initialConvs.find(c => c.hubName === brandHubName) || null : null
   );
   const [messageText, setMessageText] = useState('');
   const [selectedTag, setSelectedTag] = useState('General');

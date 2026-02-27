@@ -1270,8 +1270,8 @@ export default function AdSlotsScreen({ route, navigation }) {
         onRequestClose={() => setShowRichNotifModal(false)}
       >
         <View className="flex-1 bg-black/80 justify-end">
-          <View className="bg-background rounded-t-3xl p-6 max-h-[90%]">
-            <ScrollView showsVerticalScrollIndicator={false}>
+          <View className="bg-background rounded-t-3xl p-6 max-h-[90%] flex-1">
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-text font-black text-2xl">

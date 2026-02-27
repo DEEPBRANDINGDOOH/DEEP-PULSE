@@ -43,7 +43,20 @@ export const isWalletConnected = () => _walletPublicKey !== null;
 export const executeTransaction = async (actionName, txFn, options = {}) => {
   const { onSuccess, onError, requiresWallet = true } = options;
 
-  // Check wallet connection
+  // In __DEV__ mode, skip wallet check and return mock success
+  if (__DEV__ && requiresWallet && !isWalletConnected()) {
+    logger.info(`[Transaction] ${actionName} — DEV mock (no wallet)`);
+    const mockResult = {
+      signature: `mock_${actionName.replace(/\s/g, '_')}_${Date.now()}`,
+      message: `${actionName} completed (dev mock)`,
+    };
+    if (onSuccess) {
+      onSuccess(mockResult);
+    }
+    return { success: true, result: mockResult };
+  }
+
+  // Check wallet connection (production only reaches here)
   if (requiresWallet && !isWalletConnected()) {
     Alert.alert(
       'Wallet Required',

@@ -199,7 +199,7 @@ export default function HubDashboardScreen({ navigation, route }) {
           <Text className="text-text font-bold text-xl mb-4">Quick Actions</Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('AdminMessages', { fromBrand: true, hubName: hubName })}
+            onPress={() => navigation.navigate('AdminMessages', { fromBrand: true, hubName: hubName, hubIcon: hubIcon || 'apps' })}
             className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
           >
             <View className="flex-row items-center">

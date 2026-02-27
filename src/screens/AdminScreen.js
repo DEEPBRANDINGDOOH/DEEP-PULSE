@@ -151,7 +151,7 @@ export default function AdminScreen({ navigation }) {
 
   // Ad moderation handlers
   const handleApproveAd = (ad) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -175,7 +175,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleRejectAd = (ad) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -203,7 +203,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleFlagSpam = (ad) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -232,7 +232,7 @@ export default function AdminScreen({ navigation }) {
 
   // Hub handlers — connected to Zustand store
   const handleApproveHub = (hubId, hubName) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet to approve hubs.');
       return;
     }
@@ -246,7 +246,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSuspendHub = (hubId, hubName) => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -260,7 +260,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendGlobalNotification = () => {
-    if (!wallet.connected) {
+    if (!__DEV__ && !wallet.connected) {
       Alert.alert('Wallet Required', `Connect your admin wallet.\nCost: ${PRICING.GLOBAL_NOTIFICATION} $SKR.`);
       return;
     }
