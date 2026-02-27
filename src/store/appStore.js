@@ -138,7 +138,18 @@ export const useAppStore = create(
       // HUBS STATE (persisted — survives app restart)
       // ============================================
       hubs: [...MOCK_HUBS],
-      pendingHubs: [],
+      pendingHubs: [
+        {
+          id: 'mock_pending_1', name: 'Crypto Traders', creator: '4mL...7Np',
+          subscribers: 0, status: 'PENDING', createdDate: 'Feb 08, 2026',
+          category: 'DeFi', description: 'Trading signals and market analysis', icon: 'trending-up',
+        },
+        {
+          id: 'mock_pending_2', name: 'Solana Devs', creator: '9xT...2Qw',
+          subscribers: 0, status: 'PENDING', createdDate: 'Feb 09, 2026',
+          category: 'Infrastructure', description: 'Solana developer community', icon: 'code-slash',
+        },
+      ],
 
       addPendingHub: (hub) => {
         // 1. Update local state immediately
@@ -151,17 +162,23 @@ export const useAppStore = create(
       },
 
       approveHub: (hubId) => {
-        const { pendingHubs, hubs, wallet } = get();
+        const { pendingHubs, hubs, wallet, subscribedProjects } = get();
         const hub = pendingHubs.find((h) => h.id === hubId);
         if (hub) {
-          // 1. Update local state immediately
+          // 1. Update local state immediately + auto-subscribe creator
+          const updatedSubs = subscribedProjects.includes(hubId)
+            ? subscribedProjects
+            : [...subscribedProjects, hubId];
           set({
             pendingHubs: pendingHubs.filter((h) => h.id !== hubId),
-            hubs: [...hubs, { ...hub, status: 'ACTIVE' }],
+            hubs: [...hubs, { ...hub, status: 'ACTIVE', subscribers: (hub.subscribers || 0) + 1 }],
+            subscribedProjects: updatedSubs,
           });
-          // 2. Sync with Firestore
+          // 2. Sync with Firestore + subscribe to FCM topic
           approveHubInFirestore(hubId, wallet.publicKey || 'admin')
             .catch(e => logger.warn('[Store] Firestore approveHub failed:', e));
+          subscribeToHubBackend(hubId, wallet.publicKey || 'mock_user')
+            .catch(e => logger.warn('[Store] Auto-subscribe creator failed:', e));
         }
       },
 

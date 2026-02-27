@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
+import { showLocalNotification } from '../services/localNotificationService';
 import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
 
 export default function HubDashboardScreen({ navigation, route }) {
@@ -164,7 +165,14 @@ export default function HubDashboardScreen({ navigation, route }) {
                       isNew: true,
                     });
 
-                    // 2. Send via Firebase Cloud Function → FCM push to all subscribers
+                    // 2. Trigger a real local push notification (lock screen + tray)
+                    showLocalNotification(
+                      `${hubName}: ${notifTitle}`,
+                      notifMessage,
+                      { hubName, hubId: hubData?.id || `hub_${hubName}`, link: linkUrl.trim() || '' },
+                    );
+
+                    // 3. Also try Firebase Cloud Function (for production with backend)
                     const hubId = hubData?.id || `hub_${hubName}`;
                     sendHubNotification(
                       hubId,

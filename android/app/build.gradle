@@ -108,6 +108,7 @@ dependencies {
     implementation project(':react-native-firebase_messaging')
     implementation project(':react-native-firebase_storage')
     implementation project(':react-native-image-picker')
+    implementation project(':notifee_react-native')
 
     // CRITICAL: Solana Mobile Wallet Adapter (native Kotlin lib)
     implementation 'com.solanamobile:mobile-wallet-adapter-clientlib-ktx:2.0.3'

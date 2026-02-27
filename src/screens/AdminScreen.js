@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -6,6 +6,7 @@ import { getTierFromScore, PRICING } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { programService } from '../services/programService';
 import { approveAdCreative, rejectAdCreative, sendGlobalNotification } from '../services/firebaseService';
+import { showLocalNotification } from '../services/localNotificationService';
 import { logger } from '../utils/security';
 
 // ============================================
@@ -20,19 +21,7 @@ const MOCK_TOP_100 = [
   { rank: 5, wallet: '3fR...8Kp', score: 723, boost: 7, talent: 2, feedback: 9 },
 ];
 
-// Mock pending hubs used as initial seed (added to store on first launch)
-const INITIAL_PENDING_HUBS = [
-  {
-    id: 'mock_pending_1', name: 'Crypto Traders', creator: '4mL...7Np',
-    subscribers: 0, status: 'PENDING', createdDate: 'Feb 08, 2026',
-    category: 'DeFi', description: 'Trading signals and market analysis', icon: 'trending-up',
-  },
-  {
-    id: 'mock_pending_2', name: 'Solana Devs', creator: '9xT...2Qw',
-    subscribers: 0, status: 'PENDING', createdDate: 'Feb 09, 2026',
-    category: 'Infrastructure', description: 'Solana developer community', icon: 'code-slash',
-  },
-];
+// Initial pending hubs are now pre-seeded in appStore (no more runtime seeding).
 
 const MOCK_PENDING_ADS = [
   {
@@ -117,7 +106,6 @@ export default function AdminScreen({ navigation }) {
   const pendingHubs = useAppStore((state) => state.pendingHubs);
   const storeApproveHub = useAppStore((state) => state.approveHub);
   const storeRejectHub = useAppStore((state) => state.rejectHub);
-  const storeAddPendingHub = useAppStore((state) => state.addPendingHub);
   const [activeSection, setActiveSection] = useState('overview');
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
@@ -132,17 +120,9 @@ export default function AdminScreen({ navigation }) {
   const [editingPrice, setEditingPrice] = useState(null);
   const [editPriceValue, setEditPriceValue] = useState('');
 
-  // Track whether we already seeded hubs in this session
-  const hasSeeded = useRef(false);
-
   // Fetch on-chain prices on mount (release mode only)
-  // Seed initial pending hubs ONLY on first mount & if never seeded before
   useEffect(() => {
     loadPlatformPricingFromChain();
-    if (pendingHubs.length === 0 && !hasSeeded.current) {
-      INITIAL_PENDING_HUBS.forEach((hub) => storeAddPendingHub(hub));
-      hasSeeded.current = true;
-    }
   }, []);
 
   // Custom deals state
@@ -276,7 +256,13 @@ export default function AdminScreen({ navigation }) {
         {
           text: 'Send',
           onPress: async () => {
-            // Send via Firebase Cloud Function → FCM push to ALL users
+            // Trigger real local push notification (lock screen + tray)
+            showLocalNotification(
+              `DEEP Pulse: ${globalNotifTitle}`,
+              globalNotifMessage,
+              { source: 'admin_global' },
+            );
+            // Also try Firebase Cloud Function (for production with backend)
             sendGlobalNotification(globalNotifTitle, globalNotifMessage, wallet.publicKey || 'admin')
               .then((res) => logger.log('[Admin] Global push sent:', res))
               .catch(e => logger.warn('[Admin] Global push failed:', e));
