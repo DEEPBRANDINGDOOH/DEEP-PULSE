@@ -33,6 +33,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -1387,12 +1388,13 @@ export default function AdSlotsScreen({ route, navigation }) {
         onRequestClose={() => setShowRichNotifModal(false)}
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' }}>
-          <View style={{ maxHeight: '90%', backgroundColor: '#0d0d12', borderTopLeftRadius: 24, borderTopRightRadius: 24 }}>
+          <View style={{ maxHeight: Dimensions.get('window').height * 0.88, backgroundColor: '#0d0d12', borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden' }}>
             <ScrollView
               bounces={false}
               showsVerticalScrollIndicator={true}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ padding: 24, paddingBottom: 50 }}
+              nestedScrollEnabled={true}
+              contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
             >
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
