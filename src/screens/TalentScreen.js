@@ -86,8 +86,8 @@ export default function TalentScreen({ navigation }) {
           {'\u2022'} Showcase your talent to your favorite brand/project{'\n'}
           {'\u2022'} Deposit 50 $SKR to prove you're serious{'\n'}
           {'\u2022'} The brand reviews your profile privately{'\n'}
-          {'\u2022'} Hired? → Refunded + the brand contacts you when they need you{'\n'}
-          {'\u2022'} Not selected? → Your deposit goes to the hub's vault
+          {'\u2022'} Hired? → Deposit refunded + the brand contacts you{'\n'}
+          {'\u2022'} Not selected? → Deposit refunded to your wallet
         </Text>
       </View>
 

@@ -231,7 +231,7 @@ const App = () => {
           <Stack.Screen
             name="BrandModeration"
             component={BrandModerationScreen}
-            options={{ title: 'Moderation' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="BrandBoost"

@@ -354,9 +354,14 @@ export default function BrandModerationScreen({ navigation, route }) {
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View className="p-6 pb-4">
-        <Text className="text-text font-black text-3xl mb-1">Moderation</Text>
-        <Text className="text-text-secondary text-base">{hubName} — Review submissions</Text>
+      <View className="p-6 pb-4 flex-row items-center">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
+          <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+        </TouchableOpacity>
+        <View>
+          <Text className="text-text font-black text-2xl">Moderation</Text>
+          <Text className="text-text-secondary text-sm">{hubName} — Review submissions</Text>
+        </View>
       </View>
 
       {/* Tabs */}

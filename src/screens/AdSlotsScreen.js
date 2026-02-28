@@ -31,6 +31,8 @@ import {
   Modal,
   Image,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -1146,15 +1148,43 @@ export default function AdSlotsScreen({ route, navigation }) {
                       {/* Upload area */}
                       {imageAsset ? (
                         <View className="rounded-xl overflow-hidden border border-primary/30 mb-3">
-                          {/* Image Preview */}
+                          {/* Lockscreen Preview — realistic phone render */}
+                          {selectedSlot === 'lockscreen' ? (
+                            <View className="bg-black rounded-xl overflow-hidden" style={{ aspectRatio: 9/16, maxHeight: 320 }}>
+                              <Image
+                                source={{ uri: imageAsset.uri }}
+                                style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                              />
+                              {/* Lock screen overlay elements */}
+                              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+                                {/* Status bar */}
+                                <View className="flex-row justify-between px-4 pt-3">
+                                  <Text className="text-white text-xs font-bold">9:41</Text>
+                                  <View className="flex-row items-center">
+                                    <Ionicons name="cellular" size={12} color="#fff" />
+                                    <Ionicons name="wifi" size={12} color="#fff" style={{ marginLeft: 4 }} />
+                                    <Ionicons name="battery-full" size={12} color="#fff" style={{ marginLeft: 4 }} />
+                                  </View>
+                                </View>
+                                {/* Swipe to earn overlay */}
+                                <View style={{ position: 'absolute', bottom: 16, left: 0, right: 0, alignItems: 'center' }}>
+                                  <View className="bg-primary/90 rounded-full px-6 py-2.5">
+                                    <Text className="text-white font-bold text-xs">⬆ Swipe to Earn $SKR</Text>
+                                  </View>
+                                  <Text className="text-white/60 text-xs mt-2">SPONSORED • DEEP Pulse</Text>
+                                </View>
+                              </View>
+                            </View>
+                          ) : (
                           <Image
                             source={{ uri: imageAsset.uri }}
                             style={{
                               width: '100%',
-                              height: selectedSlot === 'lockscreen' ? 200 : 120,
+                              height: 120,
                               resizeMode: 'cover',
                             }}
                           />
+                          )}
                           <View className="bg-background-secondary p-3 flex-row items-center justify-between">
                             <View className="flex-1">
                               <Text className="text-text text-xs font-semibold" numberOfLines={1}>
@@ -1222,15 +1252,27 @@ export default function AdSlotsScreen({ route, navigation }) {
                       {/* URL Preview */}
                       {imageUrl.startsWith('https://') && (
                         <View className="rounded-xl overflow-hidden border border-border mt-2 mb-1">
+                          {selectedSlot === 'lockscreen' ? (
+                            <View className="bg-black rounded-xl overflow-hidden" style={{ aspectRatio: 9/16, maxHeight: 280 }}>
+                              <Image source={{ uri: imageUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+                              <View style={{ position: 'absolute', bottom: 16, left: 0, right: 0, alignItems: 'center' }}>
+                                <View className="bg-primary/90 rounded-full px-6 py-2.5">
+                                  <Text className="text-white font-bold text-xs">⬆ Swipe to Earn $SKR</Text>
+                                </View>
+                                <Text className="text-white/60 text-xs mt-2">SPONSORED • DEEP Pulse</Text>
+                              </View>
+                            </View>
+                          ) : (
                           <Image
                             source={{ uri: imageUrl }}
                             style={{
                               width: '100%',
-                              height: selectedSlot === 'lockscreen' ? 200 : 120,
+                              height: 120,
                               resizeMode: 'cover',
                               backgroundColor: '#1a1a20',
                             }}
                           />
+                          )}
                         </View>
                       )}
                     </View>
@@ -1345,8 +1387,9 @@ export default function AdSlotsScreen({ route, navigation }) {
         onRequestClose={() => setShowRichNotifModal(false)}
       >
         <View className="flex-1 bg-black/80 justify-end">
-          <View className="bg-background rounded-t-3xl p-6 max-h-[90%] flex-1">
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ maxHeight: '92%' }}>
+          <View className="bg-background rounded-t-3xl p-6" style={{ maxHeight: '100%' }}>
+            <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 120 }} keyboardShouldPersistTaps="handled" bounces={true} nestedScrollEnabled={true}>
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-text font-black text-2xl">
@@ -1606,6 +1649,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 

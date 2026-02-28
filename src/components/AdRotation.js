@@ -32,7 +32,7 @@ import { safeOpenURL, logger } from '../utils/security';
 
 // Ad Rotation Configuration
 const ROTATION_CONFIG = {
-  INTERVAL: 15, // seconds
+  INTERVAL: 6, // seconds
   MAX_ADS: 8,
   TRANSITION_DURATION: 300, // ms
 };

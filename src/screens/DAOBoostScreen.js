@@ -77,9 +77,10 @@ export default function DAOBoostScreen({ navigation }) {
           <Text className="text-primary font-semibold ml-2">How it works</Text>
         </View>
         <Text className="text-text-secondary text-sm leading-5">
-          {'\u2022'} Propose a mission or idea to build to your favorite brand{'\n'}
-          {'\u2022'} Deposit 100 $SKR (refunded if the community approves){'\n'}
-          {'\u2022'} Other users fund your proposal with $SKR{'\n'}
+          {'\u2022'} Propose a mission or idea to your favorite brand{'\n'}
+          {'\u2022'} Deposit 100 $SKR (refunded if the brand approves){'\n'}
+          {'\u2022'} The brand reviews and accepts or declines your proposal{'\n'}
+          {'\u2022'} Approved? → The community funds it with $SKR{'\n'}
           {'\u2022'} Once funded, the brand receives 95% to execute it{'\n'}
           {'\u2022'} Platform keeps only 5% — fully transparent
         </Text>
