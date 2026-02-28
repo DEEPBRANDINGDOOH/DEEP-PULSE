@@ -265,7 +265,7 @@ export const GRACE_PERIOD_DAYS = 7;
 
 export const AD_SLOTS = {
   MAX_ADVERTISERS: 8,     // Max per slot
-  ROTATION_INTERVAL: 15,  // Seconds
+  ROTATION_INTERVAL: 6,   // Seconds — must match AdRotation.js
   TOP_SLOT_HEIGHT: 120,   // Pixels
   BOTTOM_SLOT_HEIGHT: 100, // Pixels
 };

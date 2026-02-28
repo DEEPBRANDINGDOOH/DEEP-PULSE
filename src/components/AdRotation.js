@@ -1,12 +1,12 @@
 /**
  * AdRotation Component
  * 
- * Automatically rotates ads every 15 seconds
+ * Automatically rotates ads every 6 seconds
  * Handles both Top and Bottom ad slots
  * Tracks impressions and clicks
- * 
+ *
  * Features:
- * - 15-second rotation timer
+ * - 6-second rotation timer
  * - Up to 8 ads per slot
  * - Fair rotation algorithm
  * - Click tracking
@@ -249,7 +249,7 @@ export default function AdRotation({
 
 /**
  * Rotation Progress Bar
- * Shows visual progress of 15-second rotation
+ * Shows visual progress of 6-second rotation
  */
 function RotationProgress({ duration }) {
   const progressAnim = useRef(new Animated.Value(0)).current;

@@ -29,7 +29,7 @@ const AD_TYPES = {
       description: 'Premium placement above content feed',
       maxSlots: 8,
       occupiedSlots: 3, // Mock data
-      rotationInfo: 'Rotates every 15s among up to 8 advertisers',
+      rotationInfo: 'Rotates every 6s among up to 8 advertisers',
       dimensions: '390 x 120 px',
     },
     {
@@ -40,7 +40,7 @@ const AD_TYPES = {
       description: 'Standard placement below content feed',
       maxSlots: 8,
       occupiedSlots: 1, // Mock data
-      rotationInfo: 'Rotates every 15s among up to 8 advertisers',
+      rotationInfo: 'Rotates every 6s among up to 8 advertisers',
       dimensions: '390 x 100 px',
     },
   ],

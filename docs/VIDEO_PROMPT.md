@@ -34,7 +34,7 @@ Import recordings, add transitions, captions, and music.
 
 ### SCREEN 3: HOME FEED + AD ROTATION (0:50 - 1:10)
 **[Show Home screen with notification feed + rotating ads]**
-"Your personalized feed shows notifications from subscribed hubs. Above and below the feed, rotating ad banners cycle every 15 seconds — brands pay in $SKR to reach engaged users."
+"Your personalized feed shows notifications from subscribed hubs. Above and below the feed, rotating ad banners cycle every 6 seconds — brands pay in $SKR to reach engaged users."
 
 ### SCREEN 4: AD TYPE SELECTOR + AD SLOTS (1:10 - 1:35)
 **[Show Hub Dashboard -> Tap "Manage Ad Slots" -> Ad Type Selector screen -> Tap "In-App Ads" -> Ad Slots screen]**

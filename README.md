@@ -242,7 +242,7 @@ deep-pulse-complete/
 |   |   +-- AdTypeSelectorScreen.js    # Ad type selection — In-App vs Out-of-App ad categories
 |   |-- components/
 |   |   |-- WalletButton.js            # MWA connect / disconnect + SIWS
-|   |   |-- AdRotation.js              # 15-second rotating banner ads
+|   |   |-- AdRotation.js              # 6-second rotating banner ads
 |   |   |-- AlertCard.js               # Notification cards
 |   |   |-- ProjectCard.js             # Hub listing cards
 |   |   |-- HubIcon.js                # Reusable hub icon/logo — displays uploaded logo (circular crop) or Ionicon fallback
@@ -667,7 +667,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 - [ ] Authorization succeeds, PublicKey displays
 - [ ] Auto-reconnect works on restart
 - [ ] Hub discovery and subscription works
-- [ ] Ad rotation (15s interval) works
+- [ ] Ad rotation (6s interval) works
 - [ ] All navigation tabs functional
 - [ ] No console errors
 

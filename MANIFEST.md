@@ -42,7 +42,7 @@
 
 ### 🧩 Components (7 composants)
 
-- ✅ `src/components/AdRotation.js` - Rotation ads 15s (local mock + remote)
+- ✅ `src/components/AdRotation.js` - Rotation ads 6s (local mock + remote)
 - ✅ `src/components/MockAdBanners.js` - Bannières pub locales (Jupiter, Marinade, Tensor, etc.)
 - ✅ `src/components/WalletButton.js` - Connexion wallet MWA
 - ✅ `src/components/AlertCard.js` - Cartes alerte
@@ -343,7 +343,7 @@ Complete data persistence overhaul: all user actions now survive navigation. Ad 
 - Rating & reviews
 
 ### Ad System ✅
-- Ad rotation 15s
+- Ad rotation 6s
 - Max 8 ads per slot
 - Click tracking + Impression tracking
 - Local mock banners (Jupiter, Marinade, Tensor, Magic Eden, Raydium)

@@ -153,8 +153,8 @@ Hackathon Submission — March 2026
 
 | Type | Price | Dimensions | Max Slots |
 |------|-------|-----------|-----------|
-| Top Banner | 1,500 $SKR/week | 390x120 px | 8 (rotates every 15s) |
-| Bottom Banner | 800 $SKR/week | 390x100 px | 8 (rotates every 15s) |
+| Top Banner | 1,500 $SKR/week | 390x120 px | 8 (rotates every 6s) |
+| Bottom Banner | 800 $SKR/week | 390x100 px | 8 (rotates every 6s) |
 | Lock Screen | 2,000 $SKR/week | 1080x1920 px | 4 (full screen) |
 
 **Upload flow:**
