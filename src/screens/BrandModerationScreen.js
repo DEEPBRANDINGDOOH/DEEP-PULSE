@@ -406,10 +406,12 @@ export default function BrandModerationScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {/* Tab Content */}
-      {activeTab === 'feedback' && renderFeedbackTab()}
-      {activeTab === 'boost' && renderBoostTab()}
-      {activeTab === 'talent' && renderTalentTab()}
+      {/* Tab Content — flex-1 ensures ScrollView gets bounded height */}
+      <View style={{ flex: 1 }}>
+        {activeTab === 'feedback' && renderFeedbackTab()}
+        {activeTab === 'boost' && renderBoostTab()}
+        {activeTab === 'talent' && renderTalentTab()}
+      </View>
     </SafeAreaView>
   );
 }

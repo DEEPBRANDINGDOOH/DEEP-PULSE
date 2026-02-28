@@ -1386,10 +1386,10 @@ export default function AdSlotsScreen({ route, navigation }) {
         transparent={true}
         onRequestClose={() => setShowRichNotifModal(false)}
       >
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View className="flex-1 bg-black/80 justify-end">
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ maxHeight: '92%' }}>
-          <View className="bg-background rounded-t-3xl p-6" style={{ maxHeight: '100%' }}>
-            <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 120 }} keyboardShouldPersistTaps="handled" bounces={true} nestedScrollEnabled={true}>
+          <View className="bg-background rounded-t-3xl p-6" style={{ flex: 0, maxHeight: '90%' }}>
+            <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled={true}>
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-text font-black text-2xl">
@@ -1649,8 +1649,8 @@ export default function AdSlotsScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
-          </KeyboardAvoidingView>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Edit Creative Modal */}
