@@ -5,6 +5,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { approveFeedback, approveTalent, approveDaoProposal, rejectDeposit } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
+// Stable empty array reference — prevents infinite re-render loop
+// when hubFeedbacks[hubName] is undefined (new hub with no feedbacks).
+// Using `|| []` inline would create a NEW array reference every render,
+// triggering useEffect → setSubmissions → re-render → new [] → useEffect → ∞
+const EMPTY_FEEDBACKS = [];
+
 /**
  * Generate contextual mock submissions for a specific hub.
  * These are shown only when the store has no real feedbacks yet,
@@ -61,8 +67,8 @@ export default function BrandModerationScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
   const hubId = route.params?.hubId || null;
 
-  // Read real feedbacks from Zustand store
-  const storeFeedbacks = useAppStore((state) => state.hubFeedbacks[hubName] || []);
+  // Read real feedbacks from Zustand store (use stable reference for empty case)
+  const storeFeedbacks = useAppStore((state) => state.hubFeedbacks[hubName]) || EMPTY_FEEDBACKS;
 
   const [activeTab, setActiveTab] = useState('feedback');
 
