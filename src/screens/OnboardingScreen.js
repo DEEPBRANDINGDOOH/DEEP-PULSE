@@ -23,6 +23,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState, initUserScore } from '../services/transactionHelper';
+import { logger } from '../utils/security';
 
 const { width } = Dimensions.get('window');
 
@@ -305,17 +306,25 @@ export default function OnboardingScreen({ navigation }) {
         [{ text: 'OK', onPress: () => navigation.replace('MainApp') }]
       );
     } catch (error) {
-      console.error('Wallet connection error:', error);
+      // Use logger.warn instead of console.error to avoid LogBox red banner in dev
+      logger.warn('Wallet connection failed:', error?.message || error);
+
       let errorMessage = 'Failed to connect wallet. Please try again.';
       if (error.message?.includes('declined')) {
         errorMessage = 'You declined the wallet connection.';
       } else if (error.message?.includes('No wallet')) {
         errorMessage = 'No compatible wallet app found. Please install Phantom or Solflare.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      Alert.alert('Connection Failed', errorMessage, [
-        { text: 'Try Again', style: 'cancel' },
-        { text: 'Continue as Guest', onPress: () => navigation.replace('MainApp') },
-      ]);
+      Alert.alert(
+        'Connection Failed',
+        `${errorMessage}${__DEV__ ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
+        [
+          { text: 'Try Again', style: 'cancel' },
+          { text: 'Continue as Guest', onPress: () => navigation.replace('MainApp') },
+        ]
+      );
     } finally {
       setIsConnecting(false);
     }

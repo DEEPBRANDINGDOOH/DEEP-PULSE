@@ -41,17 +41,26 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Wallet connection error:', error);
-      
+      // Use logger.warn instead of console.error to avoid LogBox red banner in dev
+      const { logger } = require('../utils/security');
+      logger.warn('Wallet connection failed:', error?.message || error);
+
       let errorMessage = 'Failed to connect wallet. Please try again.';
-      
+
       if (error.message?.includes('declined')) {
         errorMessage = 'You declined the wallet connection.';
       } else if (error.message?.includes('No wallet')) {
         errorMessage = 'No compatible wallet app found. Please install Phantom or Solflare.';
+      } else if (error.message) {
+        // Show the actual error message for debugging
+        errorMessage = error.message;
       }
-      
-      Alert.alert('Connection Failed', errorMessage, [{ text: 'OK' }]);
+
+      Alert.alert(
+        'Connection Failed',
+        `${errorMessage}${__DEV__ ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsConnecting(false);
     }

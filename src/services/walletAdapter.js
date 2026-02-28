@@ -134,7 +134,7 @@ class MobileWalletAdapterService {
       logger.log('Wallet connected:', result.publicKey.toString());
       return result;
     } catch (error) {
-      console.error('Wallet connection error:', error);
+      logger.warn('[WalletAdapter] Connection failed:', error?.message || error);
       this._handleMwaError(error);
     }
   }
@@ -184,7 +184,7 @@ class MobileWalletAdapterService {
       logger.log('SIWS authentication successful:', result.publicKey.toString());
       return result;
     } catch (error) {
-      console.error('SIWS error:', error);
+      logger.warn('[WalletAdapter] SIWS failed:', error?.message || error);
       this._handleMwaError(error);
     }
   }
@@ -254,7 +254,7 @@ class MobileWalletAdapterService {
       logger.log('Wallet reauthorized:', result.publicKey.toString());
       return result;
     } catch (error) {
-      console.error('Reauthorization failed:', error);
+      logger.warn('[WalletAdapter] Reauthorization failed:', error?.message || error);
 
       // If reauth fails, token is invalid - clear it
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_AUTH_TOKEN);
@@ -272,21 +272,17 @@ class MobileWalletAdapterService {
    * @param {string} authToken - Current auth_token
    */
   async disconnect(authToken) {
+    // NOTE: We intentionally do NOT call transact() + wallet.deauthorize() here.
+    // Calling transact() opens the wallet app dialog, which confuses users
+    // (looks like a new connection instead of a disconnect).
+    // Instead, we just clear the local session. The auth_token will expire naturally.
+    // This is safe because the wallet app doesn't retain any sensitive state.
     try {
-      await transact(async (wallet) => {
-        await wallet.deauthorize({
-          auth_token: authToken,
-        });
-      }, { onWalletNotFound });
-
-      logger.log('Wallet disconnected');
-    } catch (error) {
-      // Deauthorize errors are usually not critical
-      logger.warn('Deauthorize warning:', error);
-    } finally {
-      // Always clear local storage
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_AUTH_TOKEN);
       await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_PUBLIC_KEY);
+      logger.log('Wallet disconnected (local session cleared)');
+    } catch (error) {
+      logger.warn('Disconnect storage cleanup warning:', error?.message || error);
     }
   }
 
@@ -323,7 +319,7 @@ class MobileWalletAdapterService {
       logger.log('Transaction signed');
       return signedTransaction;
     } catch (error) {
-      console.error('Transaction signing error:', error);
+      logger.warn('[WalletAdapter] Transaction signing error:', error?.message || error);
       this._handleMwaError(error);
     }
   }
@@ -368,7 +364,7 @@ class MobileWalletAdapterService {
       logger.log('Transaction sent:', signature);
       return signature;
     } catch (error) {
-      console.error('Sign and send error:', error);
+      logger.warn('[WalletAdapter] Sign and send error:', error?.message || error);
       this._handleMwaError(error);
     }
   }
@@ -408,7 +404,7 @@ class MobileWalletAdapterService {
       logger.log('Message signed');
       return result;
     } catch (error) {
-      console.error('Message signing error:', error);
+      logger.warn('[WalletAdapter] Message signing error:', error?.message || error);
       this._handleMwaError(error);
     }
   }
@@ -424,7 +420,7 @@ class MobileWalletAdapterService {
       const balance = await this.connection.getBalance(publicKey);
       return balance / 1e9; // Convert lamports to SOL
     } catch (error) {
-      console.error('Error fetching balance:', error);
+      logger.warn('[WalletAdapter] Balance fetch error:', error?.message || error);
       return 0;
     }
   }
@@ -483,7 +479,7 @@ class MobileWalletAdapterService {
       logger.log('SOL transferred:', signature);
       return signature;
     } catch (error) {
-      console.error('SOL transfer error:', error);
+      logger.warn('[WalletAdapter] SOL transfer error:', error?.message || error);
       this._handleMwaError(error);
     }
   }

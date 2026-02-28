@@ -313,11 +313,11 @@ export default function ProfileScreen({ navigation }) {
         onPress={() => {
           Alert.alert('Disconnect Wallet', 'Are you sure you want to disconnect your wallet?', [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Disconnect', style: 'destructive', onPress: () => {
+            { text: 'Disconnect', style: 'destructive', onPress: async () => {
               const authToken = useAppStore.getState().wallet?.authToken;
               clearWallet();
               setWalletState(null, null); // Clear transaction helper state
-              try { walletAdapter.disconnect(authToken); } catch(e) {}
+              try { await walletAdapter.disconnect(authToken); } catch(e) {}
               navigation.replace('Onboarding');
             }},
           ]);
