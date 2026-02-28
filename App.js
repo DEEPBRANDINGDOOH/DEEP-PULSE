@@ -208,6 +208,9 @@ const App = () => {
       setWalletState(storedWallet.publicKey, storedWallet.authToken);
     }
 
+    // Check hub subscription expiry on app start (detect OVERDUE hubs)
+    useAppStore.getState().checkHubSubscriptions();
+
     return () => {
       notificationService.removeForegroundListener();
     };

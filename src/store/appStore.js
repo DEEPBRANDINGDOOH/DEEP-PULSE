@@ -65,6 +65,7 @@ export const useAppStore = create(
             // Increment subscriber count on the hub
             hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: (h.subscribers || 0) + 1 } : h),
           });
+          get().incrementScore(10); // 10 pts per subscription
           // 2. Sync with Firebase backend (FCM topic + Firestore)
           // [H-03 FIX] Rollback on failure instead of swallowing errors
           subscribeToHubBackend(projectId, wallet?.publicKey || 'mock_user')
@@ -404,6 +405,7 @@ export const useAppStore = create(
         set((state) => ({
           pendingAdCreatives: [ad, ...state.pendingAdCreatives],
         }));
+        get().incrementScore(20); // 20 pts per ad creative
       },
 
       approveAdCreativeInStore: (adId) => {
@@ -435,6 +437,7 @@ export const useAppStore = create(
             [hubName]: [feedback, ...(state.hubFeedbacks[hubName] || [])],
           },
         }));
+        get().incrementScore(25); // 25 pts per feedback
       },
 
       getHubFeedbacks: (hubName) => {
@@ -462,6 +465,7 @@ export const useAppStore = create(
             },
           };
         });
+        get().incrementScore(15); // 15 pts per notification sent (creator)
       },
 
       getHubNotifications: (hubName) => {
@@ -486,6 +490,55 @@ export const useAppStore = create(
       addTalentSubmission: (submission) => {
         set((state) => ({
           talentSubmissions: [submission, ...state.talentSubmissions],
+        }));
+        get().incrementScore(30); // 30 pts per talent submission
+      },
+
+      // ============================================
+      // DAO PROPOSALS STATE (persisted)
+      // ============================================
+      daoProposals: [],
+
+      addDaoProposal: (proposal) => {
+        set((state) => ({
+          daoProposals: [proposal, ...state.daoProposals],
+        }));
+        get().incrementScore(50); // 50 pts per DAO proposal
+      },
+
+      updateDaoProposal: (proposalId, updates) => {
+        set((state) => ({
+          daoProposals: state.daoProposals.map(p =>
+            p.id === proposalId ? { ...p, ...updates } : p
+          ),
+        }));
+      },
+
+      removeDaoProposal: (proposalId) => {
+        set((state) => ({
+          daoProposals: state.daoProposals.filter(p => p.id !== proposalId),
+        }));
+      },
+
+      // ============================================
+      // USER SCORE STATE (persisted — DEEP Score)
+      // ============================================
+      userScore: 0,
+      userStreak: 0,
+
+      incrementScore: (points) => {
+        set((state) => ({
+          userScore: (state.userScore || 0) + points,
+        }));
+      },
+
+      setUserScore: (score) => {
+        set({ userScore: score });
+      },
+
+      incrementStreak: () => {
+        set((state) => ({
+          userStreak: (state.userStreak || 0) + 1,
         }));
       },
 
@@ -627,6 +680,9 @@ export const useAppStore = create(
         pendingAdCreatives: state.pendingAdCreatives,
         approvedAds: state.approvedAds,
         talentSubmissions: state.talentSubmissions,
+        daoProposals: state.daoProposals,
+        userScore: state.userScore,
+        userStreak: state.userStreak,
         customDeals: state.customDeals,
         adminConversations: state.adminConversations,
         doohCampaigns: state.doohCampaigns,

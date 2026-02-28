@@ -63,10 +63,16 @@ export default function ProfileScreen({ navigation }) {
     return fullWalletAddress && h.creator === fullWalletAddress;
   });
 
+  // Dynamic DEEP Score from Zustand store (falls back to mock if 0)
+  const storeScore = useAppStore((state) => state.userScore);
+  const storeStreak = useAppStore((state) => state.userStreak);
+
   const user = {
     ...MOCK_USER,
     wallet: walletDisplay,
     subscriptions: subscribedProjects.length || MOCK_USER.subscriptions,
+    score: storeScore > 0 ? storeScore : MOCK_USER.score,
+    streakDays: storeStreak || 0,
   };
   const tier = getTierFromScore(user.score);
 

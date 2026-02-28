@@ -57,6 +57,10 @@ export default function DAOBoostScreen({ navigation }) {
   const storeHubs = useAppStore((state) => state.hubs);
   const filteredHubs = storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }));
   const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
+  // DAO proposals from Zustand store (persisted) + mock data for demo
+  const storeDaoProposals = useAppStore((state) => state.daoProposals) || [];
+  const addDaoProposal = useAppStore((state) => state.addDaoProposal);
+  const updateDaoProposal = useAppStore((state) => state.updateDaoProposal);
   const [activeTab, setActiveTab] = useState('propose');
   const [selectedHub, setSelectedHub] = useState(activeHubs[0] || FALLBACK_HUBS[0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
@@ -66,7 +70,8 @@ export default function DAOBoostScreen({ navigation }) {
   const [fundModalVisible, setFundModalVisible] = useState(false);
   const [fundProposal, setFundProposal] = useState(null);
   const [fundAmount, setFundAmount] = useState('100');
-  const [proposals, setProposals] = useState(MOCK_PROPOSALS);
+  // Merge store proposals with mocks (mocks only in __DEV__)
+  const proposals = [...storeDaoProposals, ...(__DEV__ ? MOCK_PROPOSALS : [])];
   const [funded, setFunded] = useState(MOCK_FUNDED);
 
   const renderProposeTab = () => (
@@ -147,20 +152,25 @@ export default function DAOBoostScreen({ navigation }) {
               setTitle(''); setDescription(''); setTargetAmount('');
             }
           } else {
-            // Mock fallback — add to proposals list so it appears in Votes tab
+            // Mock fallback — persist in Zustand store so it survives navigation
             const newProposal = {
               id: `prop_${Date.now()}`,
               creator: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : 'You',
+              wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '???...???',
               title: title.trim(),
               description: description.trim(),
               targetAmount: parseInt(targetAmount, 10) || 10000,
               currentAmount: 0,
               backers: 0,
               hub: selectedHub?.name || 'Unknown',
+              hubId: selectedHub?.id || null,
               status: 'ACTIVE',
               daysLeft: 30,
+              deposit: 100,
+              submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+              isMock: false,
             };
-            setProposals(prev => [newProposal, ...prev]);
+            addDaoProposal(newProposal);
             Alert.alert(
               'Proposal submitted',
               `"${title}" submitted with 100 $SKR deposit. Community can now fund it.`,
@@ -202,23 +212,19 @@ export default function DAOBoostScreen({ navigation }) {
     if (fundProposal.vaultPda) {
       const result = await contributeToVault(fundProposal.vaultPda, amount);
       if (result.success) {
-        setProposals((prev) =>
-          prev.map((p) =>
-            p.id === fundProposal.id
-              ? { ...p, currentAmount: p.currentAmount + amount, backers: p.backers + 1 }
-              : p
-          )
-        );
+        updateDaoProposal(fundProposal.id, {
+          currentAmount: (fundProposal.currentAmount || 0) + amount,
+          backers: (fundProposal.backers || 0) + 1,
+        });
       }
     } else {
-      // Mock fallback
-      setProposals((prev) =>
-        prev.map((p) =>
-          p.id === fundProposal.id
-            ? { ...p, currentAmount: p.currentAmount + amount, backers: p.backers + 1 }
-            : p
-        )
-      );
+      // Mock fallback — update in store (persisted) for real proposals, local for mocks
+      if (!fundProposal.isMock && storeDaoProposals.find(p => p.id === fundProposal.id)) {
+        updateDaoProposal(fundProposal.id, {
+          currentAmount: (fundProposal.currentAmount || 0) + amount,
+          backers: (fundProposal.backers || 0) + 1,
+        });
+      }
       Alert.alert('Funded', `You contributed ${amount} $SKR to "${fundProposal.title}".`);
     }
     setFundProposal(null);

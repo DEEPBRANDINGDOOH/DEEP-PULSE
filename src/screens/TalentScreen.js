@@ -187,14 +187,22 @@ export default function TalentScreen({ navigation }) {
                     setEmail('');
                   }
                 } else {
-                  // Mock fallback — add to Zustand store + talents lists
+                  // Mock fallback — add to Zustand store + talents lists (full data)
                   const newSubmission = {
                     id: `sub_${Date.now()}`,
                     role: role,
                     hub: selectedHub.name,
+                    hubId: selectedHub.id,
+                    experience: experience.trim(),
+                    skills: experience.trim(),
+                    portfolio: portfolio.trim(),
+                    email: email.trim(),
+                    wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '???...???',
                     status: 'REVIEW',
                     submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                     expectedDays: '3-5',
+                    deposit: 50,
+                    isMock: false,
                   };
                   addTalentSubmission(newSubmission);
                   setTalents(prev => [...prev, {

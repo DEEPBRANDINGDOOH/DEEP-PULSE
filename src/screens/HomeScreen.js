@@ -57,6 +57,7 @@ const MOCK_NOTIFICATIONS = [
 export default function HomeScreen({ navigation }) {
   const { wallet, getUnreadCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore();
   const approvedAds = useAppStore((state) => state.approvedAds);
+  const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
   const unreadCount = getUnreadCount();
 
   // Merge store notifications (from brand-sent notifs) with mock data
@@ -67,7 +68,9 @@ export default function HomeScreen({ navigation }) {
     comments: n.comments || 0,
     isNew: true,
   }));
-  const [notifications, setNotifications] = useState([...storeNotifs, ...MOCK_NOTIFICATIONS]);
+  const [notifications, setNotifications] = useState(
+    __DEV__ ? [...storeNotifs, ...MOCK_NOTIFICATIONS] : [...storeNotifs]
+  );
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
@@ -81,7 +84,7 @@ export default function HomeScreen({ navigation }) {
       comments: n.comments || 0,
       isNew: true,
     }));
-    setNotifications([...freshStoreNotifs, ...MOCK_NOTIFICATIONS]);
+    setNotifications(__DEV__ ? [...freshStoreNotifs, ...MOCK_NOTIFICATIONS] : [...freshStoreNotifs]);
   }, [hubNotifications]);
 
   const handleAdImpression = (data) => {
@@ -94,7 +97,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleSendFeedback = (notification) => {
     if (!__DEV__ && !wallet?.connected) {
-      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
+      Alert.alert('Wallet Required', `Please connect your wallet to send feedback.\n\nA ${feedbackDepositAmount} $SKR deposit is required.`);
       return;
     }
     setSelectedNotification(notification);
@@ -128,7 +131,7 @@ export default function HomeScreen({ navigation }) {
           wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
           title: `Re: ${selectedNotification?.title || 'Notification'}`,
           message: feedbackText.trim(),
-          deposit: 300,
+          deposit: feedbackDepositAmount,
           timestamp: 'Just now',
           hubName: selectedNotification?.hubName,
         });
@@ -142,12 +145,12 @@ export default function HomeScreen({ navigation }) {
         wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
         title: `Re: ${selectedNotification?.title || 'Notification'}`,
         message: feedbackText.trim(),
-        deposit: 300,
+        deposit: feedbackDepositAmount,
         timestamp: 'Just now',
         hubName: selectedNotification?.hubName,
       });
       setSubmitting(false);
-      Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`);
+      Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n${feedbackDepositAmount} $SKR deposited in escrow.`);
       setFeedbackText('');
       setFeedbackModalVisible(false);
     }
@@ -334,7 +337,7 @@ export default function HomeScreen({ navigation }) {
                     <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
                     <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
                       <Text className="text-primary font-black" style={{ fontSize: 9 }}>
-                        {(() => { const count = getHubFeedbacks(notif.hubName).length; return count > 0 ? count : '300'; })()}
+                        {(() => { const count = getHubFeedbacks(notif.hubName).length; return count > 0 ? count : feedbackDepositAmount; })()}
                       </Text>
                     </View>
                     {getHubFeedbacks(notif.hubName).length > 0 && (
@@ -400,7 +403,7 @@ export default function HomeScreen({ navigation }) {
               <View className="flex-row items-center">
                 <Ionicons name="shield-checkmark" size={18} color="#FF9F66" />
                 <Text className="text-text-secondary text-sm ml-2">
-                  Deposit: <Text className="text-primary font-bold">300 $SKR</Text> (refundable if approved)
+                  Deposit: <Text className="text-primary font-bold">{feedbackDepositAmount} $SKR</Text> (refundable if approved)
                 </Text>
               </View>
             </View>

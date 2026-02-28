@@ -67,15 +67,18 @@ export default function BrandModerationScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
   const hubId = route.params?.hubId || null;
 
-  // Read real feedbacks from Zustand store (use stable reference for empty case)
+  // Read real data from Zustand store (use stable references for empty cases)
   const storeFeedbacks = useAppStore((state) => state.hubFeedbacks[hubName]) || EMPTY_FEEDBACKS;
+  const storeDaoProposals = useAppStore((state) => state.daoProposals) || EMPTY_FEEDBACKS;
+  const storeTalentSubmissions = useAppStore((state) => state.talentSubmissions) || EMPTY_FEEDBACKS;
 
   const [activeTab, setActiveTab] = useState('feedback');
 
-  // Merge store feedbacks with contextual mocks
-  const initialSubmissions = useMemo(() => {
-    const mocks = getMockSubmissions(hubName);
-    // Convert store feedbacks to the format expected by this screen
+  // Build merged submissions from store + mocks (mocks only in __DEV__)
+  const buildSubmissions = useMemo(() => {
+    const mocks = __DEV__ ? getMockSubmissions(hubName) : { feedback: [], boost: [], talent: [] };
+
+    // Real feedbacks from store
     const realFeedbacks = storeFeedbacks.map((fb) => ({
       id: fb.id,
       wallet: fb.wallet || '???...???',
@@ -85,35 +88,58 @@ export default function BrandModerationScreen({ navigation, route }) {
       timestamp: fb.timestamp || 'Recently',
       isMock: false,
     }));
+
+    // Real DAO proposals from store (filtered by hub)
+    const realBoosts = storeDaoProposals
+      .filter(p => p.hub === hubName || p.hubId === hubId)
+      .map(p => ({
+        id: p.id,
+        wallet: p.wallet || p.creator || '???...???',
+        title: p.title,
+        description: p.description,
+        targetAmount: p.targetAmount || 0,
+        currentAmount: p.currentAmount || 0,
+        deposit: p.deposit || 100,
+        timestamp: p.submittedDate || 'Recently',
+        isMock: false,
+      }));
+
+    // Real talent submissions from store (filtered by hub)
+    const realTalents = storeTalentSubmissions
+      .filter(t => t.hub === hubName || t.hubId === hubId)
+      .map(t => ({
+        id: t.id,
+        wallet: t.wallet || '???...???',
+        role: t.role,
+        experience: t.experience || t.skills || '',
+        portfolio: t.portfolio || '',
+        email: t.email || '',
+        deposit: t.deposit || 50,
+        timestamp: t.submittedDate || 'Recently',
+        isMock: t.isMock !== undefined ? t.isMock : false,
+      }));
+
     return {
       feedback: [...realFeedbacks, ...mocks.feedback],
-      boost: mocks.boost,
-      talent: mocks.talent,
+      boost: [...realBoosts, ...mocks.boost],
+      talent: [...realTalents, ...mocks.talent],
     };
-  }, [storeFeedbacks, hubName]);
+  }, [storeFeedbacks, storeDaoProposals, storeTalentSubmissions, hubName, hubId]);
 
-  const [submissions, setSubmissions] = useState(initialSubmissions);
+  const [submissions, setSubmissions] = useState(buildSubmissions);
 
-  // Re-sync when store feedbacks change
+  // Re-sync when store data changes (any of the 3 sources)
   React.useEffect(() => {
-    const mocks = getMockSubmissions(hubName);
-    const realFeedbacks = storeFeedbacks.map((fb) => ({
-      id: fb.id,
-      wallet: fb.wallet || '???...???',
-      title: fb.title || 'Feedback',
-      message: fb.message,
-      deposit: fb.deposit || 300,
-      timestamp: fb.timestamp || 'Recently',
-      isMock: false,
-    }));
-    setSubmissions((prev) => ({
-      ...prev,
-      feedback: [...realFeedbacks, ...mocks.feedback],
-    }));
-  }, [storeFeedbacks, hubName]);
+    setSubmissions(buildSubmissions);
+  }, [buildSubmissions]);
 
   const handleApprove = (type, id, deposit) => {
     const item = submissions[type]?.find(s => s.id === id);
+    // Guard: mock items show a demo message instead of real approval
+    if (item?.isMock) {
+      Alert.alert('Demo Only', 'This is a demo submission. Real submissions appear when users interact with your hub.');
+      return;
+    }
     Alert.alert(
       'Approve Submission',
       `Refund ${deposit} $SKR to the user?`,

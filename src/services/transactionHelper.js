@@ -29,6 +29,36 @@ export const getWalletPublicKey = () => _walletPublicKey;
 export const getAuthToken = () => _authToken;
 export const isWalletConnected = () => _walletPublicKey !== null;
 
+/**
+ * Check if wallet has enough $SKR balance before a transaction.
+ * Skips check in __DEV__ mode when wallet is not connected.
+ * @param {number} requiredAmount - Minimum $SKR needed
+ * @param {string} actionName - Human-readable action name (for error alert)
+ * @returns {Promise<boolean>} true if balance is sufficient (or check skipped)
+ */
+export const checkSkrBalance = async (requiredAmount, actionName) => {
+  // In dev mode without wallet, skip balance check
+  if (__DEV__ && !isWalletConnected()) return true;
+  try {
+    const { PublicKey } = require('@solana/web3.js');
+    const pubkey = typeof _walletPublicKey === 'string'
+      ? new PublicKey(_walletPublicKey)
+      : _walletPublicKey;
+    const balance = await programService.getSkrBalance(pubkey);
+    if (balance < requiredAmount) {
+      Alert.alert(
+        'Insufficient $SKR',
+        `${actionName} requires ${requiredAmount} $SKR but you only have ${balance.toFixed(2)} $SKR.\n\nPlease acquire more $SKR tokens to continue.`
+      );
+      return false;
+    }
+    return true;
+  } catch (e) {
+    logger.warn('[Balance] Check failed (proceeding anyway):', e.message);
+    return true; // Let the transaction attempt proceed if balance check fails
+  }
+};
+
 // ============================================
 // GENERIC TRANSACTION WRAPPER
 // ============================================
@@ -141,6 +171,7 @@ export const unsubscribeFromHub = async (hubPda) => {
  * Create a new hub (brand pays HUB_CREATION $SKR)
  */
 export const createHub = async (name, description, category, hubIndex) => {
+  if (!(await checkSkrBalance(PRICING.HUB_CREATION, 'Create Hub'))) return { success: false, error: 'Insufficient balance' };
   return executeTransaction('Create Hub', async () => {
     const result = await programService.createHub(name, description, category, hubIndex);
     return result;
@@ -162,6 +193,7 @@ export const createHub = async (name, description, category, hubIndex) => {
  * Submit feedback on a notification (FEEDBACK deposit in $SKR escrow)
  */
 export const submitFeedback = async (hubPda, feedbackText, depositIndex) => {
+  if (!(await checkSkrBalance(DEPOSITS.FEEDBACK, 'Submit Feedback'))) return { success: false, error: 'Insufficient balance' };
   return executeTransaction('Submit Feedback', async () => {
     const contentHash = await programService.hashContent(feedbackText);
     const result = await programService.createDeposit(
@@ -185,6 +217,7 @@ export const submitFeedback = async (hubPda, feedbackText, depositIndex) => {
  * Submit a DAO Boost proposal (DAO_PROPOSAL deposit in $SKR escrow)
  */
 export const submitDaoProposal = async (hubPda, proposalText, depositIndex) => {
+  if (!(await checkSkrBalance(DEPOSITS.DAO_PROPOSAL, 'Submit Proposal'))) return { success: false, error: 'Insufficient balance' };
   return executeTransaction('Submit Proposal', async () => {
     const contentHash = await programService.hashContent(proposalText);
     const result = await programService.createDeposit(
@@ -208,6 +241,7 @@ export const submitDaoProposal = async (hubPda, proposalText, depositIndex) => {
  * Submit talent showcase (TALENT deposit in $SKR escrow)
  */
 export const submitTalent = async (hubPda, talentText, depositIndex) => {
+  if (!(await checkSkrBalance(DEPOSITS.TALENT, 'Submit Talent'))) return { success: false, error: 'Insufficient balance' };
   return executeTransaction('Submit Talent', async () => {
     const contentHash = await programService.hashContent(talentText);
     const result = await programService.createDeposit(
@@ -235,6 +269,7 @@ export const submitTalent = async (hubPda, talentText, depositIndex) => {
  * Contribute to a DAO vault
  */
 export const contributeToVault = async (vaultPda, amount) => {
+  if (!(await checkSkrBalance(amount, 'Contribute to Vault'))) return { success: false, error: 'Insufficient balance' };
   return executeTransaction('Contribute', async () => {
     const result = await programService.contributeToVault(vaultPda, amount);
     return result;

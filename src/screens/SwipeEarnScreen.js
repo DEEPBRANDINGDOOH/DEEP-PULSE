@@ -32,6 +32,7 @@ import { logger } from '../utils/security';
 export default function SwipeEarnScreen({ navigation }) {
   // Merge approved lockscreen ads from store with mock data
   const approvedAds = useAppStore((state) => state.approvedAds);
+  const incrementScore = useAppStore((state) => state.incrementScore);
   const [isEnabled, setIsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -51,13 +52,12 @@ export default function SwipeEarnScreen({ navigation }) {
   // Listen for swipe events
   useEffect(() => {
     const unsubscribe = lockScreenService.onSwipe((event) => {
+      // Sync swipe points to DEEP Score in store
+      if (event.points > 0) {
+        incrementScore(5); // 5 DEEP Score points per swipe interaction
+      }
       // Refresh stats after each swipe
       loadStats();
-
-      // Show a brief feedback (optional)
-      if (event.points > 0) {
-        // Points will be reflected in stats refresh
-      }
     });
 
     return () => unsubscribe();
