@@ -2,8 +2,8 @@
  * Ad Slots Screen
  *
  * Allows brands to purchase ad slots on their hubs
- * - Top Ad Slot: 800 $SKR/week (8 max, rotates every 15s)
- * - Bottom Ad Slot: 600 $SKR/week (8 max, rotates every 15s)
+ * - Top Ad Slot: 800 $SKR/week (8 max, rotates every 6s)
+ * - Bottom Ad Slot: 600 $SKR/week (8 max, rotates every 6s)
  * - Lockscreen Ad: 1,000 $SKR/week (4 max, full-screen Swipe-to-Earn)
  * - Rich Notification Ads: 1,500 $SKR/week (SPONSORED push, 1/day)
  *
@@ -47,7 +47,7 @@ import { safeOpenURL, MAX_LENGTHS } from '../utils/security';
 const AD_CONFIG_BASE = {
   TOP_SLOT: {
     maxSlots: 8,
-    rotationInterval: 15,
+    rotationInterval: 6, // Must match AdRotation.js ROTATION_CONFIG.INTERVAL
     width: 390,
     height: 120,
     position: 'top',
@@ -60,7 +60,7 @@ const AD_CONFIG_BASE = {
   },
   BOTTOM_SLOT: {
     maxSlots: 8,
-    rotationInterval: 15,
+    rotationInterval: 6, // Must match AdRotation.js ROTATION_CONFIG.INTERVAL
     width: 390,
     height: 100,
     position: 'bottom',
@@ -274,30 +274,42 @@ export default function AdSlotsScreen({ route, navigation }) {
   const [isSubmittingRich, setIsSubmittingRich] = useState(false);
 
   // Derive slot occupancy from store data (approved + pending ads for THIS hub)
-  const buildSlots = (slotTypeKey, maxSlots) => {
+  // buildSlots is inlined inside each useMemo so it captures the latest store values
+  const topSlots = React.useMemo(() => {
     const hubAds = [...storeApprovedAds, ...storePendingAds]
-      .filter(a => a.hubName === hubName && a.slotType === slotTypeKey);
-    const slots = [];
-    for (let i = 0; i < maxSlots; i++) {
+      .filter(a => a.hubName === hubName && a.slotType === 'top');
+    const maxSlots = AD_CONFIG.TOP_SLOT.maxSlots;
+    return Array.from({ length: maxSlots }, (_, i) => {
       const ad = hubAds[i];
-      if (ad) {
-        slots.push({
-          id: i + 1,
-          advertiser: ad.brandName || ad.brandWallet || 'Advertiser',
-          active: true,
-          remaining: (ad.duration || 1) * 7,
-          status: ad.status,
-        });
-      } else {
-        slots.push({ id: i + 1, advertiser: 'Available', active: false });
-      }
-    }
-    return slots;
-  };
+      return ad
+        ? { id: i + 1, advertiser: ad.brandName || ad.brandWallet || 'Advertiser', active: true, remaining: (ad.duration || 1) * 7, status: ad.status }
+        : { id: i + 1, advertiser: 'Available', active: false };
+    });
+  }, [storeApprovedAds, storePendingAds, hubName]);
 
-  const topSlots = React.useMemo(() => buildSlots('top', AD_CONFIG.TOP_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
-  const bottomSlots = React.useMemo(() => buildSlots('bottom', AD_CONFIG.BOTTOM_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
-  const lockscreenSlots = React.useMemo(() => buildSlots('lockscreen', AD_CONFIG.LOCKSCREEN_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
+  const bottomSlots = React.useMemo(() => {
+    const hubAds = [...storeApprovedAds, ...storePendingAds]
+      .filter(a => a.hubName === hubName && a.slotType === 'bottom');
+    const maxSlots = AD_CONFIG.BOTTOM_SLOT.maxSlots;
+    return Array.from({ length: maxSlots }, (_, i) => {
+      const ad = hubAds[i];
+      return ad
+        ? { id: i + 1, advertiser: ad.brandName || ad.brandWallet || 'Advertiser', active: true, remaining: (ad.duration || 1) * 7, status: ad.status }
+        : { id: i + 1, advertiser: 'Available', active: false };
+    });
+  }, [storeApprovedAds, storePendingAds, hubName]);
+
+  const lockscreenSlots = React.useMemo(() => {
+    const hubAds = [...storeApprovedAds, ...storePendingAds]
+      .filter(a => a.hubName === hubName && a.slotType === 'lockscreen');
+    const maxSlots = AD_CONFIG.LOCKSCREEN_SLOT.maxSlots;
+    return Array.from({ length: maxSlots }, (_, i) => {
+      const ad = hubAds[i];
+      return ad
+        ? { id: i + 1, advertiser: ad.brandName || ad.brandWallet || 'Advertiser', active: true, remaining: (ad.duration || 1) * 7, status: ad.status }
+        : { id: i + 1, advertiser: 'Available', active: false };
+    });
+  }, [storeApprovedAds, storePendingAds, hubName]);
 
   const handlePurchaseSlot = (slotType) => {
     if (!__DEV__ && !wallet?.connected) {
@@ -855,7 +867,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               <View className="flex-1 ml-3">
                 <Text className="text-primary font-bold mb-1">How Ad Rotation Works</Text>
                 <Text className="text-text-secondary text-sm leading-5">
-                  Each slot rotates every 15 seconds among up to 8 advertisers. Your ad gets equal exposure with automatic rotation. All ads are reviewed by the admin before going live.
+                  Each slot rotates every 6 seconds among up to 8 advertisers. Your ad gets equal exposure with automatic rotation. All ads are reviewed by the admin before going live.
                 </Text>
               </View>
             </View>
