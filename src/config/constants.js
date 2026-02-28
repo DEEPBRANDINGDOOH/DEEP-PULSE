@@ -23,8 +23,8 @@ export const APP_IDENTITY = {
 
 export const SOLANA_CONFIG = {
   NETWORK: __DEV__ ? 'devnet' : 'mainnet-beta',
-  RPC_ENDPOINT_DEV: 'https://api.devnet.solana.com',
-  RPC_ENDPOINT_PROD: 'https://api.mainnet-beta.solana.com',
+  RPC_ENDPOINT_DEV: 'https://devnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
+  RPC_ENDPOINT_PROD: 'https://mainnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
 
   // DEEP Pulse Program ID (single monolithic Anchor program)
   // Replace after `anchor deploy` with the actual deployed program ID
@@ -358,128 +358,19 @@ export const MOCK_USER = {
   streakDays: 12,
 };
 
-export const MOCK_HUBS = [
-  {
-    id: '1',
-    name: 'Solana Gaming',
-    description: 'Latest gaming news and updates',
-    category: 'Gaming',
-    subscribers: 12500,
-    icon: 'game-controller',
-    logoUrl: 'https://via.placeholder.com/200x200/9C27B0/FFFFFF?text=SG',
-    subscriptionExpiresAt: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days remaining
-  },
-  {
-    id: '2',
-    name: 'NFT Artists',
-    description: 'Daily NFT drops and artist spotlights',
-    category: 'NFT',
-    subscribers: 8200,
-    icon: 'color-palette',
-    logoUrl: null, // No logo — falls back to icon
-    subscriptionExpiresAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // OVERDUE: expired 3 days ago
-  },
-  {
-    id: '3',
-    name: 'DeFi Alerts',
-    description: 'Real-time DeFi protocol updates',
-    category: 'DeFi',
-    subscribers: 15700,
-    icon: 'trending-up',
-    logoUrl: 'https://via.placeholder.com/200x200/4CAF50/FFFFFF?text=DA',
-    subscriptionExpiresAt: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days remaining
-  },
-];
+export const MOCK_HUBS = [];  // Empty — hubs are fetched from Firebase
 
 export const MOCK_ADS = {
-  TOP: [
-    {
-      id: 'ad_top_1',
-      advertiserId: '7xK...9Qz',
-      imageUrl: 'https://via.placeholder.com/390x120/FF9F66/FFFFFF?text=Jupiter+Swap',
-      landingUrl: 'https://jup.ag',
-      active: true,
-    },
-    {
-      id: 'ad_top_2',
-      advertiserId: '2pQ...mNp',
-      imageUrl: 'https://via.placeholder.com/390x120/4CAF50/FFFFFF?text=Marinade',
-      landingUrl: 'https://marinade.finance',
-      active: true,
-    },
-  ],
-  BOTTOM: [
-    {
-      id: 'ad_bottom_1',
-      advertiserId: '8vN...4Wp',
-      imageUrl: 'https://via.placeholder.com/390x100/9C27B0/FFFFFF?text=Tensor',
-      landingUrl: 'https://tensor.trade',
-      active: true,
-    },
-  ],
-  LOCKSCREEN: [
-    {
-      id: 'ad_lock_1',
-      advertiserId: '7xK...9Qz',
-      contentUrl: 'https://via.placeholder.com/1080x1920/FF9F66/FFFFFF?text=Seeker+Launch',
-      imageUrl: 'https://via.placeholder.com/1080x1920/FF9F66/FFFFFF?text=Seeker+Launch',
-      title: 'Solana Seeker Pre-Order',
-      brand: 'Solana Mobile',
-      landingUrl: 'https://solanamobile.com',
-      clickUrl: 'https://solanamobile.com',
-      active: true,
-    },
-    {
-      id: 'ad_lock_2',
-      advertiserId: '2pQ...mNp',
-      contentUrl: 'https://via.placeholder.com/1080x1920/4CAF50/FFFFFF?text=Jupiter+DEX',
-      imageUrl: 'https://via.placeholder.com/1080x1920/4CAF50/FFFFFF?text=Jupiter+DEX',
-      title: 'Trade on Jupiter',
-      brand: 'Jupiter Exchange',
-      landingUrl: 'https://jup.ag',
-      clickUrl: 'https://jup.ag',
-      active: true,
-    },
-    {
-      id: 'ad_lock_3',
-      advertiserId: '5tY...2Lm',
-      contentUrl: 'https://via.placeholder.com/1080x1920/9C27B0/FFFFFF?text=Magic+Eden+NFT',
-      imageUrl: 'https://via.placeholder.com/1080x1920/9C27B0/FFFFFF?text=Magic+Eden+NFT',
-      title: 'Discover NFTs',
-      brand: 'Magic Eden',
-      landingUrl: 'https://magiceden.io',
-      clickUrl: 'https://magiceden.io',
-      active: true,
-    },
-  ],
+  TOP: [],      // Empty — ads are fetched from Firebase
+  BOTTOM: [],
+  LOCKSCREEN: [],
 };
 
 // ========================================
-// PUSH NOTIFICATION ADS (mock data)
+// PUSH NOTIFICATION ADS
 // ========================================
 
-export const MOCK_RICH_NOTIFICATION_ADS = [
-  {
-    id: 'rich_notif_1',
-    advertiserId: '7xK...9Qz',
-    title: 'Jupiter: Swap with zero fees this week!',
-    body: 'Trade any SPL token on Jupiter with 0% fees. Limited time offer for Seeker users.',
-    ctaLabel: 'Swap Now',
-    ctaUrl: 'https://jup.ag',
-    brand: 'Jupiter Exchange',
-    active: true,
-  },
-  {
-    id: 'rich_notif_2',
-    advertiserId: '2pQ...mNp',
-    title: 'Tensor: New NFT collection dropping!',
-    body: 'Exclusive Solana Seeker NFT collection. First 500 minters get a bonus airdrop.',
-    ctaLabel: 'Mint Now',
-    ctaUrl: 'https://tensor.trade',
-    brand: 'Tensor',
-    active: true,
-  },
-];
+export const MOCK_RICH_NOTIFICATION_ADS = [];  // Empty — fetched from Firebase
 
 // ========================================
 // DOOH (Digital Out-Of-Home) INVENTORY

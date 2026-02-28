@@ -113,7 +113,7 @@ export const useAppStore = create(
       // ============================================
       // ALERTS STATE (not persisted — resets on app start)
       // ============================================
-      alerts: [...MOCK_ALERTS],
+      alerts: [],
 
       markAlertAsRead: (alertId) => {
         set((state) => ({
@@ -143,19 +143,8 @@ export const useAppStore = create(
       // ============================================
       // HUBS STATE (persisted — survives app restart)
       // ============================================
-      hubs: [...MOCK_HUBS],
-      pendingHubs: [
-        {
-          id: 'mock_pending_1', name: 'Crypto Traders', creator: '4mL...7Np',
-          subscribers: 0, status: 'PENDING', createdDate: 'Feb 08, 2026',
-          category: 'DeFi', description: 'Trading signals and market analysis', icon: 'trending-up',
-        },
-        {
-          id: 'mock_pending_2', name: 'Solana Devs', creator: '9xT...2Qw',
-          subscribers: 0, status: 'PENDING', createdDate: 'Feb 09, 2026',
-          category: 'Infrastructure', description: 'Solana developer community', icon: 'code-slash',
-        },
-      ],
+      hubs: [],
+      pendingHubs: [],
 
       addPendingHub: (hub) => {
         // 1. Update local state immediately
@@ -347,60 +336,7 @@ export const useAppStore = create(
       // ============================================
       // AD CREATIVES STATE (persisted — submitted by brands, reviewed by admin)
       // ============================================
-      pendingAdCreatives: [
-        {
-          id: 'ad_review_1',
-          brandName: 'Jupiter Exchange',
-          brandWallet: '7xK...9Qz',
-          hubName: 'DeFi Alerts',
-          slotType: 'top',
-          imageUrl: 'https://cdn.jupiter.com/ads/swap-promo-390x120.png',
-          landingUrl: 'https://jup.ag/swap',
-          duration: 4,
-          totalCost: 7200,
-          status: 'PENDING',
-          submittedDate: 'Feb 20, 2026',
-        },
-        {
-          id: 'ad_review_2',
-          brandName: 'NFT Marketplace',
-          brandWallet: '2pQ...mNp',
-          hubName: 'NFT Artists',
-          slotType: 'bottom',
-          imageUrl: 'https://cdn.nftmarket.io/banner-390x100.gif',
-          landingUrl: 'https://nftmarket.io/drops',
-          duration: 2,
-          totalCost: 2700,
-          status: 'PENDING',
-          submittedDate: 'Feb 21, 2026',
-        },
-        {
-          id: 'ad_review_3',
-          brandName: 'Suspicious Token',
-          brandWallet: '5tY...2Lm',
-          hubName: 'Solana Gaming',
-          slotType: 'top',
-          imageUrl: 'https://sketchy-site.xyz/free-tokens-390x120.png',
-          landingUrl: 'https://sketchy-site.xyz/claim',
-          duration: 1,
-          totalCost: 2000,
-          status: 'PENDING',
-          submittedDate: 'Feb 22, 2026',
-        },
-        {
-          id: 'ad_review_4',
-          brandName: 'Phantom Wallet',
-          brandWallet: '9kR...3Wp',
-          hubName: 'DeFi Alerts',
-          slotType: 'lockscreen',
-          imageUrl: 'https://cdn.phantom.app/lockscreen-promo-1080x1920.png',
-          landingUrl: 'https://phantom.app/download',
-          duration: 2,
-          totalCost: 4000,
-          status: 'PENDING',
-          submittedDate: 'Feb 23, 2026',
-        },
-      ],
+      pendingAdCreatives: [],
       approvedAds: [],
 
       addPendingAdCreative: (ad) => {
@@ -569,6 +505,32 @@ export const useAppStore = create(
         hasGenesisToken: hasToken,
         genesisTokenMint: mintAddress || null,
       }),
+
+      // ============================================
+      // FIREBASE SYNC — Replace local data with Firebase data
+      // ============================================
+      syncHubsFromFirebase: (firebaseHubs) => set({ hubs: firebaseHubs }),
+
+      syncNotificationsFromFirebase: (firebaseNotifs) => {
+        // Group notifications by hubName for hubNotifications format
+        const grouped = {};
+        firebaseNotifs.forEach(n => {
+          const hubName = n.hubName || 'General';
+          if (!grouped[hubName]) grouped[hubName] = [];
+          grouped[hubName].push({
+            id: n.id,
+            title: n.title || '',
+            body: n.body || '',
+            hubName,
+            timestamp: n.createdAt?.toDate?.() || new Date(n.createdAt),
+            read: false,
+            link: n.link || null,
+          });
+        });
+        set({ hubNotifications: grouped });
+      },
+
+      syncAdsFromFirebase: (firebaseAds) => set({ approvedAds: firebaseAds }),
 
       // ============================================
       // CUSTOM DEALS STATE (persisted — admin brand deals)

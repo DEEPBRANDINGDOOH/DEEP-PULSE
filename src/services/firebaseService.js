@@ -573,6 +573,47 @@ export async function fetchHubsFromFirestore() {
 }
 
 /**
+ * Fetch recent notifications from Firestore
+ * @returns {Promise<Array>} Array of notification objects
+ */
+export async function fetchNotificationsFromFirestore() {
+  const db = getDb();
+  if (!db) return null;
+
+  try {
+    const snapshot = await db
+      .collection('notifications')
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchNotifications failed:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Fetch approved ad creatives from Firestore
+ * @returns {Promise<Array>} Array of approved ad objects
+ */
+export async function fetchApprovedAdsFromFirestore() {
+  const db = getDb();
+  if (!db) return null;
+
+  try {
+    const snapshot = await db
+      .collection('adCreatives')
+      .where('status', '==', 'APPROVED')
+      .get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchApprovedAds failed:', error.message);
+    return null;
+  }
+}
+
+/**
  * Register FCM token in Firestore for a wallet
  * @param {string} token - FCM device token
  * @param {string} walletAddress - User wallet

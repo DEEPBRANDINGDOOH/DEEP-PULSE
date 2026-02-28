@@ -140,6 +140,14 @@ export default function DiscoverScreen({ navigation }) {
         <View className="px-6">
           <Text className="text-text font-bold text-xl mb-4">Trending Hubs</Text>
 
+          {filteredHubs.length === 0 && (
+            <View className="items-center justify-center py-16">
+              <Ionicons name="search-outline" size={48} color="#555" />
+              <Text className="text-text-secondary text-center mt-4 text-base font-bold">No hubs yet</Text>
+              <Text className="text-text-muted text-xs text-center mt-1">Hubs will appear here once created by brands</Text>
+            </View>
+          )}
+
           {filteredHubs.map((hub) => (
             <View
               key={hub.id}

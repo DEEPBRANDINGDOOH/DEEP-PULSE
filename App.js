@@ -7,7 +7,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { notificationService } from './src/services/notificationService';
-import { registerFcmToken } from './src/services/firebaseService';
+import {
+  registerFcmToken,
+  fetchHubsFromFirestore,
+  fetchNotificationsFromFirestore,
+  fetchApprovedAdsFromFirestore,
+} from './src/services/firebaseService';
 import { useAppStore } from './src/store/appStore';
 import { logger } from './src/utils/security';
 import { setWalletState } from './src/services/transactionHelper';
@@ -210,6 +215,25 @@ const App = () => {
 
     // Check hub subscription expiry on app start (detect OVERDUE hubs)
     useAppStore.getState().checkHubSubscriptions();
+
+    // Sync data from Firebase (non-blocking — replaces local data with server data)
+    const syncFromFirebase = async () => {
+      try {
+        const [hubs, notifications, ads] = await Promise.all([
+          fetchHubsFromFirestore(),
+          fetchNotificationsFromFirestore(),
+          fetchApprovedAdsFromFirestore(),
+        ]);
+        const store = useAppStore.getState();
+        if (hubs && hubs.length > 0) store.syncHubsFromFirebase(hubs);
+        if (notifications && notifications.length > 0) store.syncNotificationsFromFirebase(notifications);
+        if (ads && ads.length > 0) store.syncAdsFromFirebase(ads);
+        logger.log(`[App] Firebase sync: ${hubs?.length || 0} hubs, ${notifications?.length || 0} notifs, ${ads?.length || 0} ads`);
+      } catch (e) {
+        logger.warn('[App] Firebase sync failed, using local data:', e?.message);
+      }
+    };
+    syncFromFirebase();
 
     return () => {
       notificationService.removeForegroundListener();

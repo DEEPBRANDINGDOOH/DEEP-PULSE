@@ -12,47 +12,7 @@ import PulseOrb from '../components/ui/PulseOrb';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: '1',
-    hubName: 'Solana Gaming',
-    hubIcon: 'game-controller',
-    title: 'New Game Launch',
-    message: 'Check out the latest game on Solana! Epic gameplay awaits...',
-    fullMessage: 'Get ready for the biggest game launch of the year on Solana. Exclusive NFT rewards for early adopters. Be among the first to play and earn!\n\nThe game features a unique play-to-earn model with $SKR token integration. Top players will receive legendary NFTs and governance tokens.\n\nLaunch time: February 23, 2026 at 12:00 PM UTC\nPlatform: Solana Mobile (Seeker compatible)\nRewards: 10,000 $SKR pool for first 500 players',
-    link: 'https://solanagaming.io/launch',
-    timestamp: '2 hours ago',
-    reactions: 234,
-    comments: 56,
-    isNew: true,
-  },
-  {
-    id: '2',
-    hubName: 'NFT Artists',
-    hubIcon: 'color-palette',
-    title: 'Artist Spotlight',
-    message: '@solartist drops exclusive collection tomorrow at 12PM UTC',
-    fullMessage: 'This week\'s featured artist is @solartist, known for their stunning generative art pieces.\n\nCollection: "Solar Flares"\nMint Date: Tomorrow at 12:00 PM UTC\nSupply: 500 unique pieces\nMint Price: 2 SOL\n\nEach piece is algorithmically generated using real solar data from NASA. Whitelist is open for DEEP Pulse subscribers!',
-    link: 'https://magiceden.io/drops/solar-flares',
-    timestamp: '5 hours ago',
-    reactions: 156,
-    comments: 23,
-    isNew: true,
-  },
-  {
-    id: '3',
-    hubName: 'DeFi Alerts',
-    hubIcon: 'trending-up',
-    title: 'New Yield Farm',
-    message: 'Jupiter launches new LP rewards program with 50% APY',
-    fullMessage: 'Jupiter has launched a new liquidity provision rewards program offering up to 50% APY on selected pairs.\n\nFeatured Pairs:\n- SOL/USDC: 50% APY\n- JUP/SOL: 35% APY\n- BONK/USDC: 28% APY\n\nRewards are paid in JUP tokens and are claimable weekly. The program runs for 3 months starting today.\n\nNote: APY rates are variable and subject to change. Always DYOR before investing.',
-    link: 'https://jup.ag/earn',
-    timestamp: '1 day ago',
-    reactions: 412,
-    comments: 89,
-    isNew: false,
-  },
-];
+const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
   const { wallet, getUnreadCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore();
@@ -61,7 +21,7 @@ export default function HomeScreen({ navigation }) {
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
   const unreadCount = getUnreadCount();
 
-  // Merge store notifications (from brand-sent notifs) with mock data
+  // Load notifications from store (synced from Firebase on app start)
   const storeNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
     ...n,
     hubIcon: n.hubIcon || 'apps',
@@ -69,9 +29,7 @@ export default function HomeScreen({ navigation }) {
     comments: n.comments || 0,
     isNew: true,
   }));
-  const [notifications, setNotifications] = useState(
-    __DEV__ ? [...storeNotifs, ...MOCK_NOTIFICATIONS] : [...storeNotifs]
-  );
+  const [notifications, setNotifications] = useState([...storeNotifs]);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
@@ -85,7 +43,7 @@ export default function HomeScreen({ navigation }) {
       comments: n.comments || 0,
       isNew: true,
     }));
-    setNotifications(__DEV__ ? [...freshStoreNotifs, ...MOCK_NOTIFICATIONS] : [...freshStoreNotifs]);
+    setNotifications([...freshStoreNotifs]);
   }, [hubNotifications]);
 
   const handleAdImpression = (data) => {
@@ -246,6 +204,14 @@ export default function HomeScreen({ navigation }) {
 
         {/* Notifications Feed */}
         <View className="px-6">
+          {notifications.length === 0 && (
+            <View className="items-center justify-center py-16">
+              <Ionicons name="notifications-off-outline" size={48} color="#555" />
+              <Text className="text-text-secondary text-center mt-4 text-base font-bold">No notifications yet</Text>
+              <Text className="text-text-muted text-xs text-center mt-1">Subscribe to hubs to receive notifications</Text>
+            </View>
+          )}
+
           {notifications.map((notif, index) => (
             <GlowCard
               key={notif.id}
