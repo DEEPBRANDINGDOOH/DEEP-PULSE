@@ -48,7 +48,8 @@
 - **Fully on-chain** — All business logic enforced by a Solana program
 - **Serverless backend** — Firebase Cloud Functions (10 functions) for push notifications, analytics, moderation, ad processing — $0/month on free tier
 - **Solana Mobile native** — Built for MWA 2.0, compatible with Solana Seeker SeedVault + Phantom + Solflare
-- **Existing token** — Uses the $SKR SPL token (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`), no new token creation
+- **Official $SKR Token** — Uses the real Solana Mobile $SKR token (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) for all platform transactions — hub creation, ad slots, escrow deposits, talent submissions
+- **Seeker Genesis Token (SGT)** — Automatic on-chain verification of SGT ownership via Token-2022 (Token Extensions). Verified Seeker owners get a "SEEKER VERIFIED" badge and +15% DEEP Score bonus. Uses mint authority `GT2zuHVaZQYZSyQMgJPLzvkmyztfyXg2NJunqFp4p3A4` per [Solana Mobile docs](https://docs.solanamobile.com/marketing/engaging-seeker-users)
 - **Escrow-based deposits** — Tokens locked in PDA escrows until brand moderation resolves
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
 - **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)

@@ -81,13 +81,23 @@ export default function ProfileScreen({ navigation }) {
     Alert.alert('Copied!', `Wallet address copied to clipboard.`);
   };
 
+  const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
+
   const renderProfileView = () => (
     <ScrollView className="px-6 py-4">
       {/* Wallet Card */}
       <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">
         <View className="flex-row items-center justify-between mb-4">
-          <View>
-            <Text className="text-text-secondary text-sm mb-1">Wallet</Text>
+          <View className="flex-1">
+            <View className="flex-row items-center mb-1">
+              <Text className="text-text-secondary text-sm">Wallet</Text>
+              {hasGenesisToken && (
+                <View className="ml-2 flex-row items-center bg-yellow-500/20 rounded-full px-2 py-0.5">
+                  <Ionicons name="shield-checkmark" size={12} color="#EAB308" />
+                  <Text style={{ fontSize: 10, color: '#EAB308', fontWeight: '800', marginLeft: 3 }}>SEEKER VERIFIED</Text>
+                </View>
+              )}
+            </View>
             <Text className="text-text font-bold text-lg">{user.wallet}</Text>
           </View>
           <TouchableOpacity onPress={handleCopyWallet}>
@@ -119,6 +129,15 @@ export default function ProfileScreen({ navigation }) {
             <Text className="text-primary font-bold">{tier.name}</Text>
           </View>
         </View>
+
+        {/* Seeker Bonus */}
+        {hasGenesisToken && (
+          <View className="flex-row items-center mb-3 bg-yellow-500/10 rounded-xl p-3 border border-yellow-500/20">
+            <Ionicons name="diamond" size={16} color="#EAB308" />
+            <Text className="text-yellow-400 text-sm font-bold ml-2">+15% Seeker Genesis Bonus</Text>
+            <Text className="text-text-secondary text-xs ml-auto">Active</Text>
+          </View>
+        )}
 
         {/* Streak */}
         <View className="flex-row items-center mb-4 bg-background/50 rounded-xl p-3">

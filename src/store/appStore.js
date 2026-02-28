@@ -49,6 +49,8 @@ export const useAppStore = create(
           publicKey: null,
           authToken: null,
         },
+        hasGenesisToken: false,
+        genesisTokenMint: null,
       }),
 
       // ============================================
@@ -558,6 +560,17 @@ export const useAppStore = create(
       },
 
       // ============================================
+      // SEEKER GENESIS TOKEN STATE (persisted)
+      // ============================================
+      hasGenesisToken: false,
+      genesisTokenMint: null,
+
+      setGenesisToken: (hasToken, mintAddress) => set({
+        hasGenesisToken: hasToken,
+        genesisTokenMint: mintAddress || null,
+      }),
+
+      // ============================================
       // CUSTOM DEALS STATE (persisted — admin brand deals)
       // ============================================
       customDeals: [
@@ -698,6 +711,8 @@ export const useAppStore = create(
         daoProposals: state.daoProposals,
         userScore: state.userScore,
         userStreak: state.userStreak,
+        hasGenesisToken: state.hasGenesisToken,
+        genesisTokenMint: state.genesisTokenMint,
         customDeals: state.customDeals,
         adminConversations: state.adminConversations,
         doohCampaigns: state.doohCampaigns,

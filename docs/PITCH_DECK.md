@@ -76,15 +76,20 @@ Hackathon Submission — March 2026
 |   Firebase (FCM + Storage)|   33 error codes              |
 |   Zustand persistence     |   SPL Token ($SKR)            |
 +---------------------------+-------------------------------+
-|          $SKR Token (existing SPL mint on mainnet)         |
-|          SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3     |
+|   Official $SKR Token (Solana Mobile)                      |
+|   SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3            |
++-----------------------------------------------------------+
+|   Seeker Genesis Token (SGT) — Token-2022 verification     |
+|   Mint Authority: GT2zuHVaZQYZSyQMgJPLzvkmyztfyXg2NJunqFp4p3A4 |
 +-----------------------------------------------------------+
 ```
 
 **Key technical decisions:**
 - Single monolithic Anchor program (no CPI complexity)
-- Existing $SKR token (no new token creation)
-- MWA 2.0 for Phantom/Solflare integration
+- Official Solana Mobile $SKR token — no new token creation
+- MWA 2.0 for Phantom/Solflare + SeedVault integration
+- Seeker Genesis Token (SGT) on-chain verification via Token-2022
+- SGT holders get "SEEKER VERIFIED" badge + 15% DEEP Score bonus
 - Firebase for push + storage (battle-tested infrastructure)
 - NativeWind for consistent Tailwind-based UI
 
@@ -230,12 +235,15 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 | Solana Mobile native | YES | No | Partial | No |
 | On-chain subscriptions | YES | Yes | No | No |
 | Lock screen ads | YES | No | No | No |
-| $SKR token integration | YES | Own token | No token | No |
+| Official $SKR token | YES | Own token | No token | No |
+| Seeker Genesis Token (SGT) | YES | No | No | No |
+| SGT holder perks (+15%) | YES | No | No | No |
 | Anti-farming scoring | YES | No | No | No |
 | Brand ad marketplace | YES | No | No | No |
 | DAO boost vaults | YES | No | No | No |
 | Image upload for ads | YES | No | No | No |
 | Discord → Hub pipeline | YES | No | No | No |
+| SeedVault compatible | YES | No | No | No |
 
 ---
 

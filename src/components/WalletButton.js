@@ -11,6 +11,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter, formatPublicKey } from '../services/walletAdapter';
 import { setWalletState } from '../services/transactionHelper';
+import { programService } from '../services/programService';
 
 export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
   const { wallet, setWallet, clearWallet } = useAppStore();
@@ -34,6 +35,11 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
       });
       // Sync transactionHelper state (required for on-chain transactions)
       setWalletState(result.publicKey, result.authToken);
+
+      // Check for Seeker Genesis Token (non-blocking)
+      programService.checkGenesisToken(result.publicKey).then((sgt) => {
+        useAppStore.getState().setGenesisToken(sgt.hasToken, sgt.mintAddress);
+      }).catch(() => {});
 
       Alert.alert(
         'Wallet Connected',

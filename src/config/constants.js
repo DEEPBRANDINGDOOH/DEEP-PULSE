@@ -96,6 +96,24 @@ export const isAdmin = (walletAddress) => {
 };
 
 // ========================================
+// SEEKER GENESIS TOKEN (SGT) VERIFICATION
+// ========================================
+
+// Seeker Genesis Token — unique NFT for verified Seeker device owners
+// Uses Token Extensions (Token-2022)
+// Ref: https://docs.solanamobile.com/marketing/engaging-seeker-users
+export const SGT_CONFIG = {
+  MINT_AUTHORITY: 'GT2zuHVaZQYZSyQMgJPLzvkmyztfyXg2NJunqFp4p3A4',
+  METADATA_ADDRESS: 'GT22s89nU4iWFkNXj1Bw6uYhJJWDRPpShHt4Bk8f99Te',
+  GROUP_ADDRESS: 'GT22s89nU4iWFkNXj1Bw6uYhJJWDRPpShHt4Bk8f99Te',
+  // Token-2022 program ID
+  TOKEN_2022_PROGRAM_ID: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+};
+
+// SGT holders get a DEEP Score multiplier bonus
+export const SGT_SCORE_MULTIPLIER = 1.15; // +15% score bonus for Seeker device owners
+
+// ========================================
 // DEEP SCORE ALGORITHM v2 (TOP 100 LEADERBOARD)
 // ========================================
 // Principle: ON-CHAIN and high-value actions yield much more

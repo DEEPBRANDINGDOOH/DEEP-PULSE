@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
+import { programService } from '../services/programService';
 import { setWalletState, initUserScore } from '../services/transactionHelper';
 import { logger } from '../utils/security';
 
@@ -300,6 +301,10 @@ export default function OnboardingScreen({ navigation }) {
       });
       setWalletState(result.publicKey, result.authToken);
       initUserScore().catch(() => {});
+      // Check for Seeker Genesis Token (non-blocking)
+      programService.checkGenesisToken(result.publicKey).then((sgt) => {
+        useAppStore.getState().setGenesisToken(sgt.hasToken, sgt.mintAddress);
+      }).catch(() => {});
       Alert.alert(
         'Wallet Connected',
         `Connected to ${result.label || 'wallet'}`,

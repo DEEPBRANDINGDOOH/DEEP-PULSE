@@ -57,6 +57,7 @@ const MOCK_NOTIFICATIONS = [
 export default function HomeScreen({ navigation }) {
   const { wallet, getUnreadCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore();
   const approvedAds = useAppStore((state) => state.approvedAds);
+  const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
   const unreadCount = getUnreadCount();
 
@@ -174,7 +175,15 @@ export default function HomeScreen({ navigation }) {
             >
               DEEP Pulse
             </Text>
-            <Text className="text-text-muted text-xs mt-0.5">Web3 Notification Hub</Text>
+            <View className="flex-row items-center mt-0.5">
+              <Text className="text-text-muted text-xs">Web3 Notification Hub</Text>
+              {hasGenesisToken && (
+                <View className="flex-row items-center bg-yellow-500/15 rounded-full px-2 py-0.5 ml-2">
+                  <Ionicons name="shield-checkmark" size={9} color="#EAB308" />
+                  <Text style={{ fontSize: 8, color: '#EAB308', fontWeight: '800', marginLeft: 2, letterSpacing: 0.5 }}>SEEKER</Text>
+                </View>
+              )}
+            </View>
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity
