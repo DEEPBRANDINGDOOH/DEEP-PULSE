@@ -90,6 +90,8 @@ Hackathon Submission — March 2026
 - MWA 2.0 for Phantom/Solflare + SeedVault integration
 - Seeker Genesis Token (SGT) on-chain verification via Token-2022
 - SGT holders get "SEEKER VERIFIED" badge + 15% DEEP Score bonus
+- Helius RPC endpoints (devnet + mainnet) for reliable blockchain access
+- Firebase Firestore sync — all users see the same hubs, notifications, and ads
 - Firebase for push + storage (battle-tested infrastructure)
 - NativeWind for consistent Tailwind-based UI
 
@@ -223,8 +225,8 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 19. Push Notification Ads (push notification ad campaigns — full campaign creation flow)
 
 **Both APKs available:**
-- Debug APK (132 MB) — mock fallbacks for testing
-- Release APK (54 MB) — mainnet-ready, real transactions
+- Debug APK (141 MB) — Firebase sync enabled, all data from Firestore
+- Release APK (53 MB) — mainnet-ready, Helius RPC, real transactions
 
 ---
 
@@ -251,7 +253,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase push + storage, Discord → Hub pipeline, Push Notification Ads (full campaign creation flow), DOOH Worldwide, Hub Lifecycle |
+| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase Firestore sync (all users see same data), Helius RPC, Firebase push + storage, Discord → Hub pipeline, Push Notification Ads, DOOH Worldwide, Hub Lifecycle, SGT verification |
 | **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |

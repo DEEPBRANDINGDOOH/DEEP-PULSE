@@ -616,11 +616,12 @@ firebase deploy --only hosting
 
 | Setting | Development | Production |
 |---------|-------------|------------|
-| RPC Endpoint | `https://api.devnet.solana.com` | `https://api.mainnet-beta.solana.com` |
+| RPC Endpoint | `https://devnet.helius-rpc.com` (Helius) | `https://mainnet.helius-rpc.com` (Helius) |
 | MWA Cluster | `solana:devnet` | `solana:mainnet-beta` |
 | API Backend | `http://localhost:3000/api` | `https://us-central1-deep-pulse.cloudfunctions.net` |
 | App Identity | — | `https://deep-pulse.web.app` |
-| Mock Data | Enabled (`__DEV__`) | Disabled |
+| Firebase Sync | Enabled (fetch on startup) | Enabled (fetch on startup) |
+| Mock Data | Removed (all data from Firebase) | Disabled |
 
 ---
 
@@ -887,7 +888,7 @@ After repeated actions of the same type, each additional action earns less:
 
 ## Roadmap to Mainnet
 
-> **Current status: Hackathon Demo (devnet + mock data)**. The app is fully functional on devnet with `__DEV__` mock transactions. Below is everything needed to ship DEEP PULSE as a real production app on Solana mainnet and the Solana Mobile dApp Store.
+> **Current status: Hackathon Demo (devnet + Firebase sync)**. The app syncs all data (hubs, notifications, ads) from Firebase Firestore on startup — all users see the same content. Mock data has been removed. Helius RPC endpoints are integrated. Below is everything needed to ship DEEP PULSE as a real production app on Solana mainnet and the Solana Mobile dApp Store.
 
 ### What's Already Production-Ready
 
@@ -902,6 +903,9 @@ After repeated actions of the same type, each additional action earns less:
 | Privacy Policy (hosted) | ✅ Ready |
 | Environment-aware logging (no sensitive data in production) | ✅ Ready |
 | Network switching (auto devnet/mainnet via `__DEV__`) | ✅ Ready |
+| Helius RPC endpoints (devnet + mainnet) | ✅ Ready |
+| Firebase Firestore sync (hubs, notifications, ads on startup) | ✅ Ready |
+| Mock data removed (all content from Firebase) | ✅ Ready |
 
 ### Step 1 — Deploy Smart Contract to Mainnet
 
@@ -937,7 +941,7 @@ The $SKR mint (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) must exist on main
 
 | Service | Current (Free) | Production Needed | Est. Cost |
 |---------|---------------|-------------------|-----------|
-| **RPC Endpoint** | `api.mainnet-beta.solana.com` (rate-limited) | Helius or QuickNode (dedicated) | ~$49/month |
+| **RPC Endpoint** | Helius free tier (integrated) | Helius paid plan (dedicated) | ~$49/month |
 | **Firebase** | Blaze free tier | Blaze pay-as-you-go | ~$25-100/month |
 | **Firebase Auth** | Not implemented | Custom Auth with wallet signature | Development time |
 | **Error Monitoring** | None | Sentry or Firebase Crashlytics | Free tier available |
@@ -951,7 +955,7 @@ The $SKR mint (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) must exist on main
 | **Firestore Security Rules** | Critical | Tighten rules to require auth tokens instead of client-supplied wallet addresses |
 | **Storage Security Rules** | High | Add auth-based access control for ad creative uploads/deletes |
 | **Cloud Function rate limiting** | High | Server-side rate limiting (currently client-side only via `checkRateLimit`) |
-| **Mock data gating** | High | Gate `MOCK_HUBS`, `pendingHubs`, `pendingAdCreatives` behind `__DEV__` in appStore.js so production users start with empty state |
+| ~~Mock data gating~~ | ~~High~~ | ✅ **DONE (Build 22)** — All mock data removed, replaced with Firebase Firestore sync on app startup |
 | **Firebase App Check** | Medium | Prevent unauthorized API calls to Cloud Functions |
 | **Crash reporting** | Medium | Add Sentry or Crashlytics for production error visibility |
 | **Admin multi-sig** | Low | Replace single admin wallet with multi-sig for added security |
@@ -1101,4 +1105,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (18+37+90 issues fixed, 3 full security audits, 9.5/10) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled (code obfuscation + optimization) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with "HubName: Title" format + optional Link URL ✓ | Ad Type Selector (In-App / Out-of-App categories) ✓ | Hub Logo Upload (200x200px, 500KB, PNG/JPG/WebP, circular crop, HubIcon component) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~56MB) ✓ | @notifee/react-native local push notifications ✓ | Feedback→Moderation data flow (hubFeedbacks persisted state) ✓ | Build 7: 5 critical bugs fixed (push notifs, hub logo, feedback flow, moderation screen, audit fixes) ✓
+**Status:** Smart contracts compiled + security-audited (18+37+90 issues fixed, 3 full security audits, 9.5/10) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled (code obfuscation + optimization) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with "HubName: Title" format + optional Link URL ✓ | Ad Type Selector (In-App / Out-of-App categories) ✓ | Hub Logo Upload (200x200px, 500KB, PNG/JPG/WebP, circular crop, HubIcon component) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~56MB) ✓ | @notifee/react-native local push notifications ✓ | Feedback→Moderation data flow (hubFeedbacks persisted state) ✓ | Build 7: 5 critical bugs fixed (push notifs, hub logo, feedback flow, moderation screen, audit fixes) ✓ | Build 21: SGT on-chain verification + Official $SKR ✓ | Build 22: Firebase Firestore sync (all data fetched on startup) + Helius RPC + mock data removed ✓
