@@ -1386,19 +1386,26 @@ export default function AdSlotsScreen({ route, navigation }) {
         transparent={true}
         onRequestClose={() => setShowRichNotifModal(false)}
       >
-        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View className="flex-1 bg-black/80 justify-end">
-          <View className="bg-background rounded-t-3xl p-6" style={{ flex: 0, maxHeight: '90%' }}>
-            <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled={true}>
-              {/* Header */}
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-text font-black text-2xl">
-                  Push Notification Ad
-                </Text>
-                <TouchableOpacity onPress={() => { setShowRichNotifModal(false); setDuration(1); }}>
-                  <Ionicons name="close" size={28} color="#888" />
-                </TouchableOpacity>
-              </View>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' }}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ maxHeight: '92%' }}>
+          <View style={{ backgroundColor: '#0d0d12', borderTopLeftRadius: 24, borderTopRightRadius: 24 }}>
+            {/* Fixed Header — outside ScrollView */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 12 }}>
+              <Text className="text-text font-black text-2xl">
+                Push Notification Ad
+              </Text>
+              <TouchableOpacity onPress={() => { setShowRichNotifModal(false); setDuration(1); }}>
+                <Ionicons name="close" size={28} color="#888" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={{ flexGrow: 0 }}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+              nestedScrollEnabled={true}
+            >
 
               {/* Review notice */}
               <View className="bg-success/10 rounded-xl p-3 mb-5 border border-success/20">
@@ -1649,8 +1656,8 @@ export default function AdSlotsScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
+          </KeyboardAvoidingView>
         </View>
-        </KeyboardAvoidingView>
       </Modal>
 
       {/* Edit Creative Modal */}

@@ -178,7 +178,7 @@ export default function BrandModerationScreen({ navigation, route }) {
   };
 
   const renderFeedbackTab = () => (
-    <ScrollView className="px-6 py-4">
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16 }}>
       {submissions.feedback.length === 0 ? (
         <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
           <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
@@ -238,7 +238,7 @@ export default function BrandModerationScreen({ navigation, route }) {
   );
 
   const renderBoostTab = () => (
-    <ScrollView className="px-6 py-4">
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16 }}>
       {submissions.boost.length === 0 ? (
         <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
           <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
@@ -295,7 +295,7 @@ export default function BrandModerationScreen({ navigation, route }) {
   );
 
   const renderTalentTab = () => (
-    <ScrollView className="px-6 py-4">
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16 }}>
       {submissions.talent.length === 0 ? (
         <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
           <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
