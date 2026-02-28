@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -255,7 +255,12 @@ export default function HomeScreen({ navigation }) {
                     <View className="flex-1 ml-3">
                       <View className="flex-row items-center">
                         <Text className="text-text font-bold text-sm">{notif.hubName}</Text>
-                        {notif.isNew && (
+                        {notif.isSponsored && (
+                          <View className="ml-2 rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(234,179,8,0.2)' }}>
+                            <Text className="font-black" style={{ fontSize: 9, letterSpacing: 1, color: '#EAB308' }}>SPONSORED</Text>
+                          </View>
+                        )}
+                        {notif.isNew && !notif.isSponsored && (
                           <View className="ml-2 rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(255,159,102,0.2)' }}>
                             <Text className="text-primary font-black" style={{ fontSize: 9, letterSpacing: 1 }}>NEW</Text>
                           </View>
@@ -272,8 +277,27 @@ export default function HomeScreen({ navigation }) {
                     {notif.message}
                   </Text>
 
+                  {/* Rich Notification Image */}
+                  {notif.imageUrl && (
+                    <Image
+                      source={{ uri: notif.imageUrl }}
+                      className="w-full rounded-xl mb-3"
+                      style={{ height: 140, backgroundColor: '#1a1a20' }}
+                      resizeMode="cover"
+                    />
+                  )}
+
+                  {/* CTA Button (sponsored notifications) */}
+                  {notif.ctaLabel && (
+                    <View className="mb-3">
+                      <View className="bg-primary/15 rounded-lg px-4 py-2 self-start border border-primary/25">
+                        <Text className="text-primary text-sm font-bold">{notif.ctaLabel}</Text>
+                      </View>
+                    </View>
+                  )}
+
                   {/* Link indicator */}
-                  {notif.link && (
+                  {notif.link && !notif.ctaLabel && (
                     <View className="flex-row items-center mb-3 bg-primary/8 rounded-lg px-3 py-1.5">
                       <Ionicons name="link" size={12} color="#FF9F66" />
                       <Text className="text-primary text-xs ml-1.5 flex-1" numberOfLines={1}>{notif.link}</Text>

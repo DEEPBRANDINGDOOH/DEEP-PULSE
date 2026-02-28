@@ -899,13 +899,22 @@ export default function AdSlotsScreen({ route, navigation }) {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                        <View className="ml-2 rounded px-1.5 py-0.5" style={{ backgroundColor: 'rgba(234,179,8,0.2)' }}>
+                          <Text style={{ fontSize: 8, letterSpacing: 0.5, color: '#EAB308', fontWeight: '900' }}>SPONSORED</Text>
+                        </View>
+                      </View>
                       <Text className="text-text-secondary text-xs">now</Text>
                     </View>
                     <Text className="text-text font-bold text-sm mb-1">Your Hub: Campaign Title Here</Text>
                     <Text className="text-text-secondary text-xs leading-4" numberOfLines={2}>
                       Your promotional message goes here. Reach all subscribers instantly.
                     </Text>
+                    <View className="bg-[#2a2a30] rounded-lg mt-2" style={{ height: 80, alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="image-outline" size={24} color="#555" />
+                      <Text className="text-text-secondary text-xs mt-1">Image (512x256)</Text>
+                    </View>
                     <View className="bg-primary/15 rounded-lg px-3 py-1.5 mt-2 self-start border border-primary/25">
                       <Text className="text-primary text-xs font-bold">Call to Action</Text>
                     </View>
@@ -1518,7 +1527,12 @@ export default function AdSlotsScreen({ route, navigation }) {
                       </View>
                       <View className="flex-1">
                         <View className="flex-row items-center justify-between mb-1">
-                          <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                          <View className="flex-row items-center">
+                            <Text className="text-text-secondary text-xs">DEEP PULSE</Text>
+                            <View className="ml-2 rounded px-1.5 py-0.5" style={{ backgroundColor: 'rgba(234,179,8,0.2)' }}>
+                              <Text style={{ fontSize: 8, letterSpacing: 0.5, color: '#EAB308', fontWeight: '900' }}>SPONSORED</Text>
+                            </View>
+                          </View>
                           <Text className="text-text-secondary text-xs">now</Text>
                         </View>
                         <Text className="text-text font-bold text-sm mb-1">
@@ -1527,6 +1541,14 @@ export default function AdSlotsScreen({ route, navigation }) {
                         <Text className="text-text-secondary text-xs leading-4" numberOfLines={2}>
                           {richBody || 'Your message appears here...'}
                         </Text>
+                        {/* Image preview */}
+                        {(richImageUrl || '').trim() !== '' && (
+                          <Image
+                            source={{ uri: richImageUrl }}
+                            style={{ width: '100%', height: 100, borderRadius: 8, marginTop: 8, backgroundColor: '#0d0d12' }}
+                            resizeMode="cover"
+                          />
+                        )}
                         {(richCtaLabel || '').trim() !== '' && (
                           <View className="bg-primary/15 rounded-lg px-3 py-1.5 mt-2 self-start border border-primary/25">
                             <Text className="text-primary text-xs font-bold">{richCtaLabel}</Text>

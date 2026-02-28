@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
+// Rich notif ad needs to store the notification in Zustand for in-app display
 import { programService } from '../services/programService';
 import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
@@ -65,6 +66,7 @@ export default function AdminScreen({ navigation }) {
   const pendingAds = useAppStore((state) => state.pendingAdCreatives);
   const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
   const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
+  const addHubNotification = useAppStore((state) => state.addHubNotification);
   const [savingPrice, setSavingPrice] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState('30d');
   const [statsTab, setStatsTab] = useState('global');
@@ -123,8 +125,8 @@ export default function AdminScreen({ navigation }) {
 
             // If it's a Rich Notification Ad, trigger push notification to hub subscribers
             if (ad.slotType === 'rich_notif' && ad.hubName) {
-              const pushTitle = ad.notifTitle || ad.brandName || 'Sponsored';
-              const pushBody = ad.notifBody || `New sponsored content from ${ad.brandName}`;
+              const pushTitle = ad.richTitle || ad.brandName || 'Sponsored';
+              const pushBody = ad.richBody || `New sponsored content from ${ad.brandName}`;
               // sendHubNotification(hubId, hubName, title, body, walletAddress, link)
               sendHubNotification(
                 ad.hubId || ad.hubName, // hubId (fallback to hubName)
@@ -137,6 +139,25 @@ export default function AdminScreen({ navigation }) {
                 logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
               }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
               showLocalNotification(pushTitle, pushBody);
+
+              // Store notification in Zustand so it appears in HomeScreen feed + bell icon
+              addHubNotification(ad.hubName, {
+                id: `rich_notif_${Date.now()}`,
+                title: pushTitle,
+                hubName: ad.hubName,
+                hubIcon: 'notifications',
+                message: pushBody,
+                fullMessage: pushBody,
+                link: ad.landingUrl || null,
+                imageUrl: ad.imageUrl || null,
+                ctaLabel: ad.richCtaLabel || null,
+                ctaUrl: ad.landingUrl || null,
+                isSponsored: true,
+                timestamp: 'Just now',
+                reactions: 0,
+                comments: 0,
+                isNew: true,
+              });
             }
 
             Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);

@@ -8,6 +8,8 @@ import { MOCK_ADS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
+// Ad system: merge store ads with mocks
+
 // Extra hub metadata for legacy mock hubs (display in My Hubs)
 const HUB_EXTRA = {
   '1': { unreadCount: 3, lastNotification: 'New game launch tomorrow!', lastNotificationTime: '2 hours ago' },
@@ -20,6 +22,7 @@ export default function MyHubsScreen({ navigation }) {
   const unsubscribeFromProject = useAppStore((state) => state.unsubscribeFromProject);
   const storeHubs = useAppStore((state) => state.hubs);
   const hubNotifications = useAppStore((state) => state.hubNotifications);
+  const approvedAds = useAppStore((state) => state.approvedAds);
 
   // Build myHubs from the store subscriptions + store hubs (includes mock + user-created)
   const myHubs = useMemo(() => {
@@ -95,10 +98,15 @@ export default function MyHubsScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* TOP AD SLOT */}
+        {/* TOP AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mb-6">
           <AdRotation
-            ads={MOCK_ADS.TOP}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'top' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.TOP,
+            ]}
             slotType="top"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}
@@ -192,10 +200,15 @@ export default function MyHubsScreen({ navigation }) {
           )}
         </View>
 
-        {/* BOTTOM AD SLOT */}
+        {/* BOTTOM AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mt-4 mb-6">
           <AdRotation
-            ads={MOCK_ADS.BOTTOM}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'bottom' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.BOTTOM,
+            ]}
             slotType="bottom"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
@@ -95,7 +95,12 @@ export default function NotificationDetailScreen({ navigation, route }) {
               <Text className="text-text font-bold">{notification.hubName || 'Hub'}</Text>
               <Text className="text-text-secondary text-xs">{notification.timestamp || ''}</Text>
             </View>
-            {notification.isNew && (
+            {notification.isSponsored && (
+              <View className="rounded-md px-2 py-1" style={{ backgroundColor: 'rgba(234,179,8,0.2)' }}>
+                <Text className="font-black" style={{ fontSize: 10, letterSpacing: 1, color: '#EAB308' }}>SPONSORED</Text>
+              </View>
+            )}
+            {notification.isNew && !notification.isSponsored && (
               <View className="rounded-md px-2 py-1" style={{ backgroundColor: 'rgba(255,159,102,0.2)' }}>
                 <Text className="text-primary font-black" style={{ fontSize: 10, letterSpacing: 1 }}>NEW</Text>
               </View>
@@ -116,6 +121,30 @@ export default function NotificationDetailScreen({ navigation, route }) {
               {notification.fullMessage || notification.message || ''}
             </Text>
           </View>
+
+          {/* Rich Notification Image */}
+          {notification.imageUrl && (
+            <Image
+              source={{ uri: notification.imageUrl }}
+              className="w-full rounded-2xl mb-5"
+              style={{ height: 180, backgroundColor: '#1a1a20' }}
+              resizeMode="cover"
+            />
+          )}
+
+          {/* CTA Button (sponsored notifications) */}
+          {notification.ctaLabel && notification.ctaUrl && (
+            <TouchableOpacity
+              onPress={() => safeOpenURL(notification.ctaUrl, 'sponsored CTA')}
+              className="bg-primary rounded-2xl p-4 mb-5"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="open-outline" size={18} color="#fff" />
+                <Text className="text-white font-bold text-base ml-2">{notification.ctaLabel}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           {/* Link button */}
           {notification.link && (

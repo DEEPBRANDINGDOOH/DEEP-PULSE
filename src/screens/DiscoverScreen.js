@@ -12,6 +12,7 @@ export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const storeSubscribed = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
+  const approvedAds = useAppStore((state) => state.approvedAds);
   // Show active + overdue hubs (overdue is invisible to users — no badge). Exclude SUSPENDED.
   const [hubs, setHubs] = useState(
     storeHubs
@@ -120,10 +121,15 @@ export default function DiscoverScreen({ navigation }) {
           </View>
         </View>
 
-        {/* TOP AD SLOT */}
+        {/* TOP AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mb-6">
           <AdRotation
-            ads={MOCK_ADS.TOP}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'top' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.TOP,
+            ]}
             slotType="top"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}
@@ -213,10 +219,15 @@ export default function DiscoverScreen({ navigation }) {
           </View>
         </View>
 
-        {/* BOTTOM AD SLOT */}
+        {/* BOTTOM AD SLOT — merge approved ads from store + fallback mock */}
         <View className="px-6 mt-4 mb-6">
           <AdRotation
-            ads={MOCK_ADS.BOTTOM}
+            ads={[
+              ...approvedAds
+                .filter(ad => ad.slotType === 'bottom' && ad.status === 'APPROVED')
+                .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
+              ...MOCK_ADS.BOTTOM,
+            ]}
             slotType="bottom"
             onAdImpression={handleAdImpression}
             onAdClick={handleAdClick}
