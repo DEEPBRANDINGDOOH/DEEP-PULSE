@@ -273,35 +273,31 @@ export default function AdSlotsScreen({ route, navigation }) {
   const [richImageUrl, setRichImageUrl] = useState('');
   const [isSubmittingRich, setIsSubmittingRich] = useState(false);
 
-  // Mock data
-  const [topSlots, setTopSlots] = useState([
-    { id: 1, advertiser: '7xK...9Qz', active: true, remaining: 3 },
-    { id: 2, advertiser: '2pQ...mNp', active: true, remaining: 5 },
-    { id: 3, advertiser: 'Available', active: false },
-    { id: 4, advertiser: 'Available', active: false },
-    { id: 5, advertiser: 'Available', active: false },
-    { id: 6, advertiser: 'Available', active: false },
-    { id: 7, advertiser: 'Available', active: false },
-    { id: 8, advertiser: 'Available', active: false },
-  ]);
+  // Derive slot occupancy from store data (approved + pending ads for THIS hub)
+  const buildSlots = (slotTypeKey, maxSlots) => {
+    const hubAds = [...storeApprovedAds, ...storePendingAds]
+      .filter(a => a.hubName === hubName && a.slotType === slotTypeKey);
+    const slots = [];
+    for (let i = 0; i < maxSlots; i++) {
+      const ad = hubAds[i];
+      if (ad) {
+        slots.push({
+          id: i + 1,
+          advertiser: ad.brandName || ad.brandWallet || 'Advertiser',
+          active: true,
+          remaining: (ad.duration || 1) * 7,
+          status: ad.status,
+        });
+      } else {
+        slots.push({ id: i + 1, advertiser: 'Available', active: false });
+      }
+    }
+    return slots;
+  };
 
-  const [bottomSlots, setBottomSlots] = useState([
-    { id: 1, advertiser: '5jK...7Km', active: true, remaining: 2 },
-    { id: 2, advertiser: 'Available', active: false },
-    { id: 3, advertiser: 'Available', active: false },
-    { id: 4, advertiser: 'Available', active: false },
-    { id: 5, advertiser: 'Available', active: false },
-    { id: 6, advertiser: 'Available', active: false },
-    { id: 7, advertiser: 'Available', active: false },
-    { id: 8, advertiser: 'Available', active: false },
-  ]);
-
-  const [lockscreenSlots, setLockscreenSlots] = useState([
-    { id: 1, advertiser: 'Available', active: false },
-    { id: 2, advertiser: 'Available', active: false },
-    { id: 3, advertiser: 'Available', active: false },
-    { id: 4, advertiser: 'Available', active: false },
-  ]);
+  const topSlots = React.useMemo(() => buildSlots('top', AD_CONFIG.TOP_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
+  const bottomSlots = React.useMemo(() => buildSlots('bottom', AD_CONFIG.BOTTOM_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
+  const lockscreenSlots = React.useMemo(() => buildSlots('lockscreen', AD_CONFIG.LOCKSCREEN_SLOT.maxSlots), [storeApprovedAds, storePendingAds, hubName]);
 
   const handlePurchaseSlot = (slotType) => {
     if (!__DEV__ && !wallet?.connected) {
@@ -498,19 +494,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
               });
 
-              // Update slot occupancy in UI
-              const updateSlot = (slots) => {
-                const firstAvailable = slots.findIndex(s => !s.active);
-                if (firstAvailable !== -1) {
-                  const updated = [...slots];
-                  updated[firstAvailable] = { ...updated[firstAvailable], advertiser: 'You (pending)', active: true, remaining: duration * 7 };
-                  return updated;
-                }
-                return slots;
-              };
-              if (selectedSlot === 'top') setTopSlots(prev => updateSlot(prev));
-              else if (selectedSlot === 'bottom') setBottomSlots(prev => updateSlot(prev));
-              else if (selectedSlot === 'lockscreen') setLockscreenSlots(prev => updateSlot(prev));
+              // Slot occupancy now auto-derives from store via useMemo — no manual update needed
 
               setImageUrl('');
               setImageAsset(null);
@@ -722,8 +706,11 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <Text className={`text-xs font-semibold ${
                   slot.active ? 'text-success' : 'text-text-secondary'
                 }`}>
-                  Slot {index + 1}: {slot.active ? slot.advertiser : 'Empty'}
+                  Slot {index + 1}: {slot.active ? `${slot.advertiser}${slot.status === 'PENDING' ? ' ⏳' : ' ✓'}` : 'Empty'}
                 </Text>
+                {slot.active && slot.remaining > 0 && (
+                  <Text className="text-text-secondary" style={{ fontSize: 10 }}>{slot.remaining}d left</Text>
+                )}
               </View>
             ))}
           </View>

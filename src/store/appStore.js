@@ -440,6 +440,15 @@ export const useAppStore = create(
         get().incrementScore(25); // 25 pts per feedback
       },
 
+      removeHubFeedback: (hubName, feedbackId) => {
+        set((state) => ({
+          hubFeedbacks: {
+            ...state.hubFeedbacks,
+            [hubName]: (state.hubFeedbacks[hubName] || []).filter(fb => fb.id !== feedbackId),
+          },
+        }));
+      },
+
       getHubFeedbacks: (hubName) => {
         const { hubFeedbacks } = get();
         return hubFeedbacks[hubName] || [];
@@ -492,6 +501,12 @@ export const useAppStore = create(
           talentSubmissions: [submission, ...state.talentSubmissions],
         }));
         get().incrementScore(30); // 30 pts per talent submission
+      },
+
+      removeTalentSubmission: (submissionId) => {
+        set((state) => ({
+          talentSubmissions: state.talentSubmissions.filter(t => t.id !== submissionId),
+        }));
       },
 
       // ============================================

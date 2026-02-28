@@ -51,9 +51,12 @@ const ROLE_OPTIONS = [
 
 export default function TalentScreen({ navigation }) {
   const { wallet } = useAppStore();
-  // Read active hubs from Zustand store (includes user-created hubs)
+  // Read active hubs from Zustand store — show only hubs user is subscribed to
   const storeHubs = useAppStore((state) => state.hubs);
-  const filteredHubs = storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }));
+  const subscribedProjects = useAppStore((state) => state.subscribedProjects);
+  const filteredHubs = storeHubs
+    .filter(h => subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
+    .map(h => ({ id: h.id, name: h.name }));
   const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
   // Read talent submissions from Zustand store (persisted)
   const mySubmissions = useAppStore((state) => state.talentSubmissions);

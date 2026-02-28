@@ -53,9 +53,12 @@ const FALLBACK_HUBS = [
 
 export default function DAOBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
-  // Read active hubs from Zustand store (includes user-created hubs)
+  // Read active hubs from Zustand store — show only hubs user is subscribed to
   const storeHubs = useAppStore((state) => state.hubs);
-  const filteredHubs = storeHubs.filter(h => h.status === 'ACTIVE').map(h => ({ id: h.id, name: h.name }));
+  const subscribedProjects = useAppStore((state) => state.subscribedProjects);
+  const filteredHubs = storeHubs
+    .filter(h => subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
+    .map(h => ({ id: h.id, name: h.name }));
   const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
   // DAO proposals from Zustand store (persisted) + mock data for demo
   const storeDaoProposals = useAppStore((state) => state.daoProposals) || [];

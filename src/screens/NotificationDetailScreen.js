@@ -12,6 +12,8 @@ export default function NotificationDetailScreen({ navigation, route }) {
   const notification = route.params?.notification || {};
   const openFeedback = route.params?.openFeedback || false;
   const { wallet } = useAppStore();
+  const addHubFeedback = useAppStore((state) => state.addHubFeedback);
+  const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
 
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
@@ -30,7 +32,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
 
   const handleSendFeedback = () => {
     if (!__DEV__ && !wallet?.connected) {
-      Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
+      Alert.alert('Wallet Required', `Please connect your wallet to send feedback.\n\nA ${feedbackDepositAmount} $SKR deposit is required.`);
       return;
     }
     setFeedbackModalVisible(true);
@@ -42,27 +44,37 @@ export default function NotificationDetailScreen({ navigation, route }) {
       return;
     }
 
+    // Build feedback object for store
+    const feedbackObj = {
+      id: `fb_${Date.now()}`,
+      wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
+      title: `Re: ${notification.title || 'Notification'}`,
+      message: feedbackText.trim(),
+      deposit: feedbackDepositAmount,
+      timestamp: 'Just now',
+      hubName: notification.hubName,
+      notificationId: notification.id,
+    };
+
     // Use real on-chain transaction if hub has a PDA
     if (notification.hubPda) {
       const depositIndex = Date.now() % 100000;
       const result = await submitFeedbackTx(notification.hubPda, feedbackText, depositIndex);
       if (result.success) {
+        addHubFeedback(notification.hubName, feedbackObj);
         setFeedbackText('');
         setFeedbackModalVisible(false);
       }
     } else {
-      // Mock fallback for demo hubs
+      // Mock fallback for demo hubs — still store in Zustand for moderation
+      addHubFeedback(notification.hubName, feedbackObj);
       Alert.alert(
         'Feedback Sent!',
-        `Your feedback for "${notification.hubName}" has been submitted.\n\n300 $SKR deposited in escrow.`
+        `Your feedback for "${notification.hubName}" has been submitted.\n\n${feedbackDepositAmount} $SKR deposited in escrow.`
       );
       setFeedbackText('');
       setFeedbackModalVisible(false);
     }
-  };
-
-  const handleShare = () => {
-    Alert.alert('Share', 'Sharing functionality coming soon!');
   };
 
   return (
@@ -143,11 +155,10 @@ export default function NotificationDetailScreen({ navigation, route }) {
             </View>
           </View>
 
-          {/* Action buttons */}
-          <View className="flex-row mb-4">
+          {/* Action button — Send Feedback (full width) */}
+          <View className="mb-4">
             <TouchableOpacity
               onPress={handleSendFeedback}
-              className="flex-1 mr-2"
             >
               <View
                 className="rounded-xl py-4 items-center"
@@ -161,27 +172,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
                   <Ionicons name="chatbox" size={18} color="#FF9F66" />
                   <Text className="text-primary font-bold text-sm ml-2">Send Feedback</Text>
                 </View>
-                <Text className="text-primary text-xs mt-1">300 $SKR deposit</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleShare}
-              className="flex-1 ml-2"
-            >
-              <View
-                className="rounded-xl py-4 items-center"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  borderWidth: 1,
-                  borderColor: '#2a2a30',
-                }}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="share-social" size={18} color="#9898a0" />
-                  <Text className="text-text font-bold text-sm ml-2">Share</Text>
-                </View>
-                <Text className="text-text-secondary text-xs mt-1">Share this update</Text>
+                <Text className="text-primary text-xs mt-1">{feedbackDepositAmount} $SKR deposit</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -223,7 +214,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
               <View className="flex-row items-center">
                 <Ionicons name="shield-checkmark" size={18} color="#FF9F66" />
                 <Text className="text-text-secondary text-sm ml-2">
-                  Deposit: <Text className="text-primary font-bold">300 $SKR</Text> (refundable if approved)
+                  Deposit: <Text className="text-primary font-bold">{feedbackDepositAmount} $SKR</Text> (refundable if approved)
                 </Text>
               </View>
             </View>

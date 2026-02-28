@@ -72,6 +72,11 @@ export default function BrandModerationScreen({ navigation, route }) {
   const storeDaoProposals = useAppStore((state) => state.daoProposals) || EMPTY_FEEDBACKS;
   const storeTalentSubmissions = useAppStore((state) => state.talentSubmissions) || EMPTY_FEEDBACKS;
 
+  // Store removal actions — called after approve/reject to persist the change
+  const removeHubFeedback = useAppStore((state) => state.removeHubFeedback);
+  const removeDaoProposal = useAppStore((state) => state.removeDaoProposal);
+  const removeTalentSubmission = useAppStore((state) => state.removeTalentSubmission);
+
   const [activeTab, setActiveTab] = useState('feedback');
 
   // Build merged submissions from store + mocks (mocks only in __DEV__)
@@ -162,6 +167,12 @@ export default function BrandModerationScreen({ navigation, route }) {
                 const updated = { ...submissions };
                 updated[type] = updated[type].filter(s => s.id !== id);
                 setSubmissions(updated);
+                // Persist removal in store so it doesn't reappear on re-visit
+                if (!item.isMock) {
+                  if (type === 'feedback') removeHubFeedback(hubName, id);
+                  else if (type === 'boost') removeDaoProposal(id);
+                  else if (type === 'talent') removeTalentSubmission(id);
+                }
                 Alert.alert('Approved', `${deposit} $SKR refunded to the user on-chain.`);
               }
             } else {
@@ -169,6 +180,12 @@ export default function BrandModerationScreen({ navigation, route }) {
               const updated = { ...submissions };
               updated[type] = updated[type].filter(s => s.id !== id);
               setSubmissions(updated);
+              // Persist removal in store so it doesn't reappear on re-visit
+              if (!item.isMock) {
+                if (type === 'feedback') removeHubFeedback(hubName, id);
+                else if (type === 'boost') removeDaoProposal(id);
+                else if (type === 'talent') removeTalentSubmission(id);
+              }
               Alert.alert('Approved', `${deposit} $SKR refunded to the user.`);
             }
           },
@@ -195,6 +212,12 @@ export default function BrandModerationScreen({ navigation, route }) {
                 const updated = { ...submissions };
                 updated[type] = updated[type].filter(s => s.id !== id);
                 setSubmissions(updated);
+                // Persist removal in store
+                if (!item?.isMock) {
+                  if (type === 'feedback') removeHubFeedback(hubName, id);
+                  else if (type === 'boost') removeDaoProposal(id);
+                  else if (type === 'talent') removeTalentSubmission(id);
+                }
                 Alert.alert('Rejected', 'Deposit sent to platform treasury.');
               }
             } else {
@@ -202,6 +225,12 @@ export default function BrandModerationScreen({ navigation, route }) {
               const updated = { ...submissions };
               updated[type] = updated[type].filter(s => s.id !== id);
               setSubmissions(updated);
+              // Persist removal in store
+              if (!item?.isMock) {
+                if (type === 'feedback') removeHubFeedback(hubName, id);
+                else if (type === 'boost') removeDaoProposal(id);
+                else if (type === 'talent') removeTalentSubmission(id);
+              }
             }
           },
         },

@@ -134,6 +134,7 @@ export default function HomeScreen({ navigation }) {
           deposit: feedbackDepositAmount,
           timestamp: 'Just now',
           hubName: selectedNotification?.hubName,
+          notificationId: selectedNotification?.id,
         });
         setFeedbackText('');
         setFeedbackModalVisible(false);
@@ -148,6 +149,7 @@ export default function HomeScreen({ navigation }) {
         deposit: feedbackDepositAmount,
         timestamp: 'Just now',
         hubName: selectedNotification?.hubName,
+        notificationId: selectedNotification?.id,
       });
       setSubmitting(false);
       Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n${feedbackDepositAmount} $SKR deposited in escrow.`);
@@ -282,6 +284,7 @@ export default function HomeScreen({ navigation }) {
                   <View className="flex-row items-center mb-3">
                     <TouchableOpacity
                       onPress={() => {
+                        if (notif.reacted) return; // 1 reaction max per notification
                         setNotifications(prev => prev.map(n =>
                           n.id === notif.id ? { ...n, reactions: n.reactions + 1, reacted: true } : n
                         ));
@@ -337,10 +340,10 @@ export default function HomeScreen({ navigation }) {
                     <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
                     <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
                       <Text className="text-primary font-black" style={{ fontSize: 9 }}>
-                        {(() => { const count = getHubFeedbacks(notif.hubName).length; return count > 0 ? count : feedbackDepositAmount; })()}
+                        {(() => { const count = getHubFeedbacks(notif.hubName).filter(fb => fb.notificationId === notif.id).length; return count > 0 ? count : feedbackDepositAmount; })()}
                       </Text>
                     </View>
-                    {getHubFeedbacks(notif.hubName).length > 0 && (
+                    {getHubFeedbacks(notif.hubName).filter(fb => fb.notificationId === notif.id).length > 0 && (
                       <View className="ml-1.5 bg-yellow-500/20 rounded-md px-1.5 py-0.5">
                         <Ionicons name="shield-checkmark" size={10} color="#EAB308" />
                       </View>

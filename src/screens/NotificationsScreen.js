@@ -22,6 +22,7 @@ import { AlertCard } from '../components/AlertCard';
 export default function NotificationsScreen({ navigation, route }) {
   const { alerts, markAlertAsRead, markAllAlertsAsRead, getUnreadCount } =
     useAppStore();
+  const hubNotifications = useAppStore((state) => state.hubNotifications);
   const [filter, setFilter] = useState('all'); // 'all' | 'unread'
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,14 +36,40 @@ export default function NotificationsScreen({ navigation, route }) {
     }
   }, [route.params?.alertId]);
 
+  // Merge hub notifications (brand-sent, persisted) with legacy alerts (mock, non-persisted)
+  const allNotifications = React.useMemo(() => {
+    const hubNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
+      id: n.id,
+      projectId: n.hubName,
+      projectName: n.hubName,
+      projectIcon: n.hubIcon || 'apps',
+      hubName: n.hubName,
+      hubIcon: n.hubIcon || 'apps',
+      hubLogoUrl: n.hubLogoUrl,
+      title: n.title,
+      message: n.message || n.fullMessage,
+      fullMessage: n.fullMessage || n.message,
+      timestamp: n.timestamp || 'Recently',
+      read: false,
+      category: 'Hub Update',
+      link: n.link,
+      reactions: n.reactions || 0,
+      comments: n.comments || 0,
+      isNew: true,
+    }));
+    return [...hubNotifs, ...alerts];
+  }, [hubNotifications, alerts]);
+
   const filteredAlerts = React.useMemo(() => {
     if (filter === 'unread') {
-      return alerts.filter((a) => !a.read);
+      return allNotifications.filter((a) => !a.read);
     }
-    return alerts;
-  }, [alerts, filter]);
+    return allNotifications;
+  }, [allNotifications, filter]);
 
   const unreadCount = getUnreadCount();
+  const hubNotifsCount = Object.values(hubNotifications || {}).flat().length;
+  const totalUnread = unreadCount + hubNotifsCount;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -64,11 +91,11 @@ export default function NotificationsScreen({ navigation, route }) {
               Notifications
             </Text>
             <Text className="text-text-secondary text-sm">
-              {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+              {totalUnread} unread notification{totalUnread !== 1 ? 's' : ''}
             </Text>
           </View>
 
-          {unreadCount > 0 && (
+          {totalUnread > 0 && (
             <TouchableOpacity
               onPress={handleMarkAllRead}
               className="bg-background-card px-3 py-2 rounded-lg border border-border"
@@ -96,7 +123,7 @@ export default function NotificationsScreen({ navigation, route }) {
               filter === 'all' ? 'text-white' : 'text-text-secondary'
             }`}
           >
-            All ({alerts.length})
+            All ({allNotifications.length})
           </Text>
         </TouchableOpacity>
 
@@ -112,7 +139,7 @@ export default function NotificationsScreen({ navigation, route }) {
               filter === 'unread' ? 'text-white' : 'text-text-secondary'
             }`}
           >
-            Unread ({unreadCount})
+            Unread ({totalUnread})
           </Text>
         </TouchableOpacity>
       </View>

@@ -20,7 +20,16 @@ export default function HubDashboardScreen({ navigation, route }) {
   const storeHubs = useAppStore((state) => state.hubs);
   const pendingHubs = useAppStore((state) => state.pendingHubs);
   const hubNotifications = useAppStore((state) => state.hubNotifications);
+  const storeFeedbacks = useAppStore((state) => state.hubFeedbacks[hubName]) || [];
+  const storeDaoProposals = useAppStore((state) => state.daoProposals) || [];
+  const storeTalentSubmissions = useAppStore((state) => state.talentSubmissions) || [];
   const hubData = storeHubs.find(h => h.name === hubName) || pendingHubs.find(h => h.name === hubName);
+
+  // Badge: count pending moderation items for this hub
+  const pendingModerationCount =
+    storeFeedbacks.length +
+    storeDaoProposals.filter(p => p.hub === hubName || p.hubId === hubData?.id).length +
+    storeTalentSubmissions.filter(t => t.hub === hubName || t.hubId === hubData?.id).length;
 
   // Check if current user is the hub creator (billing info is creator-only)
   const walletAddress = wallet?.publicKey;
@@ -263,6 +272,11 @@ export default function HubDashboardScreen({ navigation, route }) {
             <View className="flex-row items-center">
               <Ionicons name="shield-checkmark" size={24} color="#FF9F66" />
               <Text className="text-text font-semibold text-base ml-3">Moderation</Text>
+              {pendingModerationCount > 0 && (
+                <View className="ml-2 bg-primary rounded-full items-center justify-center px-1.5" style={{ minWidth: 22, height: 22 }}>
+                  <Text className="text-white text-xs font-bold">{pendingModerationCount}</Text>
+                </View>
+              )}
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
