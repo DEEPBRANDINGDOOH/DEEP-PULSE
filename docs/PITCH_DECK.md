@@ -208,7 +208,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 9. Brand Moderation (approve/reject deposits)
 10. Brand Boost (DAO proposal management)
 11. DAO Boost (community vault funding)
-12. Talent (talent marketplace)
+12. Talent (Showcase Talent — users propose skills/services to their favorite hubs, 50 $SKR deposit)
 13. Ad Slots (purchase + upload creatives)
 14. Admin Panel (platform administration)
 15. Admin Messages (admin <-> brand communication)

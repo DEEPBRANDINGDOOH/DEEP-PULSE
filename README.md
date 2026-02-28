@@ -37,9 +37,10 @@
 
 | Role | Features |
 |------|----------|
-| **Users** | Free hub subscriptions, push notifications with "HubName: Title" format, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), discover talent, Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
-| **Brands** | Create notification hubs (2,000 $SKR/month) with full lifecycle (creation -> admin approval -> ACTIVE -> OVERDUE grace period -> SUSPENDED/deletion by admin), upload custom hub logo (200x200px, max 500KB, PNG/JPG/WebP), dynamic billing with days remaining, moderate content, manage ad slots via Ad Type Selector (In-App / Out-of-App), receive DAO boost funding, launch DOOH campaigns |
+| **Users** | Free hub subscriptions, push notifications with "HubName: Title" format, submit feedback (300 $SKR deposit), vote on DAO proposals (100 $SKR), **Showcase Talent** — propose skills/services to favorite brands (50 $SKR deposit, refundable if approved), Swipe-to-Earn on lock screen, DEEP Score v2 with streaks & tiers |
+| **Brands** | Create notification hubs (2,000 $SKR/month) with full lifecycle (creation -> admin approval -> ACTIVE -> OVERDUE grace period -> SUSPENDED/deletion by admin), upload custom hub logo (200x200px, max 500KB, PNG/JPG/WebP), dynamic billing with days remaining, moderate content (feedback, DAO proposals, talent submissions), manage ad slots via Ad Type Selector (In-App / Out-of-App), receive DAO boost funding, review talent submissions from community, launch DOOH campaigns |
 | **Advertisers** | Purchase top/bottom ad slots with duration-based discounts (up to 40% off), lock screen premium ads (1,000 $SKR/week), Rich Notification Ads (1,500 $SKR/week, SPONSORED) via FCM push on all devices — premium campaigns with title, body, CTA button, image URL, duration selector, live preview, volume discounts, and Free vs Sponsored comparison UI, DOOH Worldwide campaign briefs |
+| **Talent** | Users showcase their skills/services directly to their subscribed hubs — submit a talent profile (50 $SKR deposit locked in escrow), hub owners review and approve/reject via Brand Moderation screen, approved submissions are refunded and visible to the brand, creating a decentralized talent marketplace within each hub's community |
 | **DAO** | Community-funded boost proposals, 95/5 brand/platform split, automatic refunds on cancellation |
 
 ### Key Differentiators
@@ -53,6 +54,7 @@
 - **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)
 - **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
 - **Rich Notification Ads** — SPONSORED premium push campaigns via FCM (1,500 $SKR/week), full creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — Free vs Sponsored comparison UI clearly differentiates from free hub notifications — works on all devices including Seeker
+- **Showcase Talent** — Users propose their skills and services directly to their favorite brands/hubs (50 $SKR deposit). Hub owners review and approve/reject via the Brand Moderation screen. Approved talent is refunded — creating a decentralized talent marketplace where communities connect directly with brands, no intermediary needed
 - **DOOH Worldwide** — Digital Out-Of-Home campaign brief form accessible from HubDashboard, enabling global billboard/screen campaigns
 - **Hub Lifecycle** — Full lifecycle: PENDING (creation) -> ACTIVE (admin approval) -> OVERDUE (7-day grace period after subscription expires, invisible to regular users) -> SUSPENDED (admin action, hidden from Discover) -> permanent deletion (admin only). Hubs never disappear automatically — only admin can remove them
 - **Hub Grace Period** — When a hub's subscription expires, it enters a 7-day OVERDUE grace period. Only the hub creator (HubDashboard banner) and admin see the overdue status — regular users see no difference. Admin can suspend or delete overdue hubs
@@ -230,7 +232,7 @@ deep-pulse-complete/
 |   |   |-- BrandModerationScreen.js   # Approve / reject deposits
 |   |   |-- BrandBoostScreen.js        # DAO boost proposal management
 |   |   |-- DAOBoostScreen.js          # Community vault funding
-|   |   |-- TalentScreen.js            # Talent marketplace
+|   |   |-- TalentScreen.js            # Showcase Talent — users propose skills to subscribed hubs (50 $SKR deposit)
 |   |   |-- AdSlotsScreen.js           # Purchase ad slots
 |   |   |-- AdminScreen.js             # Platform admin panel
 |   |   |-- AdminMessagesScreen.js     # Admin <-> Brand messaging
