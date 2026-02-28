@@ -158,7 +158,7 @@ export default function TalentScreen({ navigation }) {
         className="bg-primary rounded-xl py-4"
         onPress={() => {
           if (!checkRateLimit('submit_talent')) return;
-          if (!__DEV__ && !wallet.connected) {
+          if (!__DEV__ && !wallet?.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a talent profile.\n\nA 50 $SKR deposit is required.');
             return;
           }

@@ -592,7 +592,7 @@ firebase deploy --only hosting
 
 | Constant | Value | Where to change |
 |----------|-------|-----------------|
-| **Program ID** | `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` | `lib.rs`, `Anchor.toml`, `constants.js`, `programService.js` |
+| **Program ID** | `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63` | `lib.rs`, `Anchor.toml`, `constants.js`, `programService.js` |
 | **$SKR Mint** | `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3` | `constants.rs`, `constants.js`, `programService.js` |
 | Hub Subscription | 2,000 $SKR/month | `constants.rs`, `constants.js` |
 | Grace Period | 7 days | `constants.js` (`GRACE_PERIOD_DAYS`) |
@@ -698,7 +698,7 @@ solana program deploy target/deploy/deep_pulse.so \
   --program-id target/deploy/deep_pulse-keypair.json
 ```
 
-> **Note:** Program ID is already set to `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` across all files.
+> **Note:** Program ID is already set to `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63` across all files.
 
 ### Step 3 — Initialize Platform (After Deploy)
 
@@ -905,7 +905,7 @@ After repeated actions of the same type, each additional action earns less:
 ```bash
 # 1. Add mainnet section to Anchor.toml
 # [programs.mainnet-beta]
-# deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+# deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 
 # 2. Fund deployer wallet (~5-15 SOL needed for program rent)
 solana config set --url mainnet-beta
@@ -1096,6 +1096,6 @@ MIT License
 **Version:** 2.0.0
 **Anchor:** 0.30.1
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
-**Program ID:** `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4`
+**Program ID:** `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
 **Status:** Smart contracts compiled + security-audited (18+37+90 issues fixed, 3 full security audits, 9.5/10) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled (code obfuscation + optimization) ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (10 functions, us-central1, Node.js 20) ✓ | Firestore Security Rules deployed (client writes for notifications, hubs, subscriptions, fcmTokens) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | firebaseService.js backend wiring (two-tier fallback, optimistic UI) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Rich Notification Ads (1,500 $SKR/week, SPONSORED, Free vs Sponsored comparison) ✓ | Ad Slots repriced (Top 800, Bottom 600, Lockscreen 1,000) ✓ | Hub notifications with "HubName: Title" format + optional Link URL ✓ | Ad Type Selector (In-App / Out-of-App categories) ✓ | Hub Logo Upload (200x200px, 500KB, PNG/JPG/WebP, circular crop, HubIcon component) ✓ | DOOH Worldwide (campaign brief form) ✓ | Hub Lifecycle (create → approve → discover) ✓ | My Created Hubs in Profile ✓ | Discord → Hub notification pipeline ✓ | Solscan transaction history ✓ | Global notification mute ✓ | Image Picker (brand ad creatives) ✓ | Real Mock Ad Banners ✓ | Privacy Policy ✓ | English-only UI ✓ | Devnet deploy + init scripts ready ✓ | Release APK built (~56MB) ✓ | @notifee/react-native local push notifications ✓ | Feedback→Moderation data flow (hubFeedbacks persisted state) ✓ | Build 7: 5 critical bugs fixed (push notifs, hub logo, feedback flow, moderation screen, audit fixes) ✓

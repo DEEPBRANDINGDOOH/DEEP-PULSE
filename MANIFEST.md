@@ -443,7 +443,7 @@ Complete data persistence overhaul: all user actions now survive navigation. Ad 
 - [ ] `anchor build` — le programme n'a jamais été compilé (pas de `target/`)
 - [ ] `anchor deploy --provider.cluster devnet` — tester d'abord sur devnet
 - [ ] `anchor deploy --provider.cluster mainnet-beta` — déployer en production
-- [ ] Le program ID `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` peut changer après deploy → mettre à jour `Anchor.toml`, `lib.rs`, `constants.js`
+- [ ] Le program ID `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63` peut changer après deploy → mettre à jour `Anchor.toml`, `lib.rs`, `constants.js`
 - [ ] **Coût estimé :** ~3-5 SOL devnet (gratuit via faucet) / ~3-5 SOL mainnet (~$500-800)
 - [ ] Audit de sécurité du smart contract (Sec3, OtterSec, ou équivalent)
 

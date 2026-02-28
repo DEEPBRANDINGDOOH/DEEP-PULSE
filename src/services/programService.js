@@ -44,7 +44,7 @@ import IDL from '../config/deep_pulse_idl.json';
 // ============================================
 
 // Program ID (replace after deployment)
-const PROGRAM_ID = new PublicKey('33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4');
+const PROGRAM_ID = new PublicKey('3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63');
 
 // $SKR Token Mint — EXISTING on Solana
 const SKR_MINT = new PublicKey('SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3');

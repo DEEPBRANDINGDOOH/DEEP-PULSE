@@ -537,7 +537,7 @@ solana address -k target/deploy/deep_pulse-keypair.json
 
 ### 3. Mettre à jour le Program ID
 
-Remplacer `33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4` par l'ID réel dans :
+Remplacer `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63` par l'ID réel dans :
 - `programs/deep-pulse/src/lib.rs` → `declare_id!("...")`
 - `Anchor.toml` → `[programs.localnet]` et `[programs.devnet]`
 - `src/config/constants.js` → `SOLANA_CONFIG.PROGRAM_ID`

@@ -63,7 +63,7 @@ export default function BrandBoostScreen({ navigation }) {
       return;
     }
 
-    if (!wallet.connected && !__DEV__) {
+    if (!wallet?.connected && !__DEV__) {
       Alert.alert('Wallet Required', 'Please connect your wallet first. Hub creation costs 2000 $SKR/month.');
       return;
     }

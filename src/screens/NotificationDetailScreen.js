@@ -29,7 +29,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
   };
 
   const handleSendFeedback = () => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }
@@ -240,6 +240,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
               placeholderTextColor="#6b6b73"
               multiline
               numberOfLines={5}
+              maxLength={500}
               textAlignVertical="top"
               className="bg-background-secondary rounded-xl p-4 mb-6 h-32 text-text"
               style={{ borderWidth: 1, borderColor: '#2a2a30' }}

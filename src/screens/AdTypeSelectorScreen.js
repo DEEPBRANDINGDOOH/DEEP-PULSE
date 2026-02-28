@@ -198,7 +198,7 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
         </View>
 
         {/* My Active Ads */}
-        {(__DEV__ || wallet.connected) && myActiveAdsCount > 0 && (
+        {(__DEV__ || wallet?.connected) && myActiveAdsCount > 0 && (
           <View className="px-6 mb-4">
             <TouchableOpacity
               onPress={() => handleSelectType('my_ads')}

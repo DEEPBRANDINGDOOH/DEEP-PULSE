@@ -28,7 +28,7 @@ export const SOLANA_CONFIG = {
 
   // DEEP Pulse Program ID (single monolithic Anchor program)
   // Replace after `anchor deploy` with the actual deployed program ID
-  PROGRAM_ID: '33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4',
+  PROGRAM_ID: '3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63',
 
   // $SKR Token — EXISTING SPL token on Solana
   SKR_MINT: 'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3',

@@ -47,7 +47,7 @@ const idl = require("../target/idl/deep_pulse.json");
 // CONFIGURATION
 // ============================================
 
-const PROGRAM_ID = new PublicKey("33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4");
+const PROGRAM_ID = new PublicKey("3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63");
 
 // $SKR Token — On devnet/mainnet, use existing mint. On localnet, we create one.
 const REAL_SKR_MINT = new PublicKey("SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3");

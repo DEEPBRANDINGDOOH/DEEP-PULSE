@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { programService } from '../services/programService';
-import { approveAdCreative, rejectAdCreative, sendGlobalNotification } from '../services/firebaseService';
+import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
 import { checkRateLimit, logger } from '../utils/security';
 
@@ -68,8 +68,23 @@ export default function AdminScreen({ navigation }) {
   const [savingPrice, setSavingPrice] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState('30d');
   const [statsTab, setStatsTab] = useState('global');
+  // Pricing edit state — MUST be before navigation guard (Rules of Hooks)
+  const [editingPrice, setEditingPrice] = useState(null);
+  const [editPriceValue, setEditPriceValue] = useState('');
+  // Custom deals from Zustand store (persisted) — MUST be before guard
+  const customDeals = useAppStore((state) => state.customDeals);
+  const storeAddDeal = useAppStore((state) => state.addCustomDeal);
+  const storeRemoveDeal = useAppStore((state) => state.removeCustomDeal);
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
 
-  // ── NAVIGATION GUARD: Block non-admin access (after all hooks) ──
+  // Fetch on-chain prices + check hub subscriptions on mount — MUST be before guard
+  useEffect(() => {
+    loadPlatformPricingFromChain();
+    checkHubSubscriptions();
+  }, []);
+
+  // ── NAVIGATION GUARD: Block non-admin access (after ALL hooks) ──
   if (!isAdmin(wallet?.publicKey)) {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center">
@@ -86,26 +101,9 @@ export default function AdminScreen({ navigation }) {
     );
   }
 
-  // Pricing edit state
-  const [editingPrice, setEditingPrice] = useState(null);
-  const [editPriceValue, setEditPriceValue] = useState('');
-
-  // Fetch on-chain prices + check hub subscriptions on mount
-  useEffect(() => {
-    loadPlatformPricingFromChain();
-    checkHubSubscriptions();
-  }, []);
-
-  // Custom deals from Zustand store (persisted)
-  const customDeals = useAppStore((state) => state.customDeals);
-  const storeAddDeal = useAppStore((state) => state.addCustomDeal);
-  const storeRemoveDeal = useAppStore((state) => state.removeCustomDeal);
-  const [showDealModal, setShowDealModal] = useState(false);
-  const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
-
   // Ad moderation handlers
   const handleApproveAd = (ad) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -120,9 +118,28 @@ export default function AdminScreen({ navigation }) {
             // Update Zustand store (removes from pending, adds to approved)
             storeApproveAd(ad.id);
             // Sync with Firebase backend
-            approveAdCreative(ad.id, wallet.publicKey || 'admin')
+            approveAdCreative(ad.id, wallet?.publicKey || 'admin')
               .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
-            Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.`);
+
+            // If it's a Rich Notification Ad, trigger push notification to hub subscribers
+            if (ad.slotType === 'rich_notif' && ad.hubName) {
+              const pushTitle = ad.notifTitle || ad.brandName || 'Sponsored';
+              const pushBody = ad.notifBody || `New sponsored content from ${ad.brandName}`;
+              // sendHubNotification(hubId, hubName, title, body, walletAddress, link)
+              sendHubNotification(
+                ad.hubId || ad.hubName, // hubId (fallback to hubName)
+                ad.hubName,             // hubName (for display)
+                pushTitle,              // title
+                pushBody,               // body
+                wallet?.publicKey || 'admin', // walletAddress
+                ad.landingUrl || null    // link
+              ).then(() => {
+                logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
+              }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
+              showLocalNotification(pushTitle, pushBody);
+            }
+
+            Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
           },
         },
       ]
@@ -130,7 +147,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleRejectAd = (ad) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -146,7 +163,7 @@ export default function AdminScreen({ navigation }) {
             // Update Zustand store (removes from pending)
             storeRejectAd(ad.id);
             // Sync with Firebase backend
-            rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Rejected by admin — refund required')
+            rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Rejected by admin — refund required')
               .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
             Alert.alert(
               'Ad Rejected',
@@ -159,7 +176,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleFlagSpam = (ad) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -175,7 +192,7 @@ export default function AdminScreen({ navigation }) {
             // Update Zustand store (removes from pending)
             storeRejectAd(ad.id);
             // Sync with Firebase backend
-            rejectAdCreative(ad.id, wallet.publicKey || 'admin', 'Flagged as spam — funds retained')
+            rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Flagged as spam — funds retained')
               .catch(e => logger.warn('[Admin] flagSpam backend failed:', e));
             Alert.alert(
               'Flagged as Spam',
@@ -189,7 +206,7 @@ export default function AdminScreen({ navigation }) {
 
   // Hub handlers — connected to Zustand store
   const handleApproveHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet to approve hubs.');
       return;
     }
@@ -203,7 +220,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleRejectHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -217,7 +234,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSuspendActiveHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -235,7 +252,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleReactivateHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -253,7 +270,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleDeleteHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -281,7 +298,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendGlobalNotification = () => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', `Connect your admin wallet.\nCost: ${PRICING.GLOBAL_NOTIFICATION} $SKR.`);
       return;
     }
@@ -300,7 +317,7 @@ export default function AdminScreen({ navigation }) {
               { source: 'admin_global' },
             );
             // Also try Firebase Cloud Function (for production with backend)
-            sendGlobalNotification(globalNotifTitle, globalNotifMessage, wallet.publicKey || 'admin')
+            sendGlobalNotification(globalNotifTitle, globalNotifMessage, wallet?.publicKey || 'admin')
               .then((res) => logger.log('[Admin] Global push sent:', res))
               .catch(e => logger.warn('[Admin] Global push failed:', e));
             Alert.alert('Sent!', 'Global notification sent to all users via push.');

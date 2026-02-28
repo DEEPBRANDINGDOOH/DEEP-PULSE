@@ -312,6 +312,7 @@ export default function AdminMessagesScreen({ navigation, route }) {
             placeholder="Type a message..."
             placeholderTextColor="#666"
             multiline
+            maxLength={500}
             className="flex-1 bg-background-card rounded-2xl px-4 py-3 text-text mr-3 border border-border"
             style={{ maxHeight: 100 }}
           />

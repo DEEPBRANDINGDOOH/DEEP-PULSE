@@ -15,7 +15,7 @@
 
 set -e
 
-PROGRAM_ID="33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+PROGRAM_ID="3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 DEPLOY_DIR="target/deploy"
 SO_FILE="$DEPLOY_DIR/deep_pulse.so"
 KEYPAIR_FILE="$DEPLOY_DIR/deep_pulse-keypair.json"

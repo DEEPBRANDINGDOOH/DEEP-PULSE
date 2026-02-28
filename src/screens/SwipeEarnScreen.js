@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import lockScreenService from '../services/lockScreenService';
 import { MOCK_ADS } from '../config/constants';
+import { useAppStore } from '../store/appStore';
 import { logger } from '../utils/security';
 
 /**
@@ -29,6 +30,8 @@ import { logger } from '../utils/security';
  * In production, this would fetch approved ads from the blockchain/backend.
  */
 export default function SwipeEarnScreen({ navigation }) {
+  // Merge approved lockscreen ads from store with mock data
+  const approvedAds = useAppStore((state) => state.approvedAds);
   const [isEnabled, setIsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -69,22 +72,36 @@ export default function SwipeEarnScreen({ navigation }) {
     if (!lockScreenService.isAvailable()) return;
 
     try {
-      // Transform ads to the format expected by the native module
-      const lockscreenAds = (MOCK_ADS.LOCKSCREEN || []).map(ad => ({
+      // Merge approved lockscreen ads from store with mock data
+      const storeLocksreenAds = approvedAds
+        .filter(ad => ad.slotType === 'lockscreen' && ad.status === 'APPROVED')
+        .map(ad => ({
+          contentUrl: ad.imageUrl || ad.contentUrl,
+          title: ad.title || ad.brandName || 'Sponsored',
+          brand: ad.brandName || ad.advertiserId || 'Brand',
+          clickUrl: ad.landingUrl || ad.clickUrl || '',
+        }));
+
+      const mockLockscreenAds = (MOCK_ADS.LOCKSCREEN || []).map(ad => ({
         contentUrl: ad.contentUrl || ad.imageUrl,
         title: ad.title || 'Sponsored',
         brand: ad.brand || ad.advertiserId || 'Brand',
         clickUrl: ad.clickUrl || ad.landingUrl || '',
       }));
 
+      // Store ads first, then mocks as fallback
+      const lockscreenAds = storeLocksreenAds.length > 0
+        ? [...storeLocksreenAds, ...mockLockscreenAds]
+        : mockLockscreenAds;
+
       if (lockscreenAds.length > 0) {
         const queued = await lockScreenService.pushAdQueue(lockscreenAds);
-        logger.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module`);
+        logger.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module (${storeLocksreenAds.length} approved + ${mockLockscreenAds.length} mock)`);
       }
     } catch (e) {
       logger.warn('[SwipeEarn] Failed to push ad queue:', e);
     }
-  }, []);
+  }, [approvedAds]);
 
   const loadStats = useCallback(async () => {
     try {

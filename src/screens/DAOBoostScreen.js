@@ -122,7 +122,7 @@ export default function DAOBoostScreen({ navigation }) {
       <TouchableOpacity
         onPress={async () => {
           if (!checkRateLimit('dao_submit')) return;
-          if (!__DEV__ && !wallet.connected) {
+          if (!__DEV__ && !wallet?.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
             return;
           }
@@ -180,7 +180,7 @@ export default function DAOBoostScreen({ navigation }) {
   );
 
   const openFundModal = (proposal) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to fund a DAO proposal.');
       return;
     }

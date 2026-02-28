@@ -117,6 +117,36 @@ export const logger = {
 };
 
 // ========================================
+// TEXT SANITIZATION
+// ========================================
+
+/**
+ * Sanitize user-provided text input
+ * Strips potentially dangerous characters while preserving readability.
+ * - Removes HTML tags
+ * - Trims whitespace
+ * - Limits length
+ *
+ * @param {string} text - Raw user input
+ * @param {number} [maxLength] - Maximum output length (optional, defaults to no limit)
+ * @returns {string} Sanitized text
+ */
+export const sanitizeText = (text, maxLength) => {
+  if (!text || typeof text !== 'string') return '';
+  // Strip HTML tags
+  let clean = text.replace(/<[^>]*>/g, '');
+  // Remove null bytes
+  clean = clean.replace(/\0/g, '');
+  // Trim whitespace
+  clean = clean.trim();
+  // Enforce max length if specified
+  if (maxLength && clean.length > maxLength) {
+    clean = clean.slice(0, maxLength);
+  }
+  return clean;
+};
+
+// ========================================
 // RATE LIMITER
 // ========================================
 

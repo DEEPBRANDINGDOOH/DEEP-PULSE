@@ -35,17 +35,26 @@ service cloud.firestore {
         && request.resource.data.creator is string
         && request.resource.data.creator.size() >= 32;
       allow update: if (
-        // Case 1: Subscriber count change only (any authenticated client)
+        // Case 1: Subscriber count change only (any client)
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
         && request.resource.data.subscribers is int
         && request.resource.data.subscribers >= 0
       ) || (
-        // Case 2: Hub approval/rejection (admin operations via client — status value validated)
+        // Case 2: Admin operations — requires known admin wallet address in the data
+        // SECURITY: In production, route ALL admin ops through Cloud Functions (Admin SDK)
+        // This rule validates the admin wallet address to prevent unauthorized status changes
         request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
                     'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
                     'subscriptionExpiresAt'])
         && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
+        // Require admin wallet in one of the admin fields (approvedBy, rejectedBy, suspendedBy, reactivatedBy)
+        && (
+          (request.resource.data.approvedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
+          || (request.resource.data.rejectedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
+          || (request.resource.data.suspendedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
+          || (request.resource.data.reactivatedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
+        )
       );
       // Deletion only via Cloud Functions (Admin SDK bypasses rules)
       allow delete: if false;

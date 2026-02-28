@@ -3,10 +3,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 
 [programs.devnet]
-deep_pulse = "33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4"
+deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 
 [registry]
 url = "https://api.apr.dev"

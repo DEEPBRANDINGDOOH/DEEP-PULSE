@@ -303,7 +303,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   ]);
 
   const handlePurchaseSlot = (slotType) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Connect Wallet', 'Please connect your wallet to purchase ad slots');
       return;
     }
@@ -781,7 +781,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         </View>
 
         {/* My Active Ads — show if wallet connected (or dev mode) and has ads */}
-        {showMyAds && (__DEV__ || wallet.connected) && myAds.length > 0 && (
+        {showMyAds && (__DEV__ || wallet?.connected) && myAds.length > 0 && (
           <View className="px-6 mb-6">
             <View className="flex-row items-center mb-3">
               <Ionicons name="image" size={20} color="#FF9F66" />

@@ -67,7 +67,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
   };
 
   const handleSendFeedback = (notif) => {
-    if (!__DEV__ && !wallet.connected) {
+    if (!__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }

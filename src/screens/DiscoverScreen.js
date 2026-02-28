@@ -42,7 +42,7 @@ export default function DiscoverScreen({ navigation }) {
     if (!hub) return;
 
     // Wallet check for on-chain operations
-    if (hub.hubPda && !__DEV__ && !wallet.connected) {
+    if (hub.hubPda && !__DEV__ && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to subscribe on-chain.');
       return;
     }
@@ -114,6 +114,7 @@ export default function DiscoverScreen({ navigation }) {
               onChangeText={setSearchQuery}
               placeholder="Search hubs..."
               placeholderTextColor="#666"
+              maxLength={128}
               className="flex-1 ml-3 text-text text-base"
             />
           </View>

@@ -12,7 +12,7 @@ pub mod state;
 use instructions::*;
 use state::{DepositType, HubCategory, SlotType};
 
-declare_id!("33vWX6efKQSZ98dk3bnbHUjEYhB7LyvbH4ndpKjC6iY4");
+declare_id!("3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63");
 
 #[program]
 pub mod deep_pulse {

@@ -11,6 +11,7 @@ import { registerFcmToken } from './src/services/firebaseService';
 import { useAppStore } from './src/store/appStore';
 import { logger } from './src/utils/security';
 import { setWalletState } from './src/services/transactionHelper';
+import { createNavigationContainerRef } from '@react-navigation/native';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -35,6 +36,36 @@ import DOOHScreen from './src/screens/DOOHScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const navigationRef = createNavigationContainerRef();
+
+/**
+ * Navigate to the relevant screen when a notification is tapped.
+ * Expects data from FCM remoteMessage.data
+ */
+function handleNotificationNavigation(data) {
+  if (!data || !navigationRef.isReady()) return;
+
+  // Wait briefly for navigation to be ready
+  setTimeout(() => {
+    try {
+      if (data.hubName) {
+        // Navigate to the hub's notification list
+        navigationRef.navigate('HubNotifications', {
+          hubName: data.hubName,
+          hubIcon: data.hubIcon || 'notifications',
+        });
+      } else if (data.screen) {
+        // Generic screen navigation from notification payload
+        navigationRef.navigate(data.screen, data.params ? JSON.parse(data.params) : {});
+      } else {
+        // Default: go to Home
+        navigationRef.navigate('MainApp', { screen: 'Home' });
+      }
+    } catch (e) {
+      logger.warn('[App] Notification navigation failed:', e.message);
+    }
+  }, 500);
+}
 
 // Custom Tab Icon with glow dot for active state
 function TabIcon({ focused, iconName, iconNameOutline, color }) {
@@ -148,10 +179,10 @@ const App = () => {
           logger.log('[App] Foreground notification:', notification.title);
         });
 
-        // Handle notifications that opened the app
+        // Handle notifications that opened the app — navigate to relevant screen
         notificationService.getInitialNotification((data) => {
           logger.log('[App] Notification opened app:', data);
-          // TODO: Navigate to relevant screen based on data
+          handleNotificationNavigation(data);
         });
 
         // Listen for token refresh — re-register with backend
@@ -185,7 +216,7 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#0c0c0e" />
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Onboarding"
           screenOptions={{

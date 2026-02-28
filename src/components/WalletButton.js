@@ -92,7 +92,7 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
 
   // Compact variant (for header/profile)
   if (variant === 'compact') {
-    if (wallet.connected) {
+    if (wallet?.connected) {
       return (
         <TouchableOpacity
           onPress={handleDisconnect}
@@ -129,7 +129,7 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
   }
 
   // Full variant (for profile screen)
-  if (wallet.connected) {
+  if (wallet?.connected) {
     return (
       <View className="bg-background-card rounded-2xl p-4 border border-border">
         <View className="flex-row items-center justify-between mb-3">

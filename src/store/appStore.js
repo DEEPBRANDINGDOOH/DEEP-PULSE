@@ -67,7 +67,7 @@ export const useAppStore = create(
           });
           // 2. Sync with Firebase backend (FCM topic + Firestore)
           // [H-03 FIX] Rollback on failure instead of swallowing errors
-          subscribeToHubBackend(projectId, wallet.publicKey || 'mock_user')
+          subscribeToHubBackend(projectId, wallet?.publicKey || 'mock_user')
             .catch(e => {
               logger.warn('[Store] Backend subscribe failed, rolling back:', e);
               const current = get();
@@ -91,7 +91,7 @@ export const useAppStore = create(
         });
         // 2. Sync with Firebase backend (FCM topic + Firestore)
         // [H-03 FIX] Rollback on failure instead of swallowing errors
-        unsubscribeFromHubBackend(projectId, wallet.publicKey || 'mock_user')
+        unsubscribeFromHubBackend(projectId, wallet?.publicKey || 'mock_user')
           .catch(e => {
             logger.warn('[Store] Backend unsubscribe failed, rolling back:', e);
             const current = get();
@@ -178,9 +178,9 @@ export const useAppStore = create(
             subscribedProjects: updatedSubs,
           });
           // 2. Sync with Firestore + subscribe to FCM topic
-          approveHubInFirestore(hubId, wallet.publicKey || 'admin')
+          approveHubInFirestore(hubId, wallet?.publicKey || 'admin')
             .catch(e => logger.warn('[Store] Firestore approveHub failed:', e));
-          subscribeToHubBackend(hubId, wallet.publicKey || 'mock_user')
+          subscribeToHubBackend(hubId, wallet?.publicKey || 'mock_user')
             .catch(e => logger.warn('[Store] Auto-subscribe creator failed:', e));
         }
       },
@@ -192,7 +192,7 @@ export const useAppStore = create(
           pendingHubs: state.pendingHubs.filter((h) => h.id !== hubId),
         }));
         // 2. Sync with Firestore
-        rejectHubInFirestore(hubId, wallet.publicKey || 'admin')
+        rejectHubInFirestore(hubId, wallet?.publicKey || 'admin')
           .catch(e => logger.warn('[Store] Firestore rejectHub failed:', e));
       },
 
@@ -203,7 +203,7 @@ export const useAppStore = create(
           return;
         }
         const { wallet, hubs } = get();
-        if (!isAdmin(wallet.publicKey)) {
+        if (!isAdmin(wallet?.publicKey)) {
           logger.warn('[Store] suspendHub blocked: not admin');
           return;
         }
@@ -215,7 +215,7 @@ export const useAppStore = create(
             h.id === hubId ? { ...h, status: 'SUSPENDED', suspendedAt: new Date().toISOString() } : h
           ),
         }));
-        suspendHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
+        suspendHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore suspendHub failed, rolling back');
@@ -243,7 +243,7 @@ export const useAppStore = create(
           return;
         }
         const { wallet, hubs } = get();
-        if (!isAdmin(wallet.publicKey)) {
+        if (!isAdmin(wallet?.publicKey)) {
           logger.warn('[Store] reactivateHub blocked: not admin');
           return;
         }
@@ -261,7 +261,7 @@ export const useAppStore = create(
             } : h
           ),
         }));
-        reactivateHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
+        reactivateHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore reactivateHub failed, rolling back');
@@ -289,7 +289,7 @@ export const useAppStore = create(
           return;
         }
         const { wallet, hubs, subscribedProjects } = get();
-        if (!isAdmin(wallet.publicKey)) {
+        if (!isAdmin(wallet?.publicKey)) {
           logger.warn('[Store] deleteHub blocked: not admin');
           return;
         }
@@ -302,7 +302,7 @@ export const useAppStore = create(
           hubs: state.hubs.filter(h => h.id !== hubId),
           subscribedProjects: state.subscribedProjects.filter(id => id !== hubId),
         }));
-        deleteHubInFirestore(hubId, wallet.publicKey?.toString() || wallet.publicKey)
+        deleteHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
               logger.warn('[Store] Firestore deleteHub failed, rolling back');

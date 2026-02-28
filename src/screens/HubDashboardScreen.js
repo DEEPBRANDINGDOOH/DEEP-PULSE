@@ -173,7 +173,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               className="bg-primary rounded-xl py-4"
               onPress={() => {
                 if (!checkRateLimit('send_notification')) return;
-                if (!__DEV__ && !wallet.connected) {
+                if (!__DEV__ && !wallet?.connected) {
                   Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
                   return;
                 }
