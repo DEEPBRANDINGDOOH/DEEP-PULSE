@@ -354,7 +354,7 @@ export default function AdminScreen({ navigation }) {
     const unreadMessages = 0;
 
     return (
-      <ScrollView className="px-6 py-4">
+      <ScrollView className="px-6 py-4" contentContainerStyle={{ paddingBottom: 140 }}>
         {/* Period Selector */}
         <View className="flex-row mb-5">
           {['7d', '30d', '90d'].map((period) => (
@@ -530,8 +530,6 @@ export default function AdminScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        {/* Bottom padding to prevent last item from being cut off */}
-        <View className="h-24" />
       </ScrollView>
     );
   };

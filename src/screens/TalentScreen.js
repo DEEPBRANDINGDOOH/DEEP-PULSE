@@ -35,7 +35,7 @@ export default function TalentScreen({ navigation }) {
   const mySubmissions = useAppStore((state) => state.talentSubmissions);
   const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
-  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || [][0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || null);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [role, setRole] = useState(ROLE_OPTIONS[0]);
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -44,10 +44,12 @@ export default function TalentScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [talents, setTalents] = useState(MOCK_TALENTS);
 
-  // BUG #6 FIX: Re-sync selectedHub when store hubs change
+  // Re-sync selectedHub when store hubs change
   useEffect(() => {
-    if (selectedHub && !activeHubs.find(h => h.id === selectedHub.id)) {
-      setSelectedHub(activeHubs[0] || [][0]);
+    if (activeHubs.length > 0 && (!selectedHub || !activeHubs.find(h => h.id === selectedHub.id))) {
+      setSelectedHub(activeHubs[0]);
+    } else if (activeHubs.length === 0) {
+      setSelectedHub(null);
     }
   }, [activeHubs.length]);
 
@@ -144,6 +146,10 @@ export default function TalentScreen({ navigation }) {
           }
           if (!email.trim()) {
             Alert.alert('Error', 'Please provide your email address.');
+            return;
+          }
+          if (!selectedHub) {
+            Alert.alert('No Hub Selected', 'Please select a hub first.');
             return;
           }
           Alert.alert(
@@ -375,6 +381,35 @@ export default function TalentScreen({ navigation }) {
     </ScrollView>
   );
 
+  // Empty state — no subscribed hubs means the screen can't function
+  if (activeHubs.length === 0 || !selectedHub) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="p-6 pb-4">
+          <Text className="text-text font-black text-3xl">Showcase Talent</Text>
+        </View>
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="bg-background-card rounded-2xl p-8 items-center border border-border w-full">
+            <Ionicons name="briefcase-outline" size={56} color="#666" />
+            <Text className="text-text font-bold text-lg mt-5 text-center">No Hubs Subscribed</Text>
+            <Text className="text-text-secondary text-sm mt-3 text-center leading-5">
+              Subscribe to hubs in the Discover tab to showcase your talent to brands and projects.
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('MainApp', { screen: 'Discover' })}
+              className="bg-primary rounded-xl px-8 py-3.5 mt-6"
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="search" size={18} color="#fff" />
+                <Text className="text-white font-bold text-base ml-2">Discover Hubs</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
@@ -382,16 +417,16 @@ export default function TalentScreen({ navigation }) {
         <View className="flex-row items-center justify-between mb-2">
           <Text className="text-text font-black text-3xl">Showcase Talent</Text>
         </View>
-        
+
         {/* Hub Selector */}
         <TouchableOpacity
           onPress={() => setShowHubPicker(!showHubPicker)}
           className="bg-background-card rounded-xl px-4 py-3 border border-border flex-row items-center justify-between mb-2"
         >
-          <Text className="text-text font-semibold">{selectedHub.name}</Text>
+          <Text className="text-text font-semibold">{selectedHub?.name || 'Select a Hub'}</Text>
           <Ionicons name="chevron-down" size={20} color="#FF9F66" />
         </TouchableOpacity>
-        
+
         {/* Hub Picker Dropdown */}
         {showHubPicker && (
           <View className="bg-background-card rounded-xl border border-border mb-2">
@@ -404,14 +439,14 @@ export default function TalentScreen({ navigation }) {
                 }}
                 className="px-4 py-3 border-b border-border"
               >
-                <Text className={`font-semibold ${hub.id === selectedHub.id ? 'text-primary' : 'text-text'}`}>
+                <Text className={`font-semibold ${hub.id === selectedHub?.id ? 'text-primary' : 'text-text'}`}>
                   {hub.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
-        
+
         <Text className="text-text-secondary text-base">
           {activeTab === 'submit' && 'Get noticed'}
           {activeTab === 'browse' && `${talents.length} talents`}
@@ -433,7 +468,7 @@ export default function TalentScreen({ navigation }) {
             Submit
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={() => setActiveTab('browse')}
           className={`flex-1 py-3 ${activeTab === 'browse' ? 'border-b-2 border-primary' : ''}`}
@@ -446,7 +481,7 @@ export default function TalentScreen({ navigation }) {
             Browse ({talents.length})
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           onPress={() => setActiveTab('mine')}
           className={`flex-1 py-3 ${activeTab === 'mine' ? 'border-b-2 border-primary' : ''}`}
