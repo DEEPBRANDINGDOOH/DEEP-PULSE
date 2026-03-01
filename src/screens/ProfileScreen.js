@@ -319,7 +319,7 @@ export default function ProfileScreen({ navigation }) {
               clearWallet();
               setWalletState(null, null); // Clear transaction helper state
               try { await walletAdapter.disconnect(authToken); } catch(e) {}
-              navigation.replace('Onboarding');
+              Alert.alert('Wallet Disconnected', 'Your wallet has been disconnected successfully.');
             }},
           ]);
         }}

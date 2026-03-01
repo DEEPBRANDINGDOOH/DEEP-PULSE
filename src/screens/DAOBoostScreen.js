@@ -106,6 +106,10 @@ export default function DAOBoostScreen({ navigation }) {
             Alert.alert('Invalid amount', 'Target must be at least 100 $SKR.');
             return;
           }
+          if (!selectedHub) {
+            Alert.alert('No Hub Selected', 'Subscribe to a hub in Discover first, then select it above.');
+            return;
+          }
           // Real on-chain proposal submission
           if (selectedHub?.hubPda) {
             const depositIndex = Date.now() % 1000000;

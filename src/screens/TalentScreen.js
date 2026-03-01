@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
-import { submitTalent } from '../services/transactionHelper';
-import { isValidEmail, isValidHttpUrl, checkRateLimit, MAX_LENGTHS } from '../utils/security';
-
-// Talent profiles — populated from Firebase in production (empty by default)
-const MOCK_TALENTS = [];
-
-// MOCK_MY_SUBMISSIONS moved to appStore.js (Zustand talentSubmissions) for persistence
-
-// No fallback hubs — populated from real subscribed hubs only
+import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
 const ROLE_OPTIONS = [
   'UI/UX Designer',
@@ -25,14 +17,14 @@ const ROLE_OPTIONS = [
 export default function TalentScreen({ navigation }) {
   const { wallet } = useAppStore();
   // Read active hubs from Zustand store — show only hubs user is subscribed to
-  const storeHubs = useAppStore((state) => state.hubs);
-  const subscribedProjects = useAppStore((state) => state.subscribedProjects);
+  const storeHubs = useAppStore((state) => state.hubs) || [];
+  const subscribedProjects = useAppStore((state) => state.subscribedProjects) || [];
   const filteredHubs = storeHubs
-    .filter(h => subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
+    .filter(h => h && subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
     .map(h => ({ id: h.id, name: h.name }));
   const activeHubs = filteredHubs.length > 0 ? filteredHubs : [];
-  // Read talent submissions from Zustand store (persisted)
-  const mySubmissions = useAppStore((state) => state.talentSubmissions);
+  // Talent submissions from Zustand store (persisted)
+  const mySubmissions = useAppStore((state) => state.talentSubmissions) || [];
   const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedHub, setSelectedHub] = useState(activeHubs[0] || null);
@@ -42,19 +34,9 @@ export default function TalentScreen({ navigation }) {
   const [experience, setExperience] = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [email, setEmail] = useState('');
-  const [talents, setTalents] = useState(MOCK_TALENTS);
-
-  // Re-sync selectedHub when store hubs change
-  useEffect(() => {
-    if (activeHubs.length > 0 && (!selectedHub || !activeHubs.find(h => h.id === selectedHub.id))) {
-      setSelectedHub(activeHubs[0]);
-    } else if (activeHubs.length === 0) {
-      setSelectedHub(null);
-    }
-  }, [activeHubs.length]);
 
   const renderSubmitTab = () => (
-    <ScrollView className="px-6 py-4">
+    <ScrollView className="px-6 py-4" showsVerticalScrollIndicator={false}>
       <View className="bg-background-card rounded-xl p-4 mb-6 border border-border">
         <View className="flex-row items-center mb-2">
           <Ionicons name="information-circle" size={18} color="#FF9F66" />
@@ -64,8 +46,8 @@ export default function TalentScreen({ navigation }) {
           {'\u2022'} Showcase your talent to your favorite brand/project{'\n'}
           {'\u2022'} Deposit 50 $SKR to prove you're serious{'\n'}
           {'\u2022'} The brand reviews your profile privately{'\n'}
-          {'\u2022'} Hired? → Deposit refunded + the brand contacts you{'\n'}
-          {'\u2022'} Not selected? → Deposit refunded to your wallet
+          {'\u2022'} Hired? Deposit refunded + the brand contacts you{'\n'}
+          {'\u2022'} Not selected? Deposit refunded to your wallet
         </Text>
       </View>
 
@@ -133,7 +115,6 @@ export default function TalentScreen({ navigation }) {
       />
 
       <TouchableOpacity
-        className="bg-primary rounded-xl py-4"
         onPress={() => {
           if (!checkRateLimit('submit_talent')) return;
           if (!__DEV__ && !wallet?.connected) {
@@ -141,177 +122,70 @@ export default function TalentScreen({ navigation }) {
             return;
           }
           if (!experience.trim()) {
-            Alert.alert('Error', 'Please fill in your experience & skills.');
+            Alert.alert('Missing experience', 'Fill in your experience & skills.');
             return;
           }
           if (!email.trim()) {
-            Alert.alert('Error', 'Please provide your email address.');
+            Alert.alert('Missing email', 'Provide your email address.');
             return;
           }
           if (!selectedHub) {
-            Alert.alert('No Hub Selected', 'Please select a hub first.');
+            Alert.alert('No Hub Selected', 'Subscribe to a hub in Discover first, then select it above.');
             return;
           }
+          const newSubmission = {
+            id: `sub_${Date.now()}`,
+            role: role,
+            hub: selectedHub?.name || 'Unknown',
+            hubId: selectedHub?.id || null,
+            experience: experience.trim(),
+            skills: experience.trim(),
+            portfolio: portfolio.trim(),
+            email: email.trim(),
+            wallet: wallet?.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '???...???',
+            status: 'REVIEW',
+            submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+            expectedDays: '3-5',
+            deposit: 50,
+            isMock: false,
+          };
+          addTalentSubmission(newSubmission);
           Alert.alert(
-            'Submit Talent',
-            `Submit as "${role}" to ${selectedHub.name}?\n\n50 $SKR deposit required.`,
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Submit', onPress: async () => {
-                // Real on-chain talent submission
-                if (selectedHub?.hubPda) {
-                  const depositIndex = Date.now() % 1000000;
-                  const talentContent = `${role} | ${experience} | ${portfolio} | ${email}`;
-                  const result = await submitTalent(selectedHub.hubPda, talentContent, depositIndex);
-                  if (result.success) {
-                    setExperience('');
-                    setPortfolio('');
-                    setEmail('');
-                  }
-                } else {
-                  // Mock fallback — add to Zustand store + talents lists (full data)
-                  const newSubmission = {
-                    id: `sub_${Date.now()}`,
-                    role: role,
-                    hub: selectedHub.name,
-                    hubId: selectedHub.id,
-                    experience: experience.trim(),
-                    skills: experience.trim(),
-                    portfolio: portfolio.trim(),
-                    email: email.trim(),
-                    wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '???...???',
-                    status: 'REVIEW',
-                    submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-                    expectedDays: '3-5',
-                    deposit: 50,
-                    isMock: false,
-                  };
-                  addTalentSubmission(newSubmission);
-                  setTalents(prev => [...prev, {
-                    id: `talent_${Date.now()}`,
-                    role: role,
-                    rating: 0,
-                    experience: experience.trim(),
-                    skills: experience.split(',').map(s => s.trim()).slice(0, 3),
-                    availability: 'Available',
-                    rate: 0,
-                    anonymous: true,
-                    hub: selectedHub?.name,
-                  }]);
-                  Alert.alert('Submitted!', `Your "${role}" submission to ${selectedHub.name} has been sent for review.\n\n50 $SKR deposited in escrow.`);
-                  setExperience('');
-                  setPortfolio('');
-                  setEmail('');
-                }
-              }},
-            ]
+            'Submitted!',
+            `"${role}" submission to ${selectedHub?.name} sent for review.\n\n50 $SKR deposited in escrow.`,
+            [{ text: 'OK', onPress: () => { setExperience(''); setPortfolio(''); setEmail(''); } }]
           );
         }}
+        className="bg-primary rounded-xl py-4"
       >
         <View className="flex-row items-center justify-center">
           <Ionicons name="paper-plane" size={20} color="#fff" />
           <Text className="text-white font-bold text-base ml-2">Submit (50 $SKR)</Text>
         </View>
       </TouchableOpacity>
-      <View className="h-8" />
+      <View className="h-6" />
     </ScrollView>
   );
 
-  const renderBrowseTab = () => {
-    const hubTalents = talents.filter(t => t.hub === selectedHub?.name);
-    return (
+  const renderBrowseTab = () => (
     <ScrollView className="px-6 py-4">
-      {hubTalents.length === 0 ? (
-        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
-          <Ionicons name="people-outline" size={48} color="#666" />
-          <Text className="text-text-secondary text-base mt-4 text-center">No talent profiles for {selectedHub?.name}</Text>
-          <Text className="text-text-muted text-sm mt-2 text-center">Submit your profile in the Submit tab!</Text>
-        </View>
-      ) : hubTalents.map((talent) => (
-        <View
-          key={talent.id}
-          className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
-        >
-          {/* Header */}
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
-              <Ionicons name="briefcase" size={24} color="#FF9F66" />
-              <Text className="text-text font-bold text-lg ml-2">{talent.role}</Text>
-            </View>
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={16} color="#FFD700" />
-              <Text className="text-text font-semibold ml-1">{talent.rating}/5</Text>
-            </View>
-          </View>
-
-          {talent.anonymous && (
-            <View className="bg-background-secondary rounded-xl p-3 mb-3 flex-row items-center">
-              <Ionicons name="lock-closed" size={16} color="#666" />
-              <Text className="text-text-secondary text-sm ml-2">Anonymous</Text>
-            </View>
-          )}
-
-          {/* Skills */}
-          <View className="flex-row flex-wrap mb-3">
-            {talent.skills.map((skill, idx) => (
-              <View key={idx} className="bg-primary/20 rounded-full px-3 py-1 mr-2 mb-2">
-                <Text className="text-primary text-xs font-semibold">{skill}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Details */}
-          <View className="mb-4">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="briefcase-outline" size={16} color="#666" />
-              <Text className="text-text-secondary text-sm ml-2">
-                {talent.experience} experience
-              </Text>
-            </View>
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="time-outline" size={16} color="#666" />
-              <Text className="text-text-secondary text-sm ml-2">
-                Available: {talent.availability}
-              </Text>
-            </View>
-            <View className="flex-row items-center">
-              <Ionicons name="cash-outline" size={16} color="#666" />
-              <Text className="text-text-secondary text-sm ml-2">
-                Rate: {talent.rate.toLocaleString()} $SKR
-              </Text>
-            </View>
-          </View>
-
-          {/* Contact Button */}
-          <TouchableOpacity
-            onPress={() => {
-              if (talent.anonymous) {
-                Alert.alert(
-                  'Anonymous Profile',
-                  `This talent prefers to remain anonymous.\n\nRole: ${talent.role}\nRate: ${talent.rate.toLocaleString()} $SKR\nAvailability: ${talent.availability}\n\nContact will be revealed after hiring through the hub.`
-                );
-              } else {
-                Alert.alert('Contact', `Role: ${talent.role}\nRate: ${talent.rate.toLocaleString()} $SKR`);
-              }
-            }}
-            className="bg-primary/20 rounded-xl py-3 border border-primary"
-          >
-            <View className="flex-row items-center justify-center">
-              <Ionicons name="mail" size={16} color="#FF9F66" />
-              <Text className="text-primary font-bold text-sm ml-2">View Contact</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      ))}
+      <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+        <Ionicons name="people-outline" size={48} color="#666" />
+        <Text className="text-text-secondary text-base mt-4 text-center">No talent profiles yet</Text>
+        <Text className="text-text-muted text-sm mt-2 text-center">Submit your profile in the Submit tab!</Text>
+      </View>
     </ScrollView>
   );
-  };
 
   const renderMineTab = () => (
     <ScrollView className="px-6 py-4">
-      <Text className="text-text font-semibold text-lg mb-4">Current Submission</Text>
-
-      {mySubmissions.map((sub) => (
+      {mySubmissions.length === 0 ? (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="document-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">No submissions yet</Text>
+          <Text className="text-text-muted text-sm mt-2 text-center">Submit your talent profile in the Submit tab</Text>
+        </View>
+      ) : mySubmissions.map((sub) => (
         <View
           key={sub.id}
           className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
@@ -339,45 +213,8 @@ export default function TalentScreen({ navigation }) {
               </Text>
             </View>
           </View>
-
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert(
-                'Edit Submission',
-                `Edit your "${sub.role}" submission to ${sub.hub}?`,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Edit', onPress: () => {
-                    setRole(sub.role);
-                    setActiveTab('submit');
-                    Alert.alert('Editing', 'Update your submission details and re-submit.');
-                  }},
-                ]
-              );
-            }}
-            className="bg-background-secondary rounded-xl py-3 border border-border"
-          >
-            <View className="flex-row items-center justify-center">
-              <Ionicons name="create" size={16} color="#FF9F66" />
-              <Text className="text-primary font-semibold text-sm ml-2">
-                Edit Submission
-              </Text>
-            </View>
-          </TouchableOpacity>
         </View>
       ))}
-
-      {mySubmissions.length === 0 && (
-        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
-          <Ionicons name="document-outline" size={48} color="#666" />
-          <Text className="text-text-secondary text-base mt-4 text-center">
-            No submissions yet
-          </Text>
-          <Text className="text-text-muted text-xs text-center mt-1">
-            Submit your talent profile in the Submit tab
-          </Text>
-        </View>
-      )}
     </ScrollView>
   );
 
@@ -420,7 +257,7 @@ export default function TalentScreen({ navigation }) {
 
         <Text className="text-text-secondary text-base">
           {activeTab === 'submit' && 'Get noticed'}
-          {activeTab === 'browse' && `${talents.length} talents`}
+          {activeTab === 'browse' && 'Browse talent'}
           {activeTab === 'mine' && 'Your submissions'}
         </Text>
       </View>
@@ -449,7 +286,7 @@ export default function TalentScreen({ navigation }) {
               activeTab === 'browse' ? 'text-primary' : 'text-text-secondary'
             }`}
           >
-            Browse ({talents.length})
+            Browse
           </Text>
         </TouchableOpacity>
 
