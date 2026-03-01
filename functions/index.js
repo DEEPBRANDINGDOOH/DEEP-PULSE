@@ -336,16 +336,20 @@ exports.sendPushToSubscribers = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "hubId, title, and body are required.");
   }
 
-  // Verify caller owns the hub (or is admin)
+  // Verify caller owns the hub (or is admin) — MANDATORY check
   const callerWallet = request.data.walletAddress;
-  if (callerWallet) {
-    const hubDoc = await db.collection("hubs").doc(hubId).get();
-    if (hubDoc.exists) {
-      const hub = hubDoc.data();
-      if (hub.ownerWallet !== callerWallet && !isAdmin(callerWallet)) {
-        throw new HttpsError("permission-denied", "Only the hub owner or admin can send notifications.");
-      }
-    }
+  if (!callerWallet) {
+    throw new HttpsError("unauthenticated", "walletAddress is required to send notifications.");
+  }
+
+  const hubDoc = await db.collection("hubs").doc(hubId).get();
+  if (!hubDoc.exists) {
+    throw new HttpsError("not-found", "Hub not found.");
+  }
+
+  const hub = hubDoc.data();
+  if (hub.creator !== callerWallet && hub.ownerWallet !== callerWallet && !isAdmin(callerWallet)) {
+    throw new HttpsError("permission-denied", "Only the hub owner or admin can send notifications.");
   }
 
   // Create notification document (triggers onNewNotification)
