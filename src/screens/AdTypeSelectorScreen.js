@@ -14,7 +14,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
-import { PRICING } from '../config/constants';
+import { PRICING, USE_DEVNET } from '../config/constants';
 
 // Active ads count is now derived dynamically from Zustand store inside the component
 
@@ -198,7 +198,7 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
         </View>
 
         {/* My Active Ads */}
-        {(__DEV__ || wallet?.connected) && myActiveAdsCount > 0 && (
+        {(USE_DEVNET || wallet?.connected) && myActiveAdsCount > 0 && (
           <View className="px-6 mb-4">
             <TouchableOpacity
               onPress={() => handleSelectType('my_ads')}

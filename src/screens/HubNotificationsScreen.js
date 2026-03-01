@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
 import { useAppStore } from '../store/appStore';
+import { USE_DEVNET } from '../config/constants';
 
 // Hub notifications are fetched from Firebase — no more hardcoded mock data
 const MOCK_HUB_NOTIFICATIONS = {};
@@ -26,7 +27,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
   };
 
   const handleSendFeedback = (notif) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to send feedback.\n\nA 300 $SKR deposit is required.');
       return;
     }

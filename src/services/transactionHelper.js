@@ -10,7 +10,7 @@ import { Alert } from 'react-native';
 import { programService } from './programService';
 import { walletAdapter } from './walletAdapter';
 import { notificationService } from './notificationService';
-import { PRICING, DEPOSITS } from '../config/constants';
+import { PRICING, DEPOSITS, USE_DEVNET } from '../config/constants';
 import { logger } from '../utils/security';
 
 // ============================================
@@ -37,8 +37,8 @@ export const isWalletConnected = () => _walletPublicKey !== null;
  * @returns {Promise<boolean>} true if balance is sufficient (or check skipped)
  */
 export const checkSkrBalance = async (requiredAmount, actionName) => {
-  // In dev mode without wallet, skip balance check
-  if (__DEV__ && !isWalletConnected()) return true;
+  // In devnet mode, always skip balance check ($SKR token doesn't exist on devnet)
+  if (USE_DEVNET) return true;
   try {
     const { PublicKey } = require('@solana/web3.js');
     const pubkey = typeof _walletPublicKey === 'string'
@@ -73,12 +73,13 @@ export const checkSkrBalance = async (requiredAmount, actionName) => {
 export const executeTransaction = async (actionName, txFn, options = {}) => {
   const { onSuccess, onError, requiresWallet = true } = options;
 
-  // In __DEV__ mode, skip wallet check and return mock success
-  if (__DEV__ && requiresWallet && !isWalletConnected()) {
-    logger.log(`[Transaction] ${actionName} — DEV mock (no wallet)`);
+  // In devnet mode, always return mock success ($SKR token doesn't exist on devnet)
+  // Wallet connection is real (MWA), but $SKR transactions are simulated
+  if (USE_DEVNET) {
+    logger.log(`[Transaction] ${actionName} — devnet mock (no $SKR on devnet)`);
     const mockResult = {
-      signature: `mock_${actionName.replace(/\s/g, '_')}_${Date.now()}`,
-      message: `${actionName} completed (dev mock)`,
+      signature: `devnet_mock_${actionName.replace(/\s/g, '_')}_${Date.now()}`,
+      message: `${actionName} completed (devnet simulation)`,
     };
     if (onSuccess) {
       onSuccess(mockResult);
@@ -86,7 +87,7 @@ export const executeTransaction = async (actionName, txFn, options = {}) => {
     return { success: true, result: mockResult };
   }
 
-  // Check wallet connection (production only reaches here)
+  // Production: check wallet connection
   if (requiresWallet && !isWalletConnected()) {
     Alert.alert(
       'Wallet Required',

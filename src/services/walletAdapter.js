@@ -115,7 +115,17 @@ class MobileWalletAdapterService {
         });
 
         const firstAccount = authorization.accounts[0];
-        const publicKey = new PublicKey(firstAccount.address);
+
+        // MWA returns address as Base64EncodedAddress — decode to bytes for PublicKey
+        let publicKey;
+        try {
+          // Try base64 decode first (MWA 2.0 protocol format)
+          const decoded = require('buffer').Buffer.from(firstAccount.address, 'base64');
+          publicKey = new PublicKey(decoded);
+        } catch {
+          // Fallback: maybe it's already base58 (WalletAccount format)
+          publicKey = new PublicKey(firstAccount.address);
+        }
 
         // Save auth_token for future sessions
         if (authorization.auth_token) {
@@ -165,7 +175,13 @@ class MobileWalletAdapterService {
         });
 
         const firstAccount = authorization.accounts[0];
-        const publicKey = new PublicKey(firstAccount.address);
+        let publicKey;
+        try {
+          const decoded = require('buffer').Buffer.from(firstAccount.address, 'base64');
+          publicKey = new PublicKey(decoded);
+        } catch {
+          publicKey = new PublicKey(firstAccount.address);
+        }
 
         if (authorization.auth_token) {
           await AsyncStorage.setItem(STORAGE_KEYS.WALLET_AUTH_TOKEN, authorization.auth_token);
@@ -236,7 +252,13 @@ class MobileWalletAdapterService {
         });
 
         const firstAccount = authorization.accounts[0];
-        const publicKey = new PublicKey(firstAccount.address);
+        let publicKey;
+        try {
+          const decoded = require('buffer').Buffer.from(firstAccount.address, 'base64');
+          publicKey = new PublicKey(decoded);
+        } catch {
+          publicKey = new PublicKey(firstAccount.address);
+        }
 
         // Update stored token (it may have been refreshed)
         if (authorization.auth_token) {
@@ -309,11 +331,12 @@ class MobileWalletAdapterService {
           await AsyncStorage.setItem(STORAGE_KEYS.WALLET_AUTH_TOKEN, authResult.auth_token);
         }
 
-        const result = await wallet.signTransactions({
+        // Web3js wrapper returns T[] directly (not { signedTransactions })
+        const signedTxs = await wallet.signTransactions({
           transactions: [transaction],
         });
 
-        return result.signedTransactions[0];
+        return signedTxs[0];
       }, { onWalletNotFound });
 
       logger.log('Transaction signed');
@@ -394,7 +417,9 @@ class MobileWalletAdapterService {
           ? new TextEncoder().encode(message)
           : message;
 
+        // addresses is required by MWA — pass the Base64EncodedAddress from authResult
         const signedMessages = await wallet.signMessages({
+          addresses: [authResult.accounts[0].address],
           payloads: [messageBytes],
         });
 

@@ -23,6 +23,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { USE_DEVNET } from '../config/constants';
 import { createHub } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -63,7 +64,7 @@ export default function BrandBoostScreen({ navigation }) {
       return;
     }
 
-    if (!wallet?.connected && !__DEV__) {
+    if (!wallet?.connected && !USE_DEVNET) {
       Alert.alert('Wallet Required', 'Please connect your wallet first. Hub creation costs 2000 $SKR/month.');
       return;
     }
@@ -73,8 +74,8 @@ export default function BrandBoostScreen({ navigation }) {
     try {
       const createdHubName = hubName;
       Alert.alert(
-        __DEV__ ? 'Create Hub (Demo)' : 'Payment Required',
-        __DEV__
+        USE_DEVNET ? 'Create Hub (Demo)' : 'Payment Required',
+        USE_DEVNET
           ? `Create "${hubName}" hub in demo mode?\n\n(No real transaction — mock data)`
           : `To create "${hubName}" hub, you need to pay 2000 $SKR per month.\n\nThis will create an on-chain transaction via your wallet.`,
         [
@@ -93,7 +94,7 @@ export default function BrandBoostScreen({ navigation }) {
                 const hubIndex = Date.now() % 1000000; // Unique index
 
                 // Dev mode: simulate success without real transaction
-                const result = __DEV__
+                const result = USE_DEVNET
                   ? { success: true, signature: 'mock_tx_' + Date.now() }
                   : await createHub(hubName, hubDescription, categoryKey, hubIndex);
 

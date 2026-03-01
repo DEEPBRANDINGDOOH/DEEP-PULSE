@@ -38,7 +38,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
-import { PRICING } from '../config/constants';
+import { PRICING, USE_DEVNET } from '../config/constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
 import { safeOpenURL, MAX_LENGTHS } from '../utils/security';
@@ -312,7 +312,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   }, [storeApprovedAds, storePendingAds, hubName]);
 
   const handlePurchaseSlot = (slotType) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Connect Wallet', 'Please connect your wallet to purchase ad slots');
       return;
     }
@@ -439,7 +439,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               }
 
               // Attempt real on-chain ad purchase if hubId is available (skip in dev mode)
-              if (hubId && !__DEV__) {
+              if (hubId && !USE_DEVNET) {
                 const slotIndex = Date.now() % 100000;
                 // Hash URLs properly for on-chain storage
                 const imageUrlHash = finalImageUrl
@@ -781,7 +781,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         </View>
 
         {/* My Active Ads — show if wallet connected (or dev mode) and has ads */}
-        {showMyAds && (__DEV__ || wallet?.connected) && myAds.length > 0 && (
+        {showMyAds && (USE_DEVNET || wallet?.connected) && myAds.length > 0 && (
           <View className="px-6 mb-6">
             <View className="flex-row items-center mb-3">
               <Ionicons name="image" size={20} color="#FF9F66" />

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { approveFeedback, approveTalent, approveDaoProposal, rejectDeposit } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
+import { USE_DEVNET } from '../config/constants';
 
 // Stable empty array reference — prevents infinite re-render loop
 // when hubFeedbacks[hubName] is undefined (new hub with no feedbacks).
@@ -79,9 +80,9 @@ export default function BrandModerationScreen({ navigation, route }) {
 
   const [activeTab, setActiveTab] = useState('feedback');
 
-  // Build merged submissions from store + mocks (mocks only in __DEV__)
+  // Build merged submissions from store + mocks (mocks only in USE_DEVNET)
   const buildSubmissions = useMemo(() => {
-    const mocks = __DEV__ ? getMockSubmissions(hubName) : { feedback: [], boost: [], talent: [] };
+    const mocks = USE_DEVNET ? getMockSubmissions(hubName) : { feedback: [], boost: [], talent: [] };
 
     // Real feedbacks from store
     const realFeedbacks = storeFeedbacks.map((fb) => ({

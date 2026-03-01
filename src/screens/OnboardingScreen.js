@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
+import { USE_DEVNET } from '../config/constants';
 import { walletAdapter } from '../services/walletAdapter';
 import { programService } from '../services/programService';
 import { setWalletState, initUserScore } from '../services/transactionHelper';
@@ -324,7 +325,7 @@ export default function OnboardingScreen({ navigation }) {
       }
       Alert.alert(
         'Connection Failed',
-        `${errorMessage}${__DEV__ ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
+        `${errorMessage}${USE_DEVNET ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
         [
           { text: 'Try Again', style: 'cancel' },
           { text: 'Continue as Guest', onPress: () => navigation.replace('MainApp') },

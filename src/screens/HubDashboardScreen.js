@@ -6,6 +6,7 @@ import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
 import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
+import { USE_DEVNET } from '../config/constants';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -33,7 +34,7 @@ export default function HubDashboardScreen({ navigation, route }) {
 
   // Check if current user is the hub creator (billing info is creator-only)
   const walletAddress = wallet?.publicKey;
-  const isCreator = __DEV__ || (walletAddress && hubData?.creator === walletAddress);
+  const isCreator = USE_DEVNET || (walletAddress && hubData?.creator === walletAddress);
 
   // Dynamic billing computation (only meaningful for creator)
   const subscriptionExpiresAt = hubData?.subscriptionExpiresAt;
@@ -182,7 +183,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               className="bg-primary rounded-xl py-4"
               onPress={() => {
                 if (!checkRateLimit('send_notification')) return;
-                if (!__DEV__ && !wallet?.connected) {
+                if (!USE_DEVNET && !wallet?.connected) {
                   Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
                   return;
                 }

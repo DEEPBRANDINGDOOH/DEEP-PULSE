@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import HubIcon from '../components/HubIcon';
-import { MOCK_ADS } from '../config/constants';
+import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import GlowCard from '../components/ui/GlowCard';
 import GradientButton from '../components/ui/GradientButton';
@@ -55,7 +55,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleSendFeedback = (notification) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', `Please connect your wallet to send feedback.\n\nA ${feedbackDepositAmount} $SKR deposit is required.`);
       return;
     }

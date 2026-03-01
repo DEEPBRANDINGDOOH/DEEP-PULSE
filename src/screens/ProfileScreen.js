@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard, Switch, Lin
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
-import { SOLANA_CONFIG, getTierFromScore, isAdmin } from '../config/constants';
+import { SOLANA_CONFIG, getTierFromScore, isAdmin, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
-import { setWalletState, getWalletPublicKey } from '../services/transactionHelper';
+import { setWalletState, getWalletPublicKey, initUserScore } from '../services/transactionHelper';
+import { programService } from '../services/programService';
 
 // Leaderboard data — fetched from Firebase in production (empty by default)
 const MOCK_LEADERBOARD = [];
@@ -23,12 +24,14 @@ function formatWallet(pubkey) {
 
 export default function ProfileScreen({ navigation }) {
   const clearWallet = useAppStore((state) => state.clearWallet);
+  const setWallet = useAppStore((state) => state.setWallet);
   const storeWallet = useAppStore((state) => state.wallet);
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
   const pendingHubs = useAppStore((state) => state.pendingHubs);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   // Use real wallet if connected, otherwise fall back to mock
   const connectedPubkey = getWalletPublicKey();
@@ -39,7 +42,7 @@ export default function ProfileScreen({ navigation }) {
   // Production: strict wallet match; Dev: show all for demo
   const myCreatedHubs = [...pendingHubs, ...storeHubs].filter(h => {
     if (!h.creator) return false;
-    if (__DEV__) return true;
+    if (USE_DEVNET) return true;
     return fullWalletAddress && h.creator === fullWalletAddress;
   });
 
@@ -214,7 +217,7 @@ export default function ProfileScreen({ navigation }) {
             return;
           }
           const programId = SOLANA_CONFIG.PROGRAM_ID;
-          const network = __DEV__ ? '?cluster=devnet' : '';
+          const network = USE_DEVNET ? '?cluster=devnet' : '';
           const url = `https://solscan.io/account/${walletAddr}${network}#defiactivities`;
           Alert.alert(
             'Transaction History',
@@ -309,24 +312,59 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity
-        className="bg-error/20 rounded-xl p-4 mb-6 flex-row items-center justify-center border border-error"
-        onPress={() => {
-          Alert.alert('Disconnect Wallet', 'Are you sure you want to disconnect your wallet?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Disconnect', style: 'destructive', onPress: async () => {
-              const authToken = useAppStore.getState().wallet?.authToken;
-              clearWallet();
-              setWalletState(null, null); // Clear transaction helper state
-              try { await walletAdapter.disconnect(authToken); } catch(e) {}
-              Alert.alert('Wallet Disconnected', 'Your wallet has been disconnected successfully.');
-            }},
-          ]);
-        }}
-      >
-        <Ionicons name="log-out" size={20} color="#f44336" />
-        <Text className="text-error font-bold ml-2">Disconnect Wallet</Text>
-      </TouchableOpacity>
+      {/* Connect or Disconnect Wallet — conditional based on wallet state */}
+      {storeWallet?.connected ? (
+        <TouchableOpacity
+          className="bg-error/20 rounded-xl p-4 mb-6 flex-row items-center justify-center border border-error"
+          onPress={() => {
+            Alert.alert('Disconnect Wallet', 'Are you sure you want to disconnect your wallet?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Disconnect', style: 'destructive', onPress: async () => {
+                const authToken = useAppStore.getState().wallet?.authToken;
+                clearWallet();
+                setWalletState(null, null);
+                try { await walletAdapter.disconnect(authToken); } catch(e) {}
+                Alert.alert('Wallet Disconnected', 'Your wallet has been disconnected successfully.');
+              }},
+            ]);
+          }}
+        >
+          <Ionicons name="log-out" size={20} color="#f44336" />
+          <Text className="text-error font-bold ml-2">Disconnect Wallet</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          className="bg-green-500/20 rounded-xl p-4 mb-6 flex-row items-center justify-center border border-green-500"
+          disabled={isConnecting}
+          onPress={async () => {
+            setIsConnecting(true);
+            try {
+              const result = await walletAdapter.connect();
+              const pubKeyStr = result.publicKey?.toString ? result.publicKey.toString() : result.publicKey;
+              setWallet({
+                connected: true,
+                publicKey: pubKeyStr,
+                authToken: result.authToken,
+              });
+              setWalletState(result.publicKey, result.authToken);
+              initUserScore().catch(() => {});
+              programService.checkGenesisToken(result.publicKey).then((sgt) => {
+                useAppStore.getState().setGenesisToken(sgt.hasToken, sgt.mintAddress);
+              }).catch(() => {});
+              Alert.alert('Wallet Connected', `Connected to ${result.label || 'wallet'}`);
+            } catch (error) {
+              Alert.alert('Connection Failed', error?.message || 'Could not connect wallet.');
+            } finally {
+              setIsConnecting(false);
+            }
+          }}
+        >
+          <Ionicons name="wallet" size={20} color="#22c55e" />
+          <Text style={{ color: '#22c55e', fontWeight: '700', marginLeft: 8 }}>
+            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 

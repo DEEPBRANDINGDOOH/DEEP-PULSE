@@ -7,6 +7,7 @@ import { useAppStore } from '../store/appStore';
 import GradientButton from '../components/ui/GradientButton';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 import { safeOpenURL } from '../utils/security';
+import { USE_DEVNET } from '../config/constants';
 
 export default function NotificationDetailScreen({ navigation, route }) {
   const notification = route.params?.notification || {};
@@ -31,7 +32,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
   };
 
   const handleSendFeedback = () => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', `Please connect your wallet to send feedback.\n\nA ${feedbackDepositAmount} $SKR deposit is required.`);
       return;
     }

@@ -10,7 +10,7 @@
  */
 
 import { Alert } from 'react-native';
-import { API_BASE_URL } from '../config/constants';
+import { API_BASE_URL, USE_DEVNET } from '../config/constants';
 import { logger } from '../utils/security';
 
 // Safe imports for Firebase
@@ -1112,19 +1112,19 @@ export function logCrashlyticsBreadcrumb(message) {
 
 /**
  * Initialize Firebase App Check
- * Uses Debug provider in __DEV__ mode, Play Integrity in production.
+ * Uses Debug provider in USE_DEVNET mode, Play Integrity in production.
  */
 export function initAppCheck() {
   if (!appCheckModule) return;
   try {
     const appCheck = appCheckModule();
     appCheck.initializeAppCheck({
-      provider: __DEV__
+      provider: USE_DEVNET
         ? appCheckModule.AppCheckDebugProvider  // Debug token for dev builds
         : appCheckModule.PlayIntegrityProvider, // Play Integrity for release builds
       isTokenAutoRefreshEnabled: true,
     });
-    logger.log('[FirebaseService] App Check initialized (__DEV__:', __DEV__, ')');
+    logger.log('[FirebaseService] App Check initialized (USE_DEVNET:', USE_DEVNET, ')');
   } catch (error) {
     logger.warn('[FirebaseService] App Check init failed:', error.message);
   }

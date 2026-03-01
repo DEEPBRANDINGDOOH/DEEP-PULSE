@@ -21,8 +21,12 @@ export const APP_IDENTITY = {
 // SOLANA CONFIGURATION
 // ========================================
 
+// HACKATHON FLAG: Set to true for devnet testing, false for mainnet production
+// This overrides __DEV__ which is always false in release bundles
+export const USE_DEVNET = true;
+
 export const SOLANA_CONFIG = {
-  NETWORK: __DEV__ ? 'devnet' : 'mainnet-beta',
+  NETWORK: USE_DEVNET ? 'devnet' : 'mainnet-beta',
   RPC_ENDPOINT_DEV: 'https://devnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
   RPC_ENDPOINT_PROD: 'https://mainnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
 
@@ -40,8 +44,8 @@ export const SOLANA_CONFIG = {
  * Used by walletAdapter to connect to Solana network
  */
 export const getRpcEndpoint = () => {
-  return __DEV__ 
-    ? SOLANA_CONFIG.RPC_ENDPOINT_DEV 
+  return USE_DEVNET
+    ? SOLANA_CONFIG.RPC_ENDPOINT_DEV
     : SOLANA_CONFIG.RPC_ENDPOINT_PROD;
 };
 
@@ -49,7 +53,7 @@ export const getRpcEndpoint = () => {
  * Get cluster name in MWA 2.0 format
  */
 export const getCluster = () => {
-  return __DEV__ ? 'solana:devnet' : 'solana:mainnet-beta';
+  return USE_DEVNET ? 'solana:devnet' : 'solana:mainnet-beta';
 };
 
 // ========================================
@@ -91,7 +95,7 @@ export const ADMIN_WALLETS = [
 
 // Check if wallet is admin
 export const isAdmin = (walletAddress) => {
-  if (__DEV__) return true; // Mock admin in development
+  if (USE_DEVNET) return true; // All users are admin on devnet for demo
   return ADMIN_WALLETS.includes(walletAddress);
 };
 
@@ -301,7 +305,7 @@ export const DAO_SPLIT = {
 // API ENDPOINTS
 // ========================================
 
-export const API_BASE_URL = __DEV__
+export const API_BASE_URL = USE_DEVNET
   ? 'http://localhost:3000/api'
   : 'https://us-central1-deep-pulse.cloudfunctions.net';
 
@@ -346,7 +350,7 @@ export const API_ENDPOINTS = {
 // MOCK DATA (for development)
 // ========================================
 
-export const MOCK_ENABLED = __DEV__;
+export const MOCK_ENABLED = USE_DEVNET;
 
 export const MOCK_USER = {
   wallet: 'Not connected',

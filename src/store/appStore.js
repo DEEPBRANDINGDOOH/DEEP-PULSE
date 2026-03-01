@@ -16,7 +16,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
-import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS, isAdmin } from '../config/constants';
+import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS, isAdmin, USE_DEVNET } from '../config/constants';
 import {
   subscribeToHubBackend,
   unsubscribeFromHubBackend,
@@ -657,7 +657,7 @@ export const useAppStore = create(
       })),
 
       loadPlatformPricingFromChain: async () => {
-        if (__DEV__) return; // Mock mode — keep defaults
+        if (USE_DEVNET) return; // Devnet mode — keep defaults
         try {
           const { fetchPlatformConfig } = require('../services/transactionHelper');
           const config = await fetchPlatformConfig();

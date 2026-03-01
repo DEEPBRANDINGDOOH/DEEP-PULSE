@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { USE_DEVNET } from '../config/constants';
 
 const ROLE_OPTIONS = [
   'UI/UX Designer',
@@ -117,7 +118,7 @@ export default function TalentScreen({ navigation }) {
       <TouchableOpacity
         onPress={() => {
           if (!checkRateLimit('submit_talent')) return;
-          if (!__DEV__ && !wallet?.connected) {
+          if (!USE_DEVNET && !wallet?.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a talent profile.\n\nA 50 $SKR deposit is required.');
             return;
           }

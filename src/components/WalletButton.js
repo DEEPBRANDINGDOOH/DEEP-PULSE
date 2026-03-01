@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter, formatPublicKey } from '../services/walletAdapter';
 import { setWalletState } from '../services/transactionHelper';
@@ -64,7 +65,7 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
 
       Alert.alert(
         'Connection Failed',
-        `${errorMessage}${__DEV__ ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
+        `${errorMessage}${USE_DEVNET ? `\n\n[Debug] ${error?.code ? `Code: ${error.code} — ` : ''}${String(error?.message || error).slice(0, 200)}` : ''}`,
         [{ text: 'OK' }]
       );
     } finally {

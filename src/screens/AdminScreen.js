@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getTierFromScore, PRICING, isAdmin } from '../config/constants';
+import { getTierFromScore, PRICING, isAdmin, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 // Rich notif ad needs to store the notification in Zustand for in-app display
 import { programService } from '../services/programService';
@@ -99,7 +99,7 @@ export default function AdminScreen({ navigation }) {
 
   // Ad moderation handlers
   const handleApproveAd = (ad) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -162,7 +162,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleRejectAd = (ad) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -191,7 +191,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleFlagSpam = (ad) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -221,7 +221,7 @@ export default function AdminScreen({ navigation }) {
 
   // Hub handlers — connected to Zustand store
   const handleApproveHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet to approve hubs.');
       return;
     }
@@ -235,7 +235,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleRejectHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -249,7 +249,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSuspendActiveHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -267,7 +267,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleReactivateHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -285,7 +285,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleDeleteHub = (hubId, hubName) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
@@ -313,7 +313,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendGlobalNotification = () => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', `Connect your admin wallet.\nCost: ${PRICING.GLOBAL_NOTIFICATION} $SKR.`);
       return;
     }
@@ -921,13 +921,13 @@ export default function AdminScreen({ navigation }) {
 
     Alert.alert(
       'Update Price',
-      `Change "${PRICE_LABELS[key].label}" from ${prices[key]} to ${newValue} $SKR?${isOnChainPrice && !__DEV__ ? '\n\nThis will update the on-chain PlatformConfig.' : ''}`,
+      `Change "${PRICE_LABELS[key].label}" from ${prices[key]} to ${newValue} $SKR?${isOnChainPrice && !USE_DEVNET ? '\n\nThis will update the on-chain PlatformConfig.' : ''}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Update',
           onPress: async () => {
-            if (!__DEV__ && isOnChainPrice) {
+            if (!USE_DEVNET && isOnChainPrice) {
               // Release mode: call on-chain update_platform_config
               try {
                 setSavingPrice(true);
@@ -950,7 +950,7 @@ export default function AdminScreen({ navigation }) {
               updateSinglePrice(key, newValue);
               setEditingPrice(null);
               setEditPriceValue('');
-              Alert.alert('Price Updated', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.${__DEV__ ? '\n\n(Dev mode: local update only)' : ''}`);
+              Alert.alert('Price Updated', `${PRICE_LABELS[key].label} is now ${newValue} $SKR.${USE_DEVNET ? '\n\n(Dev mode: local update only)' : ''}`);
             }
           },
         },

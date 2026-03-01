@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import HubIcon from '../components/HubIcon';
-import { MOCK_ADS } from '../config/constants';
+import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { subscribeToHub, unsubscribeFromHub, fetchAllHubs } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
@@ -43,7 +43,7 @@ export default function DiscoverScreen({ navigation }) {
     if (!hub) return;
 
     // Wallet check for on-chain operations
-    if (hub.hubPda && !__DEV__ && !wallet?.connected) {
+    if (hub.hubPda && !USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to subscribe on-chain.');
       return;
     }

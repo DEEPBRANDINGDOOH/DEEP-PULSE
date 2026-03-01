@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { submitDaoProposal, contributeToVault } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { USE_DEVNET } from '../config/constants';
 
 // DAO proposals & funded — populated from real user submissions (empty by default)
 const MOCK_PROPOSALS = [];
@@ -32,8 +33,8 @@ export default function DAOBoostScreen({ navigation }) {
   const [fundModalVisible, setFundModalVisible] = useState(false);
   const [fundProposal, setFundProposal] = useState(null);
   const [fundAmount, setFundAmount] = useState('100');
-  // Merge store proposals with mocks (mocks only in __DEV__)
-  const proposals = [...storeDaoProposals, ...(__DEV__ ? MOCK_PROPOSALS : [])];
+  // Merge store proposals with mocks (mocks only in USE_DEVNET)
+  const proposals = [...storeDaoProposals, ...(USE_DEVNET ? MOCK_PROPOSALS : [])];
   const [funded, setFunded] = useState(MOCK_FUNDED);
 
   const renderProposeTab = () => (
@@ -89,7 +90,7 @@ export default function DAOBoostScreen({ navigation }) {
       <TouchableOpacity
         onPress={async () => {
           if (!checkRateLimit('dao_submit')) return;
-          if (!__DEV__ && !wallet?.connected) {
+          if (!USE_DEVNET && !wallet?.connected) {
             Alert.alert('Wallet Required', 'Please connect your wallet to submit a DAO proposal.\n\nA 100 $SKR deposit is required.');
             return;
           }
@@ -156,7 +157,7 @@ export default function DAOBoostScreen({ navigation }) {
   );
 
   const openFundModal = (proposal) => {
-    if (!__DEV__ && !wallet?.connected) {
+    if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', 'Please connect your wallet to fund a DAO proposal.');
       return;
     }
