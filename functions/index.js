@@ -19,6 +19,9 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 
+const nacl = require("tweetnacl");
+const bs58 = require("bs58");
+
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -150,6 +153,93 @@ function getTierFromScore(score) {
   if (score >= 300) return "Silver";
   return "Bronze";
 }
+
+// =====================================================================
+//  0. AUTHENTICATION — Sign In With Wallet
+// =====================================================================
+
+/**
+ * signInWithWallet
+ *
+ * Verifies a Solana wallet signature and issues a Firebase Custom Auth token.
+ * This ensures all subsequent Firestore calls include a verified auth.uid = walletAddress.
+ *
+ * Flow:
+ *   1. Client signs a message via MWA signMessage()
+ *   2. Client sends { walletAddress, message, signature (base64) } to this function
+ *   3. Server verifies the ed25519 signature using tweetnacl
+ *   4. Server creates a Firebase Custom Auth token via admin.auth().createCustomToken()
+ *   5. Client calls auth().signInWithCustomToken(token) to authenticate
+ *
+ * Parameters (in data):
+ *   - walletAddress: string (base58 Solana public key)
+ *   - message: string (the plaintext message that was signed)
+ *   - signature: string (base64-encoded 64-byte ed25519 signature)
+ */
+exports.signInWithWallet = onCall(async (request) => {
+  const { walletAddress, message, signature } = request.data;
+
+  if (!walletAddress || !message || !signature) {
+    throw new HttpsError("invalid-argument", "walletAddress, message, and signature are required.");
+  }
+
+  // Validate wallet address format (base58, 32-44 chars)
+  if (walletAddress.length < 32 || walletAddress.length > 44) {
+    throw new HttpsError("invalid-argument", "Invalid wallet address format.");
+  }
+
+  // Verify the message contains our app domain (prevents replay attacks with foreign signatures)
+  if (!message.includes("DEEP PULSE")) {
+    throw new HttpsError("invalid-argument", "Message must contain app identifier.");
+  }
+
+  try {
+    // Decode wallet address from base58 to bytes (32 bytes public key)
+    const publicKeyBytes = bs58.decode(walletAddress);
+    if (publicKeyBytes.length !== 32) {
+      throw new HttpsError("invalid-argument", "Invalid public key length.");
+    }
+
+    // Decode signature from base64 to bytes (64 bytes ed25519 signature)
+    const signatureBytes = Buffer.from(signature, "base64");
+    if (signatureBytes.length !== 64) {
+      throw new HttpsError("invalid-argument", "Invalid signature length.");
+    }
+
+    // Convert message to bytes
+    const messageBytes = Buffer.from(message, "utf-8");
+
+    // Verify the ed25519 signature
+    const isValid = nacl.sign.detached.verify(
+      messageBytes,
+      signatureBytes,
+      publicKeyBytes,
+    );
+
+    if (!isValid) {
+      throw new HttpsError("unauthenticated", "Invalid signature. Wallet verification failed.");
+    }
+
+    // Signature is valid — create Firebase Custom Auth token
+    // The UID is the wallet address (unique per user)
+    const customToken = await admin.auth().createCustomToken(walletAddress, {
+      walletAddress,
+      isAdmin: isAdmin(walletAddress),
+    });
+
+    logger.info(`Wallet authenticated: ${walletAddress} (admin: ${isAdmin(walletAddress)})`);
+
+    return {
+      success: true,
+      token: customToken,
+      walletAddress,
+    };
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    logger.error("signInWithWallet error:", error);
+    throw new HttpsError("internal", "Authentication failed: " + error.message);
+  }
+});
 
 // =====================================================================
 //  1. NOTIFICATION FUNCTIONS

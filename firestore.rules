@@ -2,12 +2,28 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── Helper: Check if user is authenticated ──
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ── Helper: Check if auth UID matches wallet address ──
+    function isOwner(walletAddress) {
+      return isAuthenticated() && request.auth.uid == walletAddress;
+    }
+
+    // ── Helper: Check if user is admin ──
+    function isAdmin() {
+      return isAuthenticated() && request.auth.uid == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc';
+    }
+
     // ── Notifications ──
-    // Readable by anyone; client creates must include required fields + valid data
+    // Readable by anyone; authenticated users can create with required fields
     // Cloud Functions also write via Admin SDK (bypasses rules)
     match /notifications/{notificationId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['hubId', 'title', 'body', 'walletAddress'])
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['hubId', 'title', 'body', 'walletAddress'])
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 100
@@ -15,76 +31,65 @@ service cloud.firestore {
         && request.resource.data.body.size() > 0
         && request.resource.data.body.size() <= 500
         && request.resource.data.hubId is string
-        && request.resource.data.walletAddress is string
-        && request.resource.data.walletAddress.size() >= 32;
+        && request.resource.data.walletAddress == request.auth.uid;
       allow update, delete: if false;
     }
 
     // ── Hubs ──
-    // Readable by anyone; client creates must have status PENDING (enforced)
-    // Updates: subscriber count changes allowed for any client;
-    // Admin status changes (suspend/reactivate/delete) routed through Cloud Functions (Admin SDK)
-    // Client-side status updates restricted to valid transitions with value validation
+    // Readable by anyone; authenticated users can create with PENDING status
+    // Subscriber count changes require auth; admin ops require admin auth
     match /hubs/{hubId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['name', 'status', 'creator'])
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['name', 'status', 'creator'])
         && request.resource.data.status == 'PENDING'
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 64
-        && request.resource.data.creator is string
-        && request.resource.data.creator.size() >= 32;
-      allow update: if (
-        // Case 1: Subscriber count change only (any client)
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
-        && request.resource.data.subscribers is int
-        && request.resource.data.subscribers >= 0
-      ) || (
-        // Case 2: Admin operations — requires known admin wallet address in the data
-        // SECURITY: In production, route ALL admin ops through Cloud Functions (Admin SDK)
-        // This rule validates the admin wallet address to prevent unauthorized status changes
-        request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
-                    'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
-                    'subscriptionExpiresAt'])
-        && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
-        // Require admin wallet in one of the admin fields (approvedBy, rejectedBy, suspendedBy, reactivatedBy)
-        && (
-          (request.resource.data.approvedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
-          || (request.resource.data.rejectedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
-          || (request.resource.data.suspendedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
-          || (request.resource.data.reactivatedBy == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc')
+        && request.resource.data.creator == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        // Case 1: Subscriber count change (any authenticated user)
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
+          && request.resource.data.subscribers is int
+          && request.resource.data.subscribers >= 0
+        ) || (
+          // Case 2: Admin operations — requires admin auth
+          isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
+                      'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
+                      'subscriptionExpiresAt'])
+          && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
         )
       );
-      // Deletion only via Cloud Functions (Admin SDK bypasses rules)
       allow delete: if false;
     }
 
     // ── Subscriptions ──
-    // Client writes for subscribe/unsubscribe (FCM topic sync)
-    // Document ID format: {walletAddress}_{hubId}
-    // Create must include valid wallet + hubId, ID must match wallet prefix
+    // Authenticated users can subscribe/unsubscribe (must match their own wallet)
     match /subscriptions/{subscriptionId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['walletAddress', 'hubId'])
-        && request.resource.data.walletAddress is string
-        && request.resource.data.walletAddress.size() >= 32
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['walletAddress', 'hubId'])
+        && request.resource.data.walletAddress == request.auth.uid
         && request.resource.data.hubId is string
-        && subscriptionId.matches(request.resource.data.walletAddress + '_.*');
-      allow delete: if true;
+        && subscriptionId.matches(request.auth.uid + '_.*');
+      allow delete: if isAuthenticated()
+        && subscriptionId.matches(request.auth.uid + '_.*');
       allow update: if false;
     }
 
     // ── FCM Tokens ──
-    // Client writes for device token registration
-    // Document ID is the wallet address; prevents overwriting other users' tokens
+    // Authenticated users can register their device token (doc ID must match auth UID)
     match /fcmTokens/{walletAddress} {
       allow read: if false;
-      allow write: if request.resource.data.keys().hasAll(['token', 'platform'])
+      allow write: if isAuthenticated()
+        && walletAddress == request.auth.uid
+        && request.resource.data.keys().hasAll(['token', 'platform'])
         && request.resource.data.token is string
         && request.resource.data.token.size() > 0
-        && request.resource.data.platform == 'android'
-        && walletAddress.size() >= 32;
+        && request.resource.data.platform == 'android';
     }
 
     // ── Ad Creatives (pending review queue) ──

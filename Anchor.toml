@@ -8,6 +8,9 @@ deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 [programs.devnet]
 deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
 
+[programs.mainnet-beta]
+deep_pulse = "3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63"
+
 [registry]
 url = "https://api.apr.dev"
 

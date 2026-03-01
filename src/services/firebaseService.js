@@ -17,6 +17,9 @@ import { logger } from '../utils/security';
 let firestore = null;
 let functions = null;
 let messagingModule = null;
+let authModule = null;
+let crashlyticsModule = null;
+let appCheckModule = null;
 
 try {
   firestore = require('@react-native-firebase/firestore').default;
@@ -34,6 +37,24 @@ try {
   messagingModule = require('@react-native-firebase/messaging').default;
 } catch (e) {
   logger.warn('[FirebaseService] Messaging not available:', e.message);
+}
+
+try {
+  authModule = require('@react-native-firebase/auth').default;
+} catch (e) {
+  logger.warn('[FirebaseService] Auth not available:', e.message);
+}
+
+try {
+  crashlyticsModule = require('@react-native-firebase/crashlytics').default;
+} catch (e) {
+  logger.warn('[FirebaseService] Crashlytics not available:', e.message);
+}
+
+try {
+  appCheckModule = require('@react-native-firebase/app-check').default;
+} catch (e) {
+  logger.warn('[FirebaseService] App Check not available:', e.message);
 }
 
 // =====================================================
@@ -632,5 +653,182 @@ export async function registerFcmToken(token, walletAddress) {
     logger.log('[FirebaseService] FCM token registered for:', walletAddress);
   } catch (error) {
     logger.warn('[FirebaseService] registerFcmToken failed:', error.message);
+  }
+}
+
+// =====================================================
+//  7. FIREBASE AUTH — Sign In With Wallet
+// =====================================================
+
+/**
+ * Authenticate with Firebase using wallet signature.
+ *
+ * Flow:
+ *   1. Signs a message via MWA (wallet.signMessage)
+ *   2. Sends signature to signInWithWallet Cloud Function
+ *   3. Cloud Function verifies ed25519 signature → returns Firebase Custom Auth token
+ *   4. App signs in with auth().signInWithCustomToken(token)
+ *
+ * @param {string} walletAddress - The wallet's base58 public key
+ * @param {Function} signMessageFn - walletAdapter.signMessage function
+ * @param {string} authToken - MWA auth token for signMessage
+ * @returns {Promise<{success: boolean, uid?: string}>}
+ */
+export async function authenticateWithFirebase(walletAddress, signMessageFn, authToken) {
+  if (!authModule || !walletAddress) {
+    logger.warn('[FirebaseService] Auth not available or no wallet');
+    return { success: false };
+  }
+
+  // Check if already authenticated with same wallet
+  const currentUser = authModule().currentUser;
+  if (currentUser && currentUser.uid === walletAddress) {
+    logger.log('[FirebaseService] Already authenticated as:', walletAddress);
+    return { success: true, uid: walletAddress };
+  }
+
+  try {
+    // Step 1: Create a unique message to sign
+    const timestamp = Date.now();
+    const message = `Sign in to DEEP PULSE: ${timestamp}`;
+
+    // Step 2: Sign the message via MWA
+    logger.log('[FirebaseService] Requesting wallet signature for auth...');
+    const signatureBytes = await signMessageFn(message, authToken);
+
+    if (!signatureBytes) {
+      logger.warn('[FirebaseService] No signature returned from wallet');
+      return { success: false, error: 'No signature' };
+    }
+
+    // Step 3: Convert signature to base64 for transport
+    const signatureBase64 = Buffer.from(signatureBytes).toString('base64');
+
+    // Step 4: Call Cloud Function to verify signature and get Firebase token
+    const fnInstance = getFunctions();
+    if (!fnInstance) {
+      logger.warn('[FirebaseService] Cloud Functions not available for auth');
+      return { success: false, error: 'Cloud Functions unavailable' };
+    }
+
+    const signIn = fnInstance.httpsCallable('signInWithWallet');
+    const result = await signIn({
+      walletAddress,
+      message,
+      signature: signatureBase64,
+    });
+
+    if (!result.data?.token) {
+      logger.warn('[FirebaseService] No token received from signInWithWallet');
+      return { success: false, error: 'No token received' };
+    }
+
+    // Step 5: Sign in to Firebase with the custom token
+    await authModule().signInWithCustomToken(result.data.token);
+
+    logger.log('[FirebaseService] Firebase Auth successful! UID:', walletAddress);
+    return { success: true, uid: walletAddress };
+  } catch (error) {
+    logger.warn('[FirebaseService] Firebase Auth failed:', error.message);
+    // Don't throw — auth failure shouldn't block the app
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Sign out from Firebase Auth
+ */
+export async function signOutFirebase() {
+  if (!authModule) return;
+  try {
+    await authModule().signOut();
+    logger.log('[FirebaseService] Firebase Auth signed out');
+  } catch (error) {
+    logger.warn('[FirebaseService] signOut failed:', error.message);
+  }
+}
+
+/**
+ * Check current Firebase Auth state
+ * @returns {string|null} Current user's UID (wallet address) or null
+ */
+export function getFirebaseAuthUser() {
+  if (!authModule) return null;
+  return authModule().currentUser?.uid || null;
+}
+
+// =====================================================
+//  8. FIREBASE CRASHLYTICS — Error Monitoring
+// =====================================================
+
+/**
+ * Initialize Crashlytics and set user context
+ * @param {string} walletAddress - User wallet for crash attribution
+ */
+export function initCrashlytics(walletAddress) {
+  if (!crashlyticsModule) return;
+  try {
+    const crashlytics = crashlyticsModule();
+    crashlytics.setCrashlyticsCollectionEnabled(true);
+    if (walletAddress) {
+      crashlytics.setUserId(walletAddress);
+      crashlytics.setAttribute('wallet', walletAddress);
+    }
+    logger.log('[FirebaseService] Crashlytics initialized');
+  } catch (error) {
+    logger.warn('[FirebaseService] Crashlytics init failed:', error.message);
+  }
+}
+
+/**
+ * Log a non-fatal error to Crashlytics
+ * @param {Error} error - Error object
+ * @param {string} context - Where the error occurred
+ */
+export function logCrashlyticsError(error, context = '') {
+  if (!crashlyticsModule) return;
+  try {
+    const crashlytics = crashlyticsModule();
+    if (context) crashlytics.setAttribute('context', context);
+    crashlytics.recordError(error);
+  } catch (e) {
+    // Silently fail — don't crash while reporting crashes
+  }
+}
+
+/**
+ * Log a breadcrumb message to Crashlytics
+ * @param {string} message - Log message
+ */
+export function logCrashlyticsBreadcrumb(message) {
+  if (!crashlyticsModule) return;
+  try {
+    crashlyticsModule().log(message);
+  } catch (e) {
+    // Silently fail
+  }
+}
+
+// =====================================================
+//  9. FIREBASE APP CHECK — Protect Cloud Functions
+// =====================================================
+
+/**
+ * Initialize Firebase App Check
+ * Uses Debug provider in __DEV__ mode, Play Integrity in production.
+ */
+export function initAppCheck() {
+  if (!appCheckModule) return;
+  try {
+    const appCheck = appCheckModule();
+    appCheck.initializeAppCheck({
+      provider: __DEV__
+        ? appCheckModule.AppCheckDebugProvider  // Debug token for dev builds
+        : appCheckModule.PlayIntegrityProvider, // Play Integrity for release builds
+      isTokenAutoRefreshEnabled: true,
+    });
+    logger.log('[FirebaseService] App Check initialized (__DEV__:', __DEV__, ')');
+  } catch (error) {
+    logger.warn('[FirebaseService] App Check init failed:', error.message);
   }
 }

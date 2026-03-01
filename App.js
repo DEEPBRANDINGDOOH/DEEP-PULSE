@@ -12,7 +12,12 @@ import {
   fetchHubsFromFirestore,
   fetchNotificationsFromFirestore,
   fetchApprovedAdsFromFirestore,
+  authenticateWithFirebase,
+  initCrashlytics,
+  logCrashlyticsError,
+  initAppCheck,
 } from './src/services/firebaseService';
+import { walletAdapter } from './src/services/walletAdapter';
 import { useAppStore } from './src/store/appStore';
 import { logger } from './src/utils/security';
 import { setWalletState } from './src/services/transactionHelper';
@@ -42,6 +47,13 @@ import DOOHScreen from './src/screens/DOOHScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const navigationRef = createNavigationContainerRef();
+
+// Global JS error handler for Crashlytics
+const defaultHandler = ErrorUtils.getGlobalHandler();
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  logCrashlyticsError(error, isFatal ? 'FATAL_JS_ERROR' : 'JS_ERROR');
+  if (defaultHandler) defaultHandler(error, isFatal);
+});
 
 /**
  * Navigate to the relevant screen when a notification is tapped.
@@ -206,11 +218,41 @@ const App = () => {
 
     bootstrapNotifications();
 
-    // Restore wallet state for transactionHelper on app restart
+    // Initialize Firebase App Check (protects Cloud Functions from abuse)
+    initAppCheck();
+
+    // Initialize Firebase Crashlytics (error monitoring)
     const storedWallet = useAppStore.getState().wallet;
+    if (storedWallet?.publicKey) {
+      initCrashlytics(storedWallet.publicKey);
+    } else {
+      initCrashlytics(null);
+    }
+
+    // Restore wallet state for transactionHelper on app restart
     if (storedWallet?.connected && storedWallet?.publicKey) {
       logger.log('[App] Restoring wallet state from persisted store');
       setWalletState(storedWallet.publicKey, storedWallet.authToken);
+
+      // Auto-authenticate with Firebase Auth if wallet is connected
+      const tryFirebaseAuth = async () => {
+        try {
+          const result = await authenticateWithFirebase(
+            storedWallet.publicKey,
+            (msg, token) => walletAdapter.signMessage(msg, token),
+            storedWallet.authToken,
+          );
+          if (result.success) {
+            logger.log('[App] Firebase Auth restored for:', storedWallet.publicKey);
+          } else {
+            logger.log('[App] Firebase Auth skipped (non-blocking):', result.error);
+          }
+        } catch (e) {
+          // Non-blocking — app works without Firebase Auth
+          logger.warn('[App] Firebase Auth restore failed (non-blocking):', e?.message);
+        }
+      };
+      tryFirebaseAuth();
     }
 
     // Check hub subscription expiry on app start (detect OVERDUE hubs)

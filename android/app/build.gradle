@@ -6,6 +6,7 @@ plugins {
     id "org.jetbrains.kotlin.android"
     id "com.facebook.react"
     id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
 }
 
 react {
@@ -107,6 +108,9 @@ dependencies {
     implementation project(':react-native-firebase_functions')
     implementation project(':react-native-firebase_messaging')
     implementation project(':react-native-firebase_storage')
+    implementation project(':react-native-firebase_auth')
+    implementation project(':react-native-firebase_crashlytics')
+    implementation project(':react-native-firebase_app-check')
     implementation project(':react-native-image-picker')
     implementation project(':notifee_react-native')
 
