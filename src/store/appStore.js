@@ -423,16 +423,7 @@ export const useAppStore = create(
       // ============================================
       // TALENT SUBMISSIONS STATE (persisted)
       // ============================================
-      talentSubmissions: [
-        {
-          id: 'tsub_1',
-          role: 'UI/UX Designer',
-          hub: 'Solana Gaming',
-          status: 'REVIEW',
-          submittedDate: 'Feb 07, 2026',
-          expectedDays: '3-5',
-        },
-      ],
+      talentSubmissions: [], // Empty — populated by real user submissions
 
       addTalentSubmission: (submission) => {
         set((state) => ({
@@ -538,10 +529,7 @@ export const useAppStore = create(
       // ============================================
       // CUSTOM DEALS STATE (persisted — admin brand deals)
       // ============================================
-      customDeals: [
-        { id: '1', brandName: 'Jupiter Exchange', brandWallet: '7xK...9Qz', type: 'Ad Slot', originalPrice: 1500, dealPrice: 1000, duration: '12 weeks', status: 'active', notes: 'Launch partner discount' },
-        { id: '2', brandName: 'Magic Eden', brandWallet: '2pQ...mNp', type: 'Hub Creation', originalPrice: 2000, dealPrice: 1500, duration: '6 months', status: 'active', notes: 'Strategic partner' },
-      ],
+      customDeals: [], // Empty — populated by admin custom deals
 
       addCustomDeal: (deal) => {
         set((state) => ({
