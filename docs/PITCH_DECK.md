@@ -76,7 +76,7 @@ Hackathon Submission — March 2026
 |   Firebase (FCM + Storage)|   33 error codes              |
 |   Auth + Crashlytics      |   SPL Token ($SKR)            |
 |   App Check (Play Int.)   |   Security: 10/10             |
-|   Zustand persistence     |   4 audits completed          |
+|   Zustand persistence     |   5 audits completed          |
 +---------------------------+-------------------------------+
 |   Official $SKR Token (Solana Mobile)                      |
 |   SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3            |
@@ -257,7 +257,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 
 | Phase | Timeline | Deliverables |
 |-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase Firestore sync, Helius RPC, 11 Cloud Functions (incl. signInWithWallet), Firebase Auth (sign-in-with-wallet, ed25519), Firebase Crashlytics, Firebase App Check (Play Integrity), Hardened Firestore + Storage rules (request.auth enforced), 4 security audits (10/10 score), Discord → Hub pipeline, Push Notification Ads, DOOH Worldwide, Hub Lifecycle, SGT verification |
+| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase Firestore sync, Helius RPC, 11 Cloud Functions (incl. signInWithWallet), Firebase Auth (sign-in-with-wallet, ed25519), Firebase Crashlytics, Firebase App Check (Play Integrity), Hardened Firestore + Storage rules (request.auth enforced), 5 security audits (10/10 score), Discord → Hub pipeline, Push Notification Ads, DOOH Worldwide, Hub Lifecycle, SGT verification |
 | **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
 | **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
 | **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |
@@ -280,7 +280,7 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 - 8 on-chain account types
 - 33 custom error codes
 - 19 on-chain events
-- 4 security audits (10/10 score)
+- 5 security audits (10/10 score)
 - Firebase Auth + Crashlytics + App Check
 
 ---
