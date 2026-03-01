@@ -23,7 +23,6 @@ import storage from '@react-native-firebase/storage';
 import { Alert } from 'react-native';
 import { getWalletPublicKey } from './transactionHelper';
 import { logger } from '../utils/security';
-import { USE_DEVNET } from '../config/constants';
 
 // Max file sizes in bytes
 const MAX_SIZE_BANNER = 2 * 1024 * 1024;    // 2 MB for top/bottom ads
@@ -89,11 +88,12 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
 
     // [H-08 FIX] Require wallet connection — no anonymous uploads
     const walletPubkey = getWalletPublicKey();
-    if (!walletPubkey && !USE_DEVNET) {
+    if (!walletPubkey) {
       Alert.alert('Wallet Required', 'Please connect your wallet before uploading ad creatives.');
       return { success: false, error: 'Wallet not connected' };
     }
-    const walletStr = walletPubkey ? walletPubkey.toString() : 'dev_mock_wallet';
+
+    const walletStr = walletPubkey.toString();
 
     // Generate unique filename
     const timestamp = Date.now();
@@ -235,13 +235,6 @@ export async function uploadHubLogo(imageAsset, hubId, onProgress = null) {
     if (!validation.valid) {
       Alert.alert('Invalid Logo', validation.errors.join('\n'));
       return { success: false, error: validation.errors.join(', ') };
-    }
-
-    // In dev mode, skip Firebase Storage and use local URI directly
-    if (USE_DEVNET) {
-      logger.log('[Storage] Dev mode — using local URI as logo:', imageAsset.uri);
-      if (onProgress) onProgress(100);
-      return { success: true, url: imageAsset.uri, path: `dev/${hubId}` };
     }
 
     // Require wallet connection

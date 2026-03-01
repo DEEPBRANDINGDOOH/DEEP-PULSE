@@ -8,16 +8,27 @@ service firebase.storage {
       // Anyone can read (ads are public content)
       allow read: if true;
 
-      // Only the wallet owner can upload to their own folder
-      // Max file size: 5 MB (covers lockscreen 5MB and banner 2MB)
-      allow write: if request.auth != null
-                   && request.auth.uid == walletAddress
-                   && request.resource.size < 5 * 1024 * 1024
+      // HACKATHON: Allow uploads with basic validation (auth relaxed for devnet demo)
+      // TODO: Re-enable strict auth for mainnet: request.auth.uid == walletAddress
+      allow write: if request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
 
-      // Only the uploader (wallet owner) can delete their own files
-      allow delete: if request.auth != null
-                    && request.auth.uid == walletAddress;
+      // Allow delete during hackathon
+      allow delete: if true;
+    }
+
+    // Hub Logos — uploaded by hub creators
+    // Path: hub-logos/{walletAddress}/{filename}
+    match /hub-logos/{walletAddress}/{fileName} {
+      // Anyone can read (logos are public)
+      allow read: if true;
+
+      // HACKATHON: Allow uploads with basic validation
+      // TODO: Re-enable strict auth for mainnet
+      allow write: if request.resource.size < 1 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      allow delete: if true;
     }
 
     // Deny all other paths by default

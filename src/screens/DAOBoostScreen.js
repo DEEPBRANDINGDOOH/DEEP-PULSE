@@ -215,8 +215,10 @@ export default function DAOBoostScreen({ navigation }) {
           {/* Header */}
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-text-secondary text-sm">{proposal.creator}</Text>
-            <View className="bg-success/20 rounded-full px-3 py-1">
-              <Text className="text-success text-xs font-bold">{proposal.status}</Text>
+            <View className={`rounded-full px-3 py-1 ${proposal.status === 'APPROVED' ? 'bg-green-500/20' : 'bg-success/20'}`}>
+              <Text className={`text-xs font-bold ${proposal.status === 'APPROVED' ? 'text-green-400' : 'text-success'}`}>
+                {proposal.status === 'APPROVED' ? '✓ APPROVED' : proposal.status}
+              </Text>
             </View>
           </View>
 

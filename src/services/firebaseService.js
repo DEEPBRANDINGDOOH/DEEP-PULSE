@@ -253,12 +253,12 @@ export async function suspendHubInFirestore(hubId, adminWallet) {
   if (!db) return { success: false };
 
   try {
-    await db.collection('hubs').doc(hubId).update({
+    await db.collection('hubs').doc(hubId).set({
       status: 'SUSPENDED',
       active: false,
       suspendedAt: firestore.FieldValue.serverTimestamp(),
       suspendedBy: adminWallet,
-    });
+    }, { merge: true });
     logger.log('[FirebaseService] Hub suspended in Firestore:', hubId);
     return { success: true };
   } catch (error) {
@@ -324,12 +324,12 @@ export async function deleteHubInFirestore(hubId, adminWallet) {
 
   try {
     // Soft-delete: mark as DELETED (Firestore rules block hard .delete())
-    await db.collection('hubs').doc(hubId).update({
+    await db.collection('hubs').doc(hubId).set({
       status: 'DELETED',
       active: false,
-      suspendedAt: firestore.FieldValue.serverTimestamp(),
-      suspendedBy: adminWallet,
-    });
+      deletedAt: firestore.FieldValue.serverTimestamp(),
+      deletedBy: adminWallet,
+    }, { merge: true });
     logger.log('[FirebaseService] Hub soft-deleted in Firestore:', hubId);
     return { success: true };
   } catch (error) {

@@ -73,16 +73,19 @@ export default function BrandModerationScreen({ navigation, route }) {
   const storeDaoProposals = useAppStore((state) => state.daoProposals) || EMPTY_FEEDBACKS;
   const storeTalentSubmissions = useAppStore((state) => state.talentSubmissions) || EMPTY_FEEDBACKS;
 
-  // Store removal actions — called after approve/reject to persist the change
+  // Store actions — called after approve/reject to persist the change
   const removeHubFeedback = useAppStore((state) => state.removeHubFeedback);
   const removeDaoProposal = useAppStore((state) => state.removeDaoProposal);
   const removeTalentSubmission = useAppStore((state) => state.removeTalentSubmission);
+  const updateDaoProposal = useAppStore((state) => state.updateDaoProposal);
+  const updateTalentSubmission = useAppStore((state) => state.updateTalentSubmission);
 
   const [activeTab, setActiveTab] = useState('feedback');
 
   // Build merged submissions from store + mocks (mocks only in USE_DEVNET)
   const buildSubmissions = useMemo(() => {
-    const mocks = USE_DEVNET ? getMockSubmissions(hubName) : { feedback: [], boost: [], talent: [] };
+    // No more mock data — only real submissions from the store
+    const mocks = { feedback: [], boost: [], talent: [] };
 
     // Real feedbacks from store
     const realFeedbacks = storeFeedbacks.map((fb) => ({
@@ -95,9 +98,9 @@ export default function BrandModerationScreen({ navigation, route }) {
       isMock: false,
     }));
 
-    // Real DAO proposals from store (filtered by hub)
+    // Real DAO proposals from store (filtered by hub, exclude already approved)
     const realBoosts = storeDaoProposals
-      .filter(p => p.hub === hubName || p.hubId === hubId)
+      .filter(p => (p.hub === hubName || p.hubId === hubId) && p.status !== 'APPROVED')
       .map(p => ({
         id: p.id,
         wallet: p.wallet || p.creator || '???...???',
@@ -110,9 +113,9 @@ export default function BrandModerationScreen({ navigation, route }) {
         isMock: false,
       }));
 
-    // Real talent submissions from store (filtered by hub)
+    // Real talent submissions from store (filtered by hub, exclude already hired)
     const realTalents = storeTalentSubmissions
-      .filter(t => t.hub === hubName || t.hubId === hubId)
+      .filter(t => (t.hub === hubName || t.hubId === hubId) && t.status !== 'HIRED')
       .map(t => ({
         id: t.id,
         wallet: t.wallet || '???...???',
@@ -168,11 +171,11 @@ export default function BrandModerationScreen({ navigation, route }) {
                 const updated = { ...submissions };
                 updated[type] = updated[type].filter(s => s.id !== id);
                 setSubmissions(updated);
-                // Persist removal in store so it doesn't reappear on re-visit
+                // Persist status update in store (APPROVED/HIRED — NOT removal)
                 if (!item.isMock) {
                   if (type === 'feedback') removeHubFeedback(hubName, id);
-                  else if (type === 'boost') removeDaoProposal(id);
-                  else if (type === 'talent') removeTalentSubmission(id);
+                  else if (type === 'boost') updateDaoProposal(id, { status: 'APPROVED', approvedAt: new Date().toISOString() });
+                  else if (type === 'talent') updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
                 }
                 Alert.alert('Approved', `${deposit} $SKR refunded to the user on-chain.`);
               }
@@ -181,11 +184,11 @@ export default function BrandModerationScreen({ navigation, route }) {
               const updated = { ...submissions };
               updated[type] = updated[type].filter(s => s.id !== id);
               setSubmissions(updated);
-              // Persist removal in store so it doesn't reappear on re-visit
+              // Persist status update in store (APPROVED/HIRED — NOT removal)
               if (!item.isMock) {
                 if (type === 'feedback') removeHubFeedback(hubName, id);
-                else if (type === 'boost') removeDaoProposal(id);
-                else if (type === 'talent') removeTalentSubmission(id);
+                else if (type === 'boost') updateDaoProposal(id, { status: 'APPROVED', approvedAt: new Date().toISOString() });
+                else if (type === 'talent') updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
               }
               Alert.alert('Approved', `${deposit} $SKR refunded to the user.`);
             }

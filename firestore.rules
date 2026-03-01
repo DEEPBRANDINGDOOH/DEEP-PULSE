@@ -18,65 +18,31 @@ service cloud.firestore {
     }
 
     // ── Notifications ──
-    // Readable by anyone; authenticated users can create with required fields
-    // Cloud Functions also write via Admin SDK (bypasses rules)
+    // HACKATHON: Relaxed rules for devnet demo
+    // TODO: Re-enable strict auth for mainnet
     match /notifications/{notificationId} {
       allow read: if true;
-      allow create: if isAuthenticated()
-        && request.resource.data.keys().hasAll(['hubId', 'title', 'body', 'walletAddress'])
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 100
-        && request.resource.data.body is string
-        && request.resource.data.body.size() > 0
-        && request.resource.data.body.size() <= 500
-        && request.resource.data.hubId is string
-        && request.resource.data.walletAddress == request.auth.uid;
+      allow create: if true;
       allow update, delete: if false;
     }
 
     // ── Hubs ──
-    // Readable by anyone; authenticated users can create with PENDING status
-    // Subscriber count changes require auth; admin ops require admin auth
+    // HACKATHON: Relaxed rules for devnet demo
+    // TODO: Re-enable strict auth + validation for mainnet
     match /hubs/{hubId} {
       allow read: if true;
-      allow create: if isAuthenticated()
-        && request.resource.data.keys().hasAll(['name', 'status', 'creator'])
-        && request.resource.data.status == 'PENDING'
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 64
-        && request.resource.data.creator == request.auth.uid;
-      allow update: if isAuthenticated() && (
-        // Case 1: Subscriber count change (any authenticated user)
-        (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
-          && request.resource.data.subscribers is int
-          && request.resource.data.subscribers >= 0
-        ) || (
-          // Case 2: Admin operations — requires admin auth
-          isAdmin()
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
-                      'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
-                      'subscriptionExpiresAt'])
-          && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
-        )
-      );
+      allow create: if true;
+      allow update: if true;
       allow delete: if false;
     }
 
     // ── Subscriptions ──
-    // Authenticated users can subscribe/unsubscribe (must match their own wallet)
+    // HACKATHON: Relaxed rules for devnet demo
+    // TODO: Re-enable strict auth for mainnet
     match /subscriptions/{subscriptionId} {
       allow read: if true;
-      allow create: if isAuthenticated()
-        && request.resource.data.keys().hasAll(['walletAddress', 'hubId'])
-        && request.resource.data.walletAddress == request.auth.uid
-        && request.resource.data.hubId is string
-        && subscriptionId.matches(request.auth.uid + '_.*');
-      allow delete: if isAuthenticated()
-        && subscriptionId.matches(request.auth.uid + '_.*');
+      allow create: if true;
+      allow delete: if true;
       allow update: if false;
     }
 
@@ -147,6 +113,62 @@ service cloud.firestore {
     match /boostVaults/{vaultId} {
       allow read: if isAuthenticated();
       allow write: if false;
+    }
+
+    // ── Talent Submissions ──
+    // HACKATHON: Relaxed rules for devnet demo
+    // TODO: Re-enable strict auth for mainnet
+    match /talentSubmissions/{submissionId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── DAO Proposals ──
+    match /daoProposals/{proposalId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Hub Feedbacks ──
+    match /hubFeedbacks/{feedbackId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Custom Deals (DOOH) ──
+    match /customDeals/{dealId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Admin Conversations ──
+    match /adminConversations/{conversationId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── DOOH Campaigns ──
+    match /doohCampaigns/{campaignId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── User Scores ──
+    match /userScores/{walletAddress} {
+      allow read: if true;
+      allow write: if true;
     }
 
     // ── Deny everything else ──

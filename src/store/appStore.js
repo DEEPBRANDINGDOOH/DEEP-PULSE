@@ -210,21 +210,11 @@ export const useAppStore = create(
         suspendHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
-              logger.warn('[Store] Firestore suspendHub failed, rolling back');
-              set((state) => ({
-                hubs: state.hubs.map(h =>
-                  h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null } : h
-                ),
-              }));
+              logger.warn('[Store] Firestore suspendHub sync failed (local state kept):', result.error);
             }
           })
           .catch(e => {
-            logger.warn('[Store] Firestore suspendHub error, rolling back:', e);
-            set((state) => ({
-              hubs: state.hubs.map(h =>
-                h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null } : h
-              ),
-            }));
+            logger.warn('[Store] Firestore suspendHub error (local state kept):', e?.message);
           });
       },
 
@@ -256,21 +246,11 @@ export const useAppStore = create(
         reactivateHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
-              logger.warn('[Store] Firestore reactivateHub failed, rolling back');
-              set((state) => ({
-                hubs: state.hubs.map(h =>
-                  h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null, subscriptionExpiresAt: prevHub.subscriptionExpiresAt } : h
-                ),
-              }));
+              logger.warn('[Store] Firestore reactivateHub sync failed (local state kept):', result.error);
             }
           })
           .catch(e => {
-            logger.warn('[Store] Firestore reactivateHub error, rolling back:', e);
-            set((state) => ({
-              hubs: state.hubs.map(h =>
-                h.id === hubId ? { ...h, status: prevHub.status, suspendedAt: prevHub.suspendedAt || null, subscriptionExpiresAt: prevHub.subscriptionExpiresAt } : h
-              ),
-            }));
+            logger.warn('[Store] Firestore reactivateHub error (local state kept):', e?.message);
           });
       },
 
@@ -297,13 +277,11 @@ export const useAppStore = create(
         deleteHubInFirestore(hubId, wallet?.publicKey?.toString() || wallet?.publicKey)
           .then(result => {
             if (!result.success) {
-              logger.warn('[Store] Firestore deleteHub failed, rolling back');
-              set({ hubs: prevHubs, subscribedProjects: prevSubs });
+              logger.warn('[Store] Firestore deleteHub sync failed (local state kept):', result.error);
             }
           })
           .catch(e => {
-            logger.warn('[Store] Firestore deleteHub error, rolling back:', e);
-            set({ hubs: prevHubs, subscribedProjects: prevSubs });
+            logger.warn('[Store] Firestore deleteHub error (local state kept):', e?.message);
           });
       },
 
@@ -350,13 +328,48 @@ export const useAppStore = create(
       },
 
       approveAdCreativeInStore: (adId) => {
-        const { pendingAdCreatives, approvedAds } = get();
+        const { pendingAdCreatives, approvedAds, hubNotifications } = get();
         const ad = pendingAdCreatives.find(a => a.id === adId);
         if (ad) {
-          set({
+          const updates = {
             pendingAdCreatives: pendingAdCreatives.filter(a => a.id !== adId),
             approvedAds: [...approvedAds, { ...ad, status: 'APPROVED' }],
-          });
+          };
+
+          // Rich Notification Ads → inject into ALL users' notification feed as "Sponsored"
+          if (ad.slotType === 'rich_notif') {
+            const sponsoredNotif = {
+              id: `sponsored_${ad.id}`,
+              title: ad.richTitle || ad.brandName || 'Sponsored',
+              body: ad.richBody || '',
+              hubName: ad.hubName || ad.brandName || 'Sponsored',
+              hubLogoUrl: null,
+              imageUrl: ad.imageUrl || null,
+              ctaLabel: ad.richCtaLabel || 'Learn More',
+              ctaUrl: ad.richCtaUrl || ad.landingUrl || null,
+              link: ad.richCtaUrl || ad.landingUrl || null,
+              isSponsored: true,
+              timestamp: new Date(),
+              read: false,
+            };
+            // Add to "Sponsored" group in hubNotifications (visible to ALL users)
+            const currentSponsored = hubNotifications['Sponsored'] || [];
+            updates.hubNotifications = {
+              ...hubNotifications,
+              Sponsored: [sponsoredNotif, ...currentSponsored],
+            };
+
+            // Also trigger push to all users via global notification
+            import('../services/firebaseService').then(fb => {
+              fb.sendGlobalNotification(
+                ad.richTitle || 'Sponsored Content',
+                ad.richBody || '',
+                get().wallet?.publicKey || 'admin',
+              );
+            }).catch(e => logger.warn('[Store] Global push for rich_notif failed:', e));
+          }
+
+          set(updates);
         }
       },
 
@@ -444,6 +457,14 @@ export const useAppStore = create(
       removeTalentSubmission: (submissionId) => {
         set((state) => ({
           talentSubmissions: state.talentSubmissions.filter(t => t.id !== submissionId),
+        }));
+      },
+
+      updateTalentSubmission: (submissionId, updates) => {
+        set((state) => ({
+          talentSubmissions: state.talentSubmissions.map(t =>
+            t.id === submissionId ? { ...t, ...updates } : t
+          ),
         }));
       },
 

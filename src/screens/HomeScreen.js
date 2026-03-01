@@ -29,12 +29,34 @@ export default function HomeScreen({ navigation }) {
     comments: n.comments || 0,
     isNew: true,
   }));
-  const [notifications, setNotifications] = useState([...storeNotifs]);
+
+  // Inject approved Rich Notification Ads into feed with SPONSORED badge
+  const sponsoredNotifs = (approvedAds || [])
+    .filter(ad => ad.slotType === 'rich_notif' && ad.status === 'APPROVED')
+    .map(ad => ({
+      id: `sponsored_${ad.id}`,
+      hubName: ad.hubName || ad.brandName || 'Sponsored',
+      hubIcon: 'megaphone',
+      hubLogoUrl: null,
+      title: ad.richTitle || ad.brandName || 'Sponsored Content',
+      body: ad.richBody || '',
+      imageUrl: ad.imageUrl || null,
+      ctaLabel: ad.richCtaLabel || 'Learn More',
+      ctaUrl: ad.richCtaUrl || ad.landingUrl || null,
+      link: ad.richCtaUrl || ad.landingUrl || null,
+      isSponsored: true,
+      isNew: false,
+      reactions: 0,
+      comments: 0,
+      timestamp: ad.submittedDate || 'Sponsored',
+    }));
+
+  const [notifications, setNotifications] = useState([...sponsoredNotifs, ...storeNotifs]);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
 
-  // Re-sync when brand sends new notifications
+  // Re-sync when brand sends new notifications or new sponsored ads are approved
   useEffect(() => {
     const freshStoreNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
       ...n,
@@ -43,8 +65,28 @@ export default function HomeScreen({ navigation }) {
       comments: n.comments || 0,
       isNew: true,
     }));
-    setNotifications([...freshStoreNotifs]);
-  }, [hubNotifications]);
+    const freshSponsored = (approvedAds || [])
+      .filter(ad => ad.slotType === 'rich_notif' && ad.status === 'APPROVED')
+      .map(ad => ({
+        id: `sponsored_${ad.id}`,
+        hubName: ad.hubName || ad.brandName || 'Sponsored',
+        hubIcon: 'megaphone',
+        hubLogoUrl: null,
+        title: ad.richTitle || ad.brandName || 'Sponsored Content',
+        body: ad.richBody || '',
+        imageUrl: ad.imageUrl || null,
+        ctaLabel: ad.richCtaLabel || 'Learn More',
+        ctaUrl: ad.richCtaUrl || ad.landingUrl || null,
+        link: ad.richCtaUrl || ad.landingUrl || null,
+        isSponsored: true,
+        isNew: false,
+        reactions: 0,
+        comments: 0,
+        timestamp: ad.submittedDate || 'Sponsored',
+      }));
+    // Sponsored ads appear at top of feed, then regular notifications
+    setNotifications([...freshSponsored, ...freshStoreNotifs]);
+  }, [hubNotifications, approvedAds]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);

@@ -193,8 +193,10 @@ export default function TalentScreen({ navigation }) {
         >
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-text font-bold text-lg">{sub.role}</Text>
-            <View className="bg-primary/20 rounded-full px-3 py-1">
-              <Text className="text-primary text-xs font-bold">{sub.status}</Text>
+            <View className={`rounded-full px-3 py-1 ${sub.status === 'HIRED' ? 'bg-green-500/20' : 'bg-primary/20'}`}>
+              <Text className={`text-xs font-bold ${sub.status === 'HIRED' ? 'text-green-400' : 'text-primary'}`}>
+                {sub.status === 'HIRED' ? '✓ HIRED' : sub.status}
+              </Text>
             </View>
           </View>
 
