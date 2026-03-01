@@ -8,81 +8,111 @@
 **DEEP PULSE**
 *The Decentralized Notification Hub for Solana Mobile*
 
-Built for Solana Seeker | $SKR Token | Anchor Smart Contracts
+Built for Solana Seeker & Mobile Ecosystem
+React Native + Anchor + Firebase
 Hackathon Submission — March 2026
 
 ---
 
-### SLIDE 2 — THE PROBLEM
+### SLIDE 2 — EXECUTIVE SUMMARY
 
-**Web3 notifications are broken.**
+**DEEP Pulse** is a decentralized notification hub for Solana Mobile (Seeker). Users subscribe to hubs, receive push notifications, earn DEEP Score rewards, and interact with sponsored content. Brands create hubs, manage ad slots, and launch DOOH campaigns.
 
-- Users miss critical DeFi alerts, governance votes, and NFT drops
-- Brands have no native way to reach on-chain users on mobile
-- Push notification systems are centralized (OneSignal, Firebase alone)
-- No economic incentive for users to engage with notifications
-- No quality filter — users are spammed with irrelevant content
+**Key Pillars:**
+- Hub Ecosystem — 50+ hubs with custom logos & HubName push
+- DAO Brand Boost — Community vaults, 95/5 split, auto-refund
+- Feedback & Talent — 300 $SKR deposit, on-chain approvals
+- Mobile Wallet — MWA 2.0 with Phantom, Solflare, SeedVault
+- Swipe-to-Earn lock screen ads & DEEP Score tier rewards
 
-**Result:** Low engagement, missed opportunities, fragmented communication.
+> "Building the notification layer Solana Mobile deserves — where users earn, brands reach, and communities thrive."
 
----
-
-### SLIDE 3 — THE SOLUTION
-
-**DEEP PULSE: A fully on-chain notification marketplace.**
-
-| For Users | For Brands | For Advertisers |
-|-----------|-----------|-----------------|
-| Subscribe to hubs for FREE | Create notification hubs (2,000 $SKR/month) | Purchase rotating ad slots |
-| Earn DEEP Score points via Swipe-to-Earn | Moderate content & manage community | Upload creatives directly from device |
-| Submit feedback (300 $SKR deposit) | Receive DAO boost funding (95/5 split) | Duration-based discounts (up to 40% off) |
-| Vote on DAO proposals | Analytics dashboard | Lock screen premium ads |
-| DEEP Score ranks real contributors | Admin review for quality control | Impression & click tracking |
-| | Hub lifecycle (create -> approve -> Discover) | Push Notification Ads (500 $SKR/week, FCM push) — full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts |
-| | DOOH Worldwide campaign briefs | DOOH digital billboard campaigns |
+**Production Ready** — React Native + Anchor + Firebase
 
 ---
 
-### SLIDE 4 — HOW IT WORKS
+### SLIDE 3 — THE PROBLEM
 
-```
-1. BRAND creates a Hub (pays 2,000 $SKR)
-          |
-2. USERS subscribe for free (on-chain PDA)
-          |
-3. BRAND sends notifications via Firebase FCM
-          |
-4. USERS engage: read, feedback, vote, swipe
-          |
-5. ADVERTISERS buy ad slots (top/bottom/lockscreen/push notification/DOOH)
-          |
-6. COMMUNITY funds DAO boost proposals
-          |
-7. DEEP SCORE ranks real contributors (anti-farming)
-```
+**Critical Gaps in Web3 Mobile Communication**
+
+| Problem | Description |
+|---------|-------------|
+| **Fragmented Notifications** | Scattered across Twitter, Discord, Telegram — no single mobile channel |
+| **No Brand-to-User Channel** | Projects have no way to push notifications directly to mobile devices |
+| **Zero Attention Monetization** | Users see ads and notifications but earn nothing for their attention |
+| **Sybil & Farming** | Existing airdrop and reward systems are easily gamed by bots |
+| **No Mobile-First Solution** | Web3 communication tools are desktop-first, ignoring 2.5M+ Solana mobile users |
+
+**The Result:** Lost user engagement. Missed monetization. Fragmented reach. Solana Mobile needs a native notification layer.
 
 ---
 
-### SLIDE 5 — ARCHITECTURE
+### SLIDE 4 — THE SOLUTION
+
+**A complete notification and monetization platform for Solana Mobile — 6 Key Sections:**
+
+| # | Section | Description |
+|---|---------|-------------|
+| 01 | **Onboarding** | Seamless wallet connection via MWA 2.0. Phantom, Solflare, SeedVault support. Direct path to hub discovery |
+| 02 | **Notifications** | Hub Ecosystem with custom logos. "HubName: Title" push via FCM topics. Subscribe to hubs on-chain. Foreground + background delivery |
+| 03 | **Brand Boost** | DAO community vaults, 95/5 split to creators. Send feedback for 300 $SKR. Auto-refund if target not met |
+| 04 | **Talent** | On-chain approval system (approve_feedback / approve_talent). 300 $SKR deposit. Skill showcase to brands |
+| 05 | **Ads** | Ad Type Selector with 5 formats. Lock Screen & Rich Notification ads. DOOH campaign support. Swipe-to-Earn engagement |
+| 06 | **Token** | $SKR token & Ad slot pricing. Create hubs (2,000 $SKR/month). Ad slots (600-1,500 $SKR/week). 5% fee on contributions |
+
+---
+
+### SLIDE 5 — HOW IT WORKS
+
+**User Journey & Ecosystem**
+
+**End Users:**
+- Connect wallet via MWA 2.0 (Phantom, Solflare, SeedVault)
+- Discover & subscribe to notification hubs
+- Receive push notifications with "HubName: Title"
+- Swipe-to-Earn on lock screen ads
+- Earn DEEP Score, climb reward tiers
+- Participate in DAO Brand Boost campaigns
+- Submit talent & feedback proposals
+
+**Brands & Projects:**
+- Create notification hub (2,000 $SKR/month)
+- Send push notifications via Cloud Functions
+- Manage hub from Hub Dashboard
+- Reserve ad slots (5 formats available)
+- Launch DAO Brand Boost campaigns
+- Review talent & feedback submissions
+
+**The Ecosystem:**
+- Increased $SKR utility and token circulation
+- Direct brand-to-user mobile channel
+- On-chain subscriptions & transactions
+- Decentralized notification infrastructure
+- Community-driven growth & governance
+
+---
+
+### SLIDE 6 — TECHNICAL EXCELLENCE
 
 ```
-+-----------------------------------------------------------+
-|                    DEEP PULSE PLATFORM                     |
 +---------------------------+-------------------------------+
-|   React Native App        |   Anchor Program (Solana)     |
-|   19 screens              |   23 instructions             |
-|   MWA 2.0                 |   8 account types             |
-|   NativeWind UI           |   19 events                   |
-|   Firebase (FCM + Storage)|   33 error codes              |
-|   Auth + Crashlytics      |   SPL Token ($SKR)            |
-|   App Check (Play Int.)   |   Security: 10/10             |
-|   Zustand persistence     |   5 audits completed          |
+|   Mobile-Native           |   Solana & Anchor             |
+|   React Native 0.76.9     |   Mobile Wallet Adapter 2.0   |
+|   NativeWind (TailwindCSS)|   Anchor 0.30.1 (23 Instr.)   |
+|   19 Mobile Screens       |   Phantom, Solflare, SeedVault|
+|                           |   ProGuard R8 Release Builds  |
 +---------------------------+-------------------------------+
-|   Official $SKR Token (Solana Mobile)                      |
-|   SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3            |
-+-----------------------------------------------------------+
-|   Seeker Genesis Token (SGT) — Token-2022 verification     |
-|   Mint Authority: GT2zuHVaZQYZSyQMgJPLzvkmyztfyXg2NJunqFp4p3A4 |
+|   Backend & Cloud         |   Notification System         |
+|   Firebase (11 Cloud Fn)  |   FCM Topics Push             |
+|   Firestore + FCM + Stor. |   sendHubNotification() CF    |
+|   Zustand + Firebase Sync |   HubName: Title Format       |
+|   SPL Token + Helius RPC  |   Foreground + Background     |
++---------------------------+-------------------------------+
+|   Quality & Security                                      |
+|   5 Security Audits, 155+ Issues Fixed                    |
+|   10/10 Security Score                                    |
+|   Firebase Auth + Crashlytics + App Check                 |
+|   Env-aware Logging + ProGuard                            |
 +-----------------------------------------------------------+
 ```
 
@@ -94,184 +124,233 @@ Hackathon Submission — March 2026
 - SGT holders get "SEEKER VERIFIED" badge + 15% DEEP Score bonus
 - Helius RPC endpoints (devnet + mainnet) for reliable blockchain access
 - Firebase Firestore sync — all users see the same hubs, notifications, and ads
-- Firebase for push + storage (battle-tested infrastructure)
-- NativeWind for consistent Tailwind-based UI
+- Firebase Auth (sign-in-with-wallet, ed25519 signature verification)
+- Firebase Crashlytics (global JS error handler + non-fatal logging)
+- Firebase App Check (Play Integrity + Debug Provider)
 
 ---
 
-### SLIDE 6 — ECONOMIC MODEL
+### SLIDE 7 — TOKEN ECONOMICS
 
-**Revenue Streams:**
+**$SKR Token Utility & Revenue Model**
 
 | Source | Amount ($SKR) | Frequency |
 |--------|--------------|-----------|
-| Hub creation | 2,000 | Per hub |
-| Hub renewal | 2,000 | Monthly |
-| Rejected deposits | 50-300 | Per rejection (treasury) |
-| DAO vault fee | 5% of total | Per completed vault |
+| Hub creation | 2,000 | Per hub/month |
 | Top ad slot | 1,500 | Per week |
 | Bottom ad slot | 800 | Per week |
 | Lock screen ad | 2,000 | Per week |
-| Push Notification Ad | 500 | Per week (FCM push) |
+| Rich Notification Ad | 1,500 | Per week (FCM push) |
+| User feedback | 300 | Per submission |
+| Talent submission | 50 | Per submission |
+| DAO vault fee | 5% of total | Per completed vault |
+
+**Projected Monthly Volume (25 active hubs):**
+- 25 Hubs x 2,000 = 50,000 $SKR
+- 500 Feedbacks x 300 = 150,000 $SKR
+- 25 Ad Slots x 950 (avg) = 23,750 $SKR
+- **Minimum Monthly Volume: 223,750+ $SKR**
 
 **Token Flow:**
 - All payments in $SKR (existing Seeker token)
 - Deposits locked in PDA escrows until resolution
 - DAO vaults: 95% to brand, 5% to platform treasury
-- No token inflation — uses existing supply
+- 5% fee on contributions + rejected deposits kept
+- $0 server cost (Firebase free tier)
 
 ---
 
-### SLIDE 7 — DEEP SCORE v2 (Anti-Farming)
+### SLIDE 8 — COMMUNITY ENGAGEMENT
 
-**The problem with Web3 scoring:** Bots farm points by repeating cheap actions.
+**DAO Brand Boost, Feedback & Talent — connecting brands and users**
 
-**Our solution:** Diminishing returns + daily caps + streak bonuses + diversity multipliers.
+**Brand Boost DAO:**
+1. Brand creates a Boost campaign with target amount
+2. Community contributes SOL/$SKR to the vault
+3. 95% goes to creator, 5% platform fee on completion
+4. Auto-refund to contributors if target not met
 
-| Mechanism | How It Works |
-|-----------|-------------|
-| **Diminishing Returns** | Each repeated action earns less (-10% to -25% after threshold) |
-| **Daily Caps** | Max points per category per day (e.g., 3 pts/day lockscreen) |
-| **Streak Bonus** | 30+ day streak = x1.4 multiplier |
-| **Time Decay** | Inactive >90 days = x0.3 penalty |
-| **Diversity** | 5+ action types = x1.2 bonus |
+**Example Projects:** DOOH Campaigns, Hub Promotion, Event Sponsorship, Dev Grants
 
-**5 Tiers:** Bronze (0-299) -> Silver -> Gold -> Diamond -> Legend (5,000+)
+**Feedback & Talent:**
+- Submit feedback with 300 $SKR deposit (Dev, Design, Marketing)
+- Hub owner reviews via approve_feedback instruction
+- Talent submissions with on-chain approve_talent
+- Build verifiable reputation via DEEP Score
 
----
-
-### SLIDE 8 — SWIPE-TO-EARN (Lock Screen)
-
-**Users earn DEEP Score points by interacting with lock screen ads.**
-
-- Full-screen ad overlay on Android lock screen
-- Swipe right = skip (+0.2 pts)
-- Swipe left = engage (+0.5 pts)
-- Max 15 ads/day, 3/hour (anti-spam)
-- Brands upload creatives via in-app image picker
-- Images stored in Firebase Storage (production-ready)
-- Native Android foreground service (survives app close)
-
-**Why it matters for Seeker:** This is a NATIVE mobile feature that only works on Android — perfect differentiator for Solana Mobile ecosystem.
+| FOR BRANDS | FOR USERS |
+|-----------|-----------|
+| Review & approve submissions on-chain | Earn DEEP Score + platform visibility |
 
 ---
 
-### SLIDE 9 — AD SLOTS (Brand Revenue)
+### SLIDE 9 — MARKET OPPORTUNITY
 
-**3 ad slot types:**
+**Massive untapped Solana Mobile notification market**
 
-| Type | Price | Dimensions | Max Slots |
-|------|-------|-----------|-----------|
-| Top Banner | 1,500 $SKR/week | 390x120 px | 8 (rotates every 6s) |
-| Bottom Banner | 800 $SKR/week | 390x100 px | 8 (rotates every 6s) |
-| Lock Screen | 2,000 $SKR/week | 1080x1920 px | 4 (full screen) |
+| Metric | Value |
+|--------|-------|
+| **Solana Mobile Users** | 2.5M+ (Seeker launching 2026) |
+| **Active Solana Wallets** | 140M+ (growing ecosystem) |
+| **Mobile Ad Market** | $225B global opportunity (2025) |
+| **Projected Annual Volume** | 2.7M+ $SKR |
 
-**Upload flow:**
-1. Brand selects image from gallery (react-native-image-picker)
-2. Image validated (format, size, dimensions)
-3. Uploaded to Firebase Storage (CDN delivery)
-4. URL stored on-chain in ad slot PDA
-5. Admin review before going live
-6. Volume discounts: 4+ weeks = 10-40% off
+**Target Users:** Solana Seeker Owners, NFT Collectors, DeFi Traders, DAO Members, Content Creators
 
----
+**Target Brands:** 500+ Solana Protocols, 2,000+ NFT Projects, 1,000+ Active DAOs
 
-### SLIDE 10 — PUSH NOTIFICATION ADS & DOOH WORLDWIDE
-
-**Push Notification Ads (500 $SKR/week):**
-
-- Push notification ads delivered via Firebase Cloud Messaging
-- Works on ALL devices including Solana Seeker — no SYSTEM_ALERT_WINDOW permission needed
-- Full campaign creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts
-- Reaches every subscriber's notification tray instantly
-- Lower barrier to entry than banner or lock screen ads
-
-**DOOH Worldwide (Digital Out-Of-Home):**
-
-- Campaign brief form accessible from HubDashboard
-- Brands define target locations, formats (billboards, screens, transit), budget, and duration
-- Bridges on-chain brand activity with real-world advertising
-- Global reach — not limited to mobile screens
-
-**Hub Lifecycle:**
-```
-Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
-         → Admin Reviews & Approves → Hub appears on Discover
-         → Users subscribe for free
-```
+**Monetization:**
+- Hub Subscriptions: 2,000 $SKR/month
+- Ad Slots: 600-1,500 $SKR/week
+- Brand Boost Fees: 5% on contributions
 
 ---
 
-### SLIDE 11 — DEMO
+### SLIDE 10 — COMPETITIVE LANDSCAPE
 
-**19 fully functional screens:**
+**The Only Native Notification Hub for Solana Mobile**
 
-1. Onboarding (redesigned: hero with pulse animation, features showcase, DEEP Score tiers, "Let's grow together")
-2. Home (notification feed + real mock ad banners)
-3. Discover (browse & subscribe to hubs)
-4. My Hubs (subscribed hubs synced via Zustand)
-5. Notifications (push notification list)
-6. Notification Detail (feedback submission)
-7. Profile (wallet, DEEP Score, tier badge)
-8. Hub Dashboard (brand management + Discord + DOOH access)
-9. Brand Moderation (approve/reject deposits)
-10. Brand Boost (DAO proposal management)
-11. DAO Boost (community vault funding)
-12. Talent (Showcase Talent — users propose skills/services to their favorite hubs, 50 $SKR deposit)
-13. Ad Slots (purchase + upload creatives)
-14. Admin Panel (platform administration)
-15. Admin Messages (admin <-> brand communication)
-16. Hub Notifications (hub-specific feed)
-17. Swipe-to-Earn (lock screen dashboard)
-18. DOOH Screen (Digital Out-Of-Home campaign brief form)
-19. Push Notification Ads (push notification ad campaigns — full campaign creation flow)
+| Feature | DEEP PULSE | Discord | Telegram | Twitter/X | Push Protocol |
+|---------|-----------|---------|----------|-----------|---------------|
+| Solana Mobile Native | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Lock Screen Ads | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Swipe-to-Earn | ✅ | ❌ | ❌ | ❌ | ❌ |
+| On-Chain Subscriptions | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Token Rewards ($SKR) | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Anti-Farming (DEEP Score) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Ad Upload & DOOH | ✅ | ❌ | ❌ | ❌ | ❌ |
+| DAO Brand Boost | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Hub Ecosystem | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**Both APKs available:**
-- Debug APK (141 MB) — Firebase sync enabled, all data from Firestore
-- Release APK (53 MB) — mainnet-ready, Helius RPC, real transactions
+**WHY WE WIN:** First-mover Solana Mobile | 23 On-Chain Instructions | $0 Server Cost | Anti-Farming DEEP Score
 
 ---
 
-### SLIDE 12 — COMPETITIVE ADVANTAGE
+### SLIDE 11 — GO-TO-MARKET STRATEGY
 
-| Feature | DEEP PULSE | EPNS/Push Protocol | Dialect | WalletConnect |
-|---------|-----------|-------------------|---------|---------------|
-| Solana Mobile native | YES | No | Partial | No |
-| On-chain subscriptions | YES | Yes | No | No |
-| Lock screen ads | YES | No | No | No |
-| Official $SKR token | YES | Own token | No token | No |
-| Seeker Genesis Token (SGT) | YES | No | No | No |
-| SGT holder perks (+15%) | YES | No | No | No |
-| Anti-farming scoring | YES | No | No | No |
-| Brand ad marketplace | YES | No | No | No |
-| DAO boost vaults | YES | No | No | No |
-| Image upload for ads | YES | No | No | No |
-| Discord → Hub pipeline | YES | No | No | No |
-| SeedVault compatible | YES | No | No | No |
-| Firebase Auth (wallet) | YES | No | No | No |
-| Crashlytics + App Check | YES | No | No | No |
+**12-Month Execution Plan: From Hackathon to Scale**
+
+| Phase | Timeline | Milestones |
+|-------|----------|------------|
+| **1. Hackathon** | Q1 2026 (NOW) | 19 screens, 23 instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, Firebase sync + Helius RPC |
+| **2. Launch** | Q2 2026 | Mainnet Deploy, Solana dApp Store listing, 500 Beta Users, 10 Launch Partner Hubs |
+| **3. Growth** | Q3 2026 | 25+ Brand Hubs, 10,000+ Active Users, Self-serve Hub Portal, Seeker Device Optimized |
+| **4. Scale** | Q4 2026 | 100K+ Users Target, SDK for developers, DAO Governance Launch, Series A Preparation |
+
+**Marketing Channels:** Ecosystem Partners, X/Twitter Campaigns, Discord Community, Hackathons & Devs, Web3 Influencers
 
 ---
 
-### SLIDE 13 — ROADMAP
+### SLIDE 12 — MOBILE WALLET ADAPTER 2.0
 
-| Phase | Timeline | Deliverables |
-|-------|----------|-------------|
-| **v2.0 (Current)** | March 2026 | 19 screens, 23 smart contract instructions, MWA 2.0, Swipe-to-Earn, DEEP Score v2, Firebase Firestore sync, Helius RPC, 11 Cloud Functions (incl. signInWithWallet), Firebase Auth (sign-in-with-wallet, ed25519), Firebase Crashlytics, Firebase App Check (Play Integrity), Hardened Firestore + Storage rules (request.auth enforced), 5 security audits (10/10 score), Discord → Hub pipeline, Push Notification Ads, DOOH Worldwide, Hub Lifecycle, SGT verification |
-| **v2.1** | April 2026 | Mainnet deployment, dApp Store submission, backend API for analytics |
-| **v2.2** | Q2 2026 | Real-time notification feed (WebSocket), advanced analytics dashboard |
-| **v3.0** | Q3 2026 | Cross-chain notifications (EVM bridge), iOS support, Arweave decentralized storage |
+**MWA 2.0 with Phantom, Solflare & SeedVault Support**
+
+**Supported Operations:**
+- Connect (Authorize)
+- Fast Reconnect
+- Sign Transactions
+- Sign Messages (SIWS)
+
+**Security & Best Practices:**
+- No private key exposure in app
+- SeedVault secure key management
+- Keys never leave the wallet
+- MWA 2.0 with transact() pattern
+
+**Real On-Chain Transactions (all signed via MWA 2.0):**
+- Create Hub: 2,000 $SKR
+- Reserve Ad Slot: 600-1,500 $SKR
+- Send Feedback: 300 $SKR
+- Brand Boost Contrib.: SOL / $SKR
 
 ---
 
-### SLIDE 14 — TEAM & LINKS
+### SLIDE 13 — PUSH NOTIFICATIONS
 
-**Solo Builder** — Gilles Beselto
+**Firebase Cloud Messaging via FCM Topics & Cloud Functions**
+
+**Notification Types:**
+- Hub Announcements
+- NFT Drops & Mints
+- Security Alerts
+- Governance Votes
+- DeFi Updates
+- DEEP Score Rewards
+
+**User Journey:**
+1. Subscribe — User → Hub
+2. Send — Hub → Cloud Function
+3. Process — FCM Topic Push
+4. Alert — Device Receipt
+5. Action — Opens Notification
+
+**Technical Capabilities:** HubName: Title Format, Foreground & Background, FCM Topics, Android Channels
+
+**Privacy & Control:**
+- Wallet-only, no personal data
+- Granular control per Hub
+- 11 Cloud Functions deployed
+- Firestore fallback storage
+
+---
+
+### SLIDE 14 — ROADMAP
+
+**2026 — From Hackathon to Global Scale**
+
+| Quarter | Phase | Key Deliverables |
+|---------|-------|-----------------|
+| **Q1 2026** | HACKATHON (NOW) | 19 Mobile Screens, 23 Anchor Instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, 5 Audits + Firebase Sync + Helius RPC |
+| **Q2 2026** | LAUNCH | Mainnet Deploy, dApp Store Listing, 500 Beta Users, 10 Partner Hubs, Activate Ad Marketplace |
+| **Q3 2026** | GROWTH | 25+ Brand Hubs, 10,000+ Active Users, Self-serve Hub Portal, Brand Boost Campaigns, Discord Pipeline Active |
+| **Q4 2026** | SCALE | 100,000+ Users, SDK for Developers, DAO Governance Launch, Series A Preparation, Enterprise Offerings |
+| **2027** | EXPANSION | 250+ Brand Hubs, 100,000+ Users, Web Dashboard, Developer API, Multi-chain Exploration |
+
+---
+
+### SLIDE 15 — METRICS & SUCCESS
+
+**Revenue Projection & Growth Milestones**
+
+| Milestone | Users | Timeline |
+|-----------|-------|----------|
+| Beta | 500 | Q2 2026 |
+| Growth | 10,000 | Q3 2026 |
+| Scale | 50,000 | Q4 2026 |
+| Target | 100,000 | 2027 |
+
+**Financial:**
+- $SKR Volume Monthly: $1,757+
+- Annual: $21,000+
+- At Scale: $85,000+/year
+
+**Ecosystem:**
+- 25+ Hubs Target
+- 10,000 Users Scenario
+- $0 Server Cost
+- 5% Fee + Rejected Deposits
+
+---
+
+### SLIDE 16 — JOIN THE MOBILE REVOLUTION
+
+**The decentralized notification hub Solana Mobile has been waiting for.**
 
 **Links:**
-- GitHub: [Repository URL]
-- Privacy Policy: /docs/PRIVACY_POLICY.md
-- Smart Contract Docs: /SMART_CONTRACTS.md
+- GitHub: github.com/DEEPBRANDINGDOOH/DEEP-PULSE
+- Twitter: @DeepPulseSol
+- Discord: dsc.gg/deeppulse
+- Web: deep-pulse.web.app
+
+**VIEW SOURCE CODE:**
+23 Anchor instructions, 11 Cloud Functions, 19 screens, Firebase sync, Helius RPC.
+5 security audits, 10/10 score. Open source.
+
+**TRY THE APP:**
+Native experience optimized for Solana Seeker devices.
+Available via APK download and dApp Store.
+
+Built by DEEP BRANDING for the Solana Mobile Hackathon.
 
 **Tech Stats:**
 - 23 smart contract instructions
@@ -282,16 +361,6 @@ Brand creates hub (2,000 $SKR) → Added to Admin Pending Queue
 - 19 on-chain events
 - 5 security audits (10/10 score)
 - Firebase Auth + Crashlytics + App Check
-
----
-
-### SLIDE 14 — ASK
-
-**What we need:**
-1. Mainnet SOL for program deployment (~4.37 SOL rent)
-2. dApp Store listing approval
-3. Beta testers on Solana Seeker devices
-4. Brand partnerships for launch hubs
 
 **Built on Solana Mobile. Powered by $SKR. Ready for mainnet.**
 
