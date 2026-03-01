@@ -573,6 +573,303 @@ export async function sendGlobalNotification(title, body, walletAddress) {
 }
 
 // =====================================================
+//  5b. TALENT SUBMISSIONS — Firestore Sync
+// =====================================================
+
+export async function saveTalentSubmission(submission) {
+  logger.log(`[FirebaseService] saveTalentSubmission: ${submission.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('talentSubmissions').doc(submission.id).set({
+      ...submission,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveTalentSubmission failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchTalentSubmissions() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('talentSubmissions').orderBy('createdAt', 'desc').limit(100).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchTalentSubmissions failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5c. DAO PROPOSALS — Firestore Sync
+// =====================================================
+
+export async function saveDaoProposal(proposal) {
+  logger.log(`[FirebaseService] saveDaoProposal: ${proposal.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('daoProposals').doc(proposal.id).set({
+      ...proposal,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveDaoProposal failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function updateDaoProposalInFirestore(proposalId, updates) {
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('daoProposals').doc(proposalId).update({
+      ...updates,
+      updatedAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] updateDaoProposal failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchDaoProposals() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('daoProposals').orderBy('createdAt', 'desc').limit(100).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchDaoProposals failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5d. USER FEEDBACK — Firestore Sync
+// =====================================================
+
+export async function saveHubFeedback(hubName, feedback) {
+  logger.log(`[FirebaseService] saveHubFeedback: ${feedback.id} for ${hubName}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('hubFeedbacks').doc(feedback.id).set({
+      ...feedback,
+      hubName,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveHubFeedback failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchHubFeedbacks() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('hubFeedbacks').orderBy('createdAt', 'desc').limit(200).get();
+    const grouped = {};
+    snapshot.docs.forEach(doc => {
+      const data = { id: doc.id, ...doc.data() };
+      const hub = data.hubName || 'General';
+      if (!grouped[hub]) grouped[hub] = [];
+      grouped[hub].push(data);
+    });
+    return grouped;
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchHubFeedbacks failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5e. AD CREATIVE SUBMISSIONS — Firestore Sync
+// =====================================================
+
+export async function saveAdCreative(ad) {
+  logger.log(`[FirebaseService] saveAdCreative: ${ad.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('adCreatives').doc(ad.id).set({
+      ...ad,
+      status: 'pending',
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveAdCreative failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchPendingAdCreatives() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('adCreatives').where('status', '==', 'pending').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchPendingAdCreatives failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5f. CUSTOM BRAND DEALS — Firestore Sync
+// =====================================================
+
+export async function saveCustomDeal(deal) {
+  logger.log(`[FirebaseService] saveCustomDeal: ${deal.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('customDeals').doc(deal.id).set({
+      ...deal,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveCustomDeal failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function removeCustomDealFromFirestore(dealId) {
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('customDeals').doc(dealId).update({
+      status: 'revoked',
+      revokedAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] removeCustomDeal failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchCustomDeals() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('customDeals').where('status', '==', 'active').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchCustomDeals failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5g. ADMIN-BRAND MESSAGES — Firestore Sync
+// =====================================================
+
+export async function saveAdminConversation(conversation) {
+  logger.log(`[FirebaseService] saveAdminConversation: ${conversation.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('adminConversations').doc(conversation.id).set({
+      ...conversation,
+      updatedAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveAdminConversation failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchAdminConversations() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('adminConversations').orderBy('updatedAt', 'desc').limit(50).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchAdminConversations failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5h. DOOH CAMPAIGNS — Firestore Sync
+// =====================================================
+
+export async function saveDoohCampaign(campaign) {
+  logger.log(`[FirebaseService] saveDoohCampaign: ${campaign.id}`);
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('doohCampaigns').doc(campaign.id).set({
+      ...campaign,
+      createdAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveDoohCampaign failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchDoohCampaigns() {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('doohCampaigns').orderBy('createdAt', 'desc').limit(50).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchDoohCampaigns failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
+//  5i. USER SCORES — Firestore Sync
+// =====================================================
+
+export async function saveUserScore(walletAddress, score, streak) {
+  if (!walletAddress) return { success: false };
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('userScores').doc(walletAddress).set({
+      score: score || 0,
+      streak: streak || 0,
+      updatedAt: firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] saveUserScore failed:', error.message);
+    return { success: false };
+  }
+}
+
+export async function fetchUserScore(walletAddress) {
+  if (!walletAddress) return null;
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const doc = await db.collection('userScores').doc(walletAddress).get();
+    return doc.exists ? doc.data() : null;
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchUserScore failed:', error.message);
+    return null;
+  }
+}
+
+// =====================================================
 //  6. FETCH OPERATIONS — Read from Firestore
 // =====================================================
 

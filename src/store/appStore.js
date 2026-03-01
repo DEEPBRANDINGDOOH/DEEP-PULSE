@@ -344,6 +344,9 @@ export const useAppStore = create(
           pendingAdCreatives: [ad, ...state.pendingAdCreatives],
         }));
         get().incrementScore(20); // 20 pts per ad creative
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveAdCreative(ad))
+          .catch(e => logger.warn('[Store] saveAdCreative sync failed:', e));
       },
 
       approveAdCreativeInStore: (adId) => {
@@ -376,6 +379,9 @@ export const useAppStore = create(
           },
         }));
         get().incrementScore(25); // 25 pts per feedback
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveHubFeedback(hubName, feedback))
+          .catch(e => logger.warn('[Store] saveHubFeedback sync failed:', e));
       },
 
       removeHubFeedback: (hubName, feedbackId) => {
@@ -430,6 +436,9 @@ export const useAppStore = create(
           talentSubmissions: [submission, ...state.talentSubmissions],
         }));
         get().incrementScore(30); // 30 pts per talent submission
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveTalentSubmission(submission))
+          .catch(e => logger.warn('[Store] saveTalentSubmission sync failed:', e));
       },
 
       removeTalentSubmission: (submissionId) => {
@@ -448,6 +457,9 @@ export const useAppStore = create(
           daoProposals: [proposal, ...state.daoProposals],
         }));
         get().incrementScore(50); // 50 pts per DAO proposal
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveDaoProposal(proposal))
+          .catch(e => logger.warn('[Store] saveDaoProposal sync failed:', e));
       },
 
       updateDaoProposal: (proposalId, updates) => {
@@ -456,6 +468,9 @@ export const useAppStore = create(
             p.id === proposalId ? { ...p, ...updates } : p
           ),
         }));
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.updateDaoProposalInFirestore(proposalId, updates))
+          .catch(e => logger.warn('[Store] updateDaoProposal sync failed:', e));
       },
 
       removeDaoProposal: (proposalId) => {
@@ -477,6 +492,13 @@ export const useAppStore = create(
         set((state) => ({
           userScore: (state.userScore || 0) + points,
         }));
+        // Sync score to Firebase (debounced — runs after each increment)
+        const { userScore, userStreak, wallet } = get();
+        const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
+        if (addr) {
+          import('../services/firebaseService').then(fb => fb.saveUserScore(addr, (userScore || 0) + points, userStreak))
+            .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
+        }
       },
 
       setUserScore: (score) => {
@@ -526,6 +548,13 @@ export const useAppStore = create(
 
       syncAdsFromFirebase: (firebaseAds) => set({ approvedAds: firebaseAds }),
 
+      syncTalentSubmissions: (submissions) => set({ talentSubmissions: submissions }),
+      syncDaoProposals: (proposals) => set({ daoProposals: proposals }),
+      syncHubFeedbacks: (feedbacks) => set({ hubFeedbacks: feedbacks }),
+      syncPendingAdCreatives: (ads) => set({ pendingAdCreatives: ads }),
+      syncCustomDeals: (deals) => set({ customDeals: deals }),
+      syncDoohCampaigns: (campaigns) => set({ doohCampaigns: campaigns }),
+
       // ============================================
       // CUSTOM DEALS STATE (persisted — admin brand deals)
       // ============================================
@@ -535,12 +564,18 @@ export const useAppStore = create(
         set((state) => ({
           customDeals: [...state.customDeals, deal],
         }));
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveCustomDeal(deal))
+          .catch(e => logger.warn('[Store] saveCustomDeal sync failed:', e));
       },
 
       removeCustomDeal: (dealId) => {
         set((state) => ({
           customDeals: state.customDeals.filter(d => d.id !== dealId),
         }));
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.removeCustomDealFromFirestore(dealId))
+          .catch(e => logger.warn('[Store] removeCustomDeal sync failed:', e));
       },
 
       // ============================================
@@ -556,6 +591,12 @@ export const useAppStore = create(
             c.id === convId ? { ...c, ...updates } : c
           ),
         }));
+        // Sync full conversation to Firebase
+        const conv = get().adminConversations.find(c => c.id === convId);
+        if (conv) {
+          import('../services/firebaseService').then(fb => fb.saveAdminConversation(conv))
+            .catch(e => logger.warn('[Store] saveAdminConversation sync failed:', e));
+        }
       },
 
       // ============================================
@@ -567,6 +608,9 @@ export const useAppStore = create(
         set((state) => ({
           doohCampaigns: [campaign, ...state.doohCampaigns],
         }));
+        // Sync to Firebase
+        import('../services/firebaseService').then(fb => fb.saveDoohCampaign(campaign))
+          .catch(e => logger.warn('[Store] saveDoohCampaign sync failed:', e));
       },
 
       // ============================================
