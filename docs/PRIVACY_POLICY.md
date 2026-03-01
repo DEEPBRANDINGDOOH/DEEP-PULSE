@@ -24,6 +24,14 @@ DEEP PULSE ("we", "our", "the app") is a decentralized notification hub built on
 ### 1.5 Ad Creative Uploads
 - If you are a brand uploading ad creatives, images are stored in Firebase Storage under your wallet address. We do not analyze the content of your uploads beyond format validation.
 
+### 1.6 User-Generated Content (Firebase Firestore)
+- **Talent submissions**: If you submit a talent profile to a hub, your submission details (skills, description, hub name) are stored in Firestore and visible to hub owners.
+- **DAO proposals**: If you create or vote on a DAO Brand Boost proposal, your wallet address and proposal data are stored in Firestore.
+- **Hub feedback**: If you send feedback to a hub, your feedback text and wallet address are stored in Firestore for the hub owner to review.
+- **Custom deals**: If an admin creates a custom brand deal, deal details are stored in Firestore.
+- **DOOH campaigns**: If you submit a Digital Out-of-Home campaign brief, campaign details are stored in Firestore.
+- **DEEP Score**: Your DEEP Score, streak, and tier information are stored in Firestore to sync across devices.
+
 ---
 
 ## 2. Information We Do NOT Collect
@@ -46,6 +54,10 @@ DEEP PULSE ("we", "our", "the app") is a decentralized notification hub built on
 | Swipe interactions | Calculate Swipe-to-Earn reward points |
 | On-chain transactions | Execute hub subscriptions, deposits, DAO contributions, ad purchases |
 | Uploaded ad images | Display ad creatives to hub subscribers |
+| Talent submissions | Connect users with hub brands for opportunities |
+| DAO proposals | Enable community-driven brand sponsorship |
+| Hub feedback | Allow users to provide feedback to hub owners |
+| DEEP Score | Sync gamification progress across devices |
 
 ---
 
@@ -54,8 +66,9 @@ DEEP PULSE ("we", "our", "the app") is a decentralized notification hub built on
 - **On-chain data**: Stored on the Solana blockchain (immutable, public, decentralized).
 - **Push tokens**: Stored temporarily for notification delivery.
 - **Ad images**: Stored in Firebase Storage with access controls.
+- **Firestore data**: User-generated content (talent submissions, DAO proposals, feedback, DEEP Score) is stored in Firebase Firestore and synced across all devices. This data is associated with your wallet address, not personal identity.
 - **Local app data**: Stored on your device via AsyncStorage (subscriptions, theme, wallet session). Cleared when you uninstall the app.
-- We do not operate a centralized backend database that stores user profiles.
+- We do not operate a centralized backend database that stores personal user profiles.
 
 ---
 

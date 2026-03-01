@@ -123,7 +123,7 @@ Hackathon Submission — March 2026
 - Seeker Genesis Token (SGT) on-chain verification via Token-2022
 - SGT holders get "SEEKER VERIFIED" badge + 15% DEEP Score bonus
 - Helius RPC endpoints (devnet + mainnet) for reliable blockchain access
-- Firebase Firestore sync — all users see the same hubs, notifications, and ads
+- Firebase Firestore sync — 10 parallel fetches on startup (hubs, notifications, ads, talent, DAO proposals, feedbacks, ad creatives, custom deals, admin conversations, DOOH campaigns)
 - Firebase Auth (sign-in-with-wallet, ed25519 signature verification)
 - Firebase Crashlytics (global JS error handler + non-fatal logging)
 - Firebase App Check (Play Integrity + Debug Provider)
