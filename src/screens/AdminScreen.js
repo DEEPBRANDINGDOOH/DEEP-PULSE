@@ -529,6 +529,9 @@ export default function AdminScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </View>
         </TouchableOpacity>
+
+        {/* Bottom padding to prevent last item from being cut off */}
+        <View className="h-24" />
       </ScrollView>
     );
   };
@@ -1170,16 +1173,18 @@ export default function AdminScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="p-6 pb-4 flex-row items-center">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color="#FF9F66" />
-        </TouchableOpacity>
-        <View>
-          <Text className="text-text font-black text-3xl">Admin</Text>
-          <Text className="text-text-secondary text-sm">Platform Management</Text>
+      {/* Header — only show main header on overview, sub-sections have their own */}
+      {activeSection === 'overview' && (
+        <View className="p-6 pb-4 flex-row items-center">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
+            <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+          </TouchableOpacity>
+          <View>
+            <Text className="text-text font-black text-3xl">Admin</Text>
+            <Text className="text-text-secondary text-sm">Platform Management</Text>
+          </View>
         </View>
-      </View>
+      )}
 
       {activeSection === 'overview' && renderOverview()}
       {activeSection === 'adModeration' && renderAdModeration()}

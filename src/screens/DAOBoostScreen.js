@@ -6,50 +6,9 @@ import { useAppStore } from '../store/appStore';
 import { submitDaoProposal, contributeToVault } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
-const MOCK_PROPOSALS = [
-  {
-    id: '1',
-    creator: '7xK...9Qz',
-    title: 'Tournament System',
-    description: 'Monthly tournaments with $SKR prizes for top players',
-    targetAmount: 50000,
-    currentAmount: 16000,
-    backers: 24,
-    daysLeft: 12,
-    status: 'FUNDING',
-    hub: 'Solana Gaming',
-  },
-  {
-    id: '2',
-    creator: '2pQ...mNp',
-    title: 'Educational Content',
-    description: 'Video tutorial series for beginners',
-    targetAmount: 30000,
-    currentAmount: 25500,
-    backers: 18,
-    daysLeft: 5,
-    status: 'FUNDING',
-    hub: 'NFT Artists',
-  },
-];
-
-const MOCK_FUNDED = [
-  {
-    id: '3',
-    title: 'Community Events',
-    amount: 30000,
-    brandReceived: 28500,
-    platformFee: 1500,
-    status: 'COMPLETED',
-  },
-];
-
-// Fallback hubs if store is empty (first launch)
-const FALLBACK_HUBS = [
-  { id: '1', name: 'Solana Gaming' },
-  { id: '2', name: 'NFT Artists' },
-  { id: '3', name: 'DeFi Alerts' },
-];
+// DAO proposals & funded — populated from real user submissions (empty by default)
+const MOCK_PROPOSALS = [];
+const MOCK_FUNDED = [];
 
 export default function DAOBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
@@ -59,13 +18,13 @@ export default function DAOBoostScreen({ navigation }) {
   const filteredHubs = storeHubs
     .filter(h => subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
     .map(h => ({ id: h.id, name: h.name }));
-  const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
-  // DAO proposals from Zustand store (persisted) + mock data for demo
+  const activeHubs = filteredHubs.length > 0 ? filteredHubs : [];
+  // DAO proposals from Zustand store (persisted)
   const storeDaoProposals = useAppStore((state) => state.daoProposals) || [];
   const addDaoProposal = useAppStore((state) => state.addDaoProposal);
   const updateDaoProposal = useAppStore((state) => state.updateDaoProposal);
   const [activeTab, setActiveTab] = useState('propose');
-  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || FALLBACK_HUBS[0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || null);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -388,7 +347,7 @@ export default function DAOBoostScreen({ navigation }) {
           onPress={() => setShowHubPicker(!showHubPicker)}
           className="bg-background-card rounded-xl px-4 py-3 border border-border flex-row items-center justify-between mb-2"
         >
-          <Text className="text-text font-semibold">{selectedHub.name}</Text>
+          <Text className="text-text font-semibold">{selectedHub?.name || 'Select a Hub'}</Text>
           <Ionicons name="chevron-down" size={20} color="#FF9F66" />
         </TouchableOpacity>
         
@@ -404,7 +363,7 @@ export default function DAOBoostScreen({ navigation }) {
                 }}
                 className="px-4 py-3 border-b border-border"
               >
-                <Text className={`font-semibold ${hub.id === selectedHub.id ? 'text-primary' : 'text-text'}`}>
+                <Text className={`font-semibold ${hub.id === selectedHub?.id ? 'text-primary' : 'text-text'}`}>
                   {hub.name}
                 </Text>
               </TouchableOpacity>

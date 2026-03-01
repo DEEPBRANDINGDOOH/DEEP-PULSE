@@ -4,52 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 
-const MOCK_CONVERSATIONS = [
-  {
-    id: 'conv_1',
-    hubName: 'DeFi Alerts',
-    hubIcon: 'trending-up',
-    brandWallet: '7xK...9Qz',
-    unreadCount: 2,
-    lastMessage: 'Your ad for the swap promotion has been approved.',
-    lastMessageTime: '2 hours ago',
-    lastMessageFrom: 'admin',
-    messages: [
-      { id: 'm1', from: 'admin', text: 'Welcome to DEEP Pulse! Your hub "DeFi Alerts" is now active.', time: 'Feb 15, 10:00 AM', tag: 'General' },
-      { id: 'm2', from: 'brand', text: 'Thank you! We just submitted our first ad creative for the top slot.', time: 'Feb 16, 2:30 PM', tag: null },
-      { id: 'm3', from: 'admin', text: 'We noticed the landing URL redirects to a different domain. Can you confirm this is intentional?', time: 'Feb 17, 9:15 AM', tag: 'Ad Review' },
-      { id: 'm4', from: 'brand', text: 'Yes, that is our campaign landing page hosted on a partner domain. We can provide verification if needed.', time: 'Feb 17, 11:45 AM', tag: null },
-      { id: 'm5', from: 'admin', text: 'Your ad for the swap promotion has been approved.', time: 'Feb 20, 3:00 PM', tag: 'Ad Review' },
-    ],
-  },
-  {
-    id: 'conv_2',
-    hubName: 'NFT Artists',
-    hubIcon: 'color-palette',
-    brandWallet: '2pQ...mNp',
-    unreadCount: 1,
-    lastMessage: 'We have updated our creative as requested. Please review.',
-    lastMessageTime: '5 hours ago',
-    lastMessageFrom: 'brand',
-    messages: [
-      { id: 'm1', from: 'admin', text: 'Hi, your bottom ad slot creative needs to be resized. Current dimensions do not match the required 390x100 px.', time: 'Feb 19, 1:00 PM', tag: 'Ad Review' },
-      { id: 'm2', from: 'brand', text: 'We have updated our creative as requested. Please review.', time: 'Feb 20, 10:00 AM', tag: null },
-    ],
-  },
-  {
-    id: 'conv_3',
-    hubName: 'Solana Gaming',
-    hubIcon: 'game-controller',
-    brandWallet: '8vN...4Wp',
-    unreadCount: 0,
-    lastMessage: 'Your hub subscription renews in 5 days.',
-    lastMessageTime: '1 day ago',
-    lastMessageFrom: 'admin',
-    messages: [
-      { id: 'm1', from: 'admin', text: 'Your hub subscription renews in 5 days. Please ensure sufficient $SKR balance.', time: 'Feb 21, 9:00 AM', tag: 'Account' },
-    ],
-  },
-];
+// Admin conversations — populated from real brand interactions (empty by default)
+const MOCK_CONVERSATIONS = [];
 
 const TAG_COLORS = {
   General: '#2196F3',
