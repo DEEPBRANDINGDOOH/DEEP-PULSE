@@ -478,6 +478,9 @@ export const useAppStore = create(
       // ============================================
       userScore: 0,
       userStreak: 0,
+      userBalance: 0, // $SKR balance — updated from on-chain data
+
+      setUserBalance: (balance) => set({ userBalance: balance }),
 
       incrementScore: (points) => {
         set((state) => ({
@@ -673,6 +676,7 @@ export const useAppStore = create(
         daoProposals: state.daoProposals,
         userScore: state.userScore,
         userStreak: state.userStreak,
+        userBalance: state.userBalance,
         hasGenesisToken: state.hasGenesisToken,
         genesisTokenMint: state.genesisTokenMint,
         customDeals: state.customDeals,

@@ -6,7 +6,7 @@
  * Mark as read functionality
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { AlertCard } from '../components/AlertCard';
+import { fetchNotificationsFromFirestore } from '../services/firebaseService';
 
 export default function NotificationsScreen({ navigation, route }) {
   const { alerts, markAlertAsRead, markAllAlertsAsRead, getUnreadCount } =
@@ -25,14 +26,18 @@ export default function NotificationsScreen({ navigation, route }) {
   const hubNotifications = useAppStore((state) => state.hubNotifications);
   const [filter, setFilter] = useState('all'); // 'all' | 'unread'
   const [refreshing, setRefreshing] = useState(false);
+  const flatListRef = useRef(null);
 
   // Auto-scroll to specific alert if passed via navigation
   useEffect(() => {
     if (route.params?.alertId) {
-      const index = alerts.findIndex((a) => a.id === route.params.alertId);
-      if (index !== -1) {
-        // TODO: Scroll to index
-      }
+      // Small delay to ensure FlatList is rendered before scrolling
+      setTimeout(() => {
+        const index = alerts.findIndex((a) => a.id === route.params.alertId);
+        if (index !== -1 && flatListRef.current) {
+          flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+        }
+      }, 300);
     }
   }, [route.params?.alertId]);
 
@@ -73,8 +78,19 @@ export default function NotificationsScreen({ navigation, route }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // TODO: Fetch fresh alerts
-    setTimeout(() => setRefreshing(false), 1000);
+    try {
+      const freshNotifs = await fetchNotificationsFromFirestore();
+      if (freshNotifs && freshNotifs.length > 0) {
+        // Merge fresh notifications into hub notifications store
+        const addHubNotification = useAppStore.getState().addHubNotification;
+        freshNotifs.forEach(n => {
+          if (n.hubName) addHubNotification(n.hubName, n);
+        });
+      }
+    } catch (e) {
+      // Silent fail — pull-to-refresh is non-critical
+    }
+    setRefreshing(false);
   };
 
   const handleMarkAllRead = () => {
@@ -146,8 +162,13 @@ export default function NotificationsScreen({ navigation, route }) {
 
       {/* Alerts List */}
       <FlatList
+        ref={flatListRef}
         data={filteredAlerts}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+        onScrollToIndexFailed={(info) => {
+          // Fallback: scroll to offset estimate if index is out of range
+          flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+        }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

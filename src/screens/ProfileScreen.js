@@ -3,33 +3,13 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard, Switch, Lin
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
-import { MOCK_USER, SOLANA_CONFIG, getTierFromScore, isAdmin } from '../config/constants';
+import { SOLANA_CONFIG, getTierFromScore, isAdmin } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState, getWalletPublicKey } from '../services/transactionHelper';
 
-const MOCK_LEADERBOARD = [
-  { rank: 1, wallet: '7xK...9Qz', score: 6820, tier: 'LEGEND', boost: 45, talent: 12, feedback: 28, streak: 47 },
-  { rank: 2, wallet: '2pQ...mNp', score: 5340, tier: 'LEGEND', boost: 32, talent: 8, feedback: 35, streak: 31 },
-  { rank: 3, wallet: '8vN...4Wp', score: 4150, tier: 'DIAMOND', boost: 28, talent: 15, feedback: 18, streak: 22 },
-  { rank: 4, wallet: '5tY...2Lm', score: 3200, tier: 'DIAMOND', boost: 18, talent: 10, feedback: 22, streak: 14 },
-  { rank: 5, wallet: '3fR...8Kp', score: 1890, tier: 'GOLD', boost: 12, talent: 5, feedback: 15, streak: 9 },
-  { rank: 6, wallet: '9mT...3Jx', score: 1750, tier: 'GOLD', boost: 10, talent: 7, feedback: 12, streak: 8 },
-  { rank: 7, wallet: '4wB...6Rn', score: 1620, tier: 'GOLD', boost: 9, talent: 6, feedback: 14, streak: 11 },
-  { rank: 8, wallet: '6hD...1Ys', score: 1480, tier: 'GOLD', boost: 8, talent: 4, feedback: 11, streak: 7 },
-  { rank: 9, wallet: '1kF...5Vq', score: 1310, tier: 'GOLD', boost: 7, talent: 3, feedback: 13, streak: 6 },
-  { rank: 10, wallet: '8nG...2Tz', score: 1190, tier: 'GOLD', boost: 6, talent: 5, feedback: 9, streak: 5 },
-  { rank: 11, wallet: '3qH...7Wx', score: 980, tier: 'SILVER', boost: 5, talent: 4, feedback: 8, streak: 4 },
-  { rank: 12, wallet: '5sJ...4Pu', score: 870, tier: 'SILVER', boost: 4, talent: 3, feedback: 7, streak: 3 },
-  { rank: 13, wallet: '2vL...9Nr', score: 760, tier: 'SILVER', boost: 3, talent: 2, feedback: 10, streak: 5 },
-  { rank: 14, wallet: '7yM...1Kp', score: 650, tier: 'SILVER', boost: 3, talent: 2, feedback: 6, streak: 2 },
-  { rank: 15, wallet: '4bN...8Hm', score: 540, tier: 'SILVER', boost: 2, talent: 1, feedback: 5, streak: 3 },
-  { rank: 16, wallet: '9eP...3Fk', score: 430, tier: 'SILVER', boost: 2, talent: 1, feedback: 4, streak: 2 },
-  { rank: 17, wallet: '1gQ...6Dj', score: 320, tier: 'SILVER', boost: 1, talent: 1, feedback: 3, streak: 1 },
-  { rank: 18, wallet: '6jR...2Bh', score: 250, tier: 'BRONZE', boost: 1, talent: 0, feedback: 2, streak: 1 },
-  { rank: 19, wallet: '3lS...5Ag', score: 180, tier: 'BRONZE', boost: 0, talent: 1, feedback: 2, streak: 0 },
-  { rank: 20, wallet: '8oT...9Zf', score: 90, tier: 'BRONZE', boost: 0, talent: 0, feedback: 1, streak: 0 },
-];
+// Leaderboard data — fetched from Firebase in production (empty by default)
+const MOCK_LEADERBOARD = [];
 
 /**
  * Format a public key for display: "7xKL...9Qz"
@@ -52,8 +32,8 @@ export default function ProfileScreen({ navigation }) {
 
   // Use real wallet if connected, otherwise fall back to mock
   const connectedPubkey = getWalletPublicKey();
-  const walletDisplay = connectedPubkey ? formatWallet(connectedPubkey) : MOCK_USER.wallet;
-  const fullWalletAddress = connectedPubkey ? connectedPubkey.toString() : MOCK_USER.wallet;
+  const walletDisplay = connectedPubkey ? formatWallet(connectedPubkey) : 'Not connected';
+  const fullWalletAddress = connectedPubkey ? connectedPubkey.toString() : '';
 
   // Get hubs created by this user only (pending + active)
   // Production: strict wallet match; Dev: show all for demo
@@ -63,16 +43,18 @@ export default function ProfileScreen({ navigation }) {
     return fullWalletAddress && h.creator === fullWalletAddress;
   });
 
-  // Dynamic DEEP Score from Zustand store (falls back to mock if 0)
+  // Dynamic DEEP Score from Zustand store
   const storeScore = useAppStore((state) => state.userScore);
   const storeStreak = useAppStore((state) => state.userStreak);
+  const storeBalance = useAppStore((state) => state.userBalance ?? 0);
 
   const user = {
-    ...MOCK_USER,
     wallet: walletDisplay,
-    subscriptions: subscribedProjects.length || MOCK_USER.subscriptions,
-    score: storeScore > 0 ? storeScore : MOCK_USER.score,
+    balance: storeBalance,
+    subscriptions: subscribedProjects.length || 0,
+    score: storeScore > 0 ? storeScore : 0,
     streakDays: storeStreak || 0,
+    notifications: 0,
   };
   const tier = getTierFromScore(user.score);
 
@@ -367,6 +349,18 @@ export default function ProfileScreen({ navigation }) {
           Rankings based on DEEP Score algorithm
         </Text>
       </View>
+
+      {MOCK_LEADERBOARD.length === 0 && (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="trophy-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">
+            No leaderboard data yet
+          </Text>
+          <Text className="text-text-muted text-xs text-center mt-1">
+            Rankings will appear here as users earn DEEP Score
+          </Text>
+        </View>
+      )}
 
       {MOCK_LEADERBOARD.map((entry) => {
         const entryTier = getTierFromScore(entry.score);

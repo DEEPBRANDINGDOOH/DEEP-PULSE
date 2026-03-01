@@ -5,49 +5,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
 import { useAppStore } from '../store/appStore';
 
-const MOCK_HUB_NOTIFICATIONS = {
-  'Solana Gaming': [
-    {
-      id: 'hn1', title: 'New Game Launch Tomorrow!', hubName: 'Solana Gaming', hubIcon: 'game-controller',
-      message: 'Get ready for the biggest game launch of the year on Solana. Exclusive NFT rewards for early adopters. Be among the first to play and earn!',
-      fullMessage: 'Get ready for the biggest game launch of the year on Solana. Exclusive NFT rewards for early adopters. Be among the first to play and earn!\n\nThe game features a unique play-to-earn model with $SKR token integration. Top players will receive legendary NFTs and governance tokens.\n\nLaunch time: February 23, 2026 at 12:00 PM UTC\nPlatform: Solana Mobile (Seeker compatible)\nRewards: 10,000 $SKR pool for first 500 players',
-      link: 'https://solanagaming.io/launch',
-      timestamp: '2 hours ago', reactions: 234, comments: 56, isNew: true,
-    },
-    {
-      id: 'hn2', title: 'Weekly Tournament Results', hubName: 'Solana Gaming', hubIcon: 'game-controller',
-      message: 'Congratulations to the top 10 players! Check your rewards.',
-      fullMessage: 'Congratulations to the top 10 players of this week\'s tournament!\n\n1st Place: 5,000 $SKR + Legendary NFT\n2nd Place: 3,000 $SKR + Epic NFT\n3rd Place: 1,500 $SKR + Rare NFT\n\nAll participants received at least 100 $SKR for playing. Rewards have been distributed to your wallets.\n\nNext tournament starts Monday at 8:00 AM UTC!',
-      link: null,
-      timestamp: '1 day ago', reactions: 189, comments: 34, isNew: false,
-    },
-    {
-      id: 'hn3', title: 'Server Maintenance Notice', hubName: 'Solana Gaming', hubIcon: 'game-controller',
-      message: 'Scheduled maintenance on Feb 24, 2:00-4:00 AM UTC.',
-      fullMessage: 'We will be performing scheduled maintenance to improve server performance and deploy new features.\n\nDate: February 24, 2026\nTime: 2:00 AM - 4:00 AM UTC\nExpected downtime: ~2 hours\n\nDuring this time, the game servers will be temporarily unavailable. Your progress and assets are safe.\n\nNew features being deployed:\n- Improved matchmaking\n- New weapon skins\n- Bug fixes for mobile controls',
-      link: null,
-      timestamp: '2 days ago', reactions: 67, comments: 12, isNew: false,
-    },
-  ],
-  'NFT Artists': [
-    {
-      id: 'hn4', title: 'Artist Spotlight: @solartist', hubName: 'NFT Artists', hubIcon: 'color-palette',
-      message: '@solartist drops exclusive collection tomorrow at 12PM UTC',
-      fullMessage: 'This week\'s featured artist is @solartist, known for their stunning generative art pieces.\n\nCollection: "Solar Flares"\nMint Date: Tomorrow at 12:00 PM UTC\nSupply: 500 unique pieces\nMint Price: 2 SOL\n\nEach piece is algorithmically generated using real solar data from NASA. The collection explores the intersection of science and art.\n\nWhitelist is now open for DEEP Pulse subscribers!',
-      link: 'https://magiceden.io/drops/solar-flares',
-      timestamp: '5 hours ago', reactions: 156, comments: 23, isNew: true,
-    },
-  ],
-  'DeFi Alerts': [
-    {
-      id: 'hn5', title: 'New Yield Farm Launched', hubName: 'DeFi Alerts', hubIcon: 'trending-up',
-      message: 'Jupiter launches new LP rewards program with 50% APY',
-      fullMessage: 'Jupiter has launched a new liquidity provision rewards program offering up to 50% APY on selected pairs.\n\nFeatured Pairs:\n- SOL/USDC: 50% APY\n- JUP/SOL: 35% APY\n- BONK/USDC: 28% APY\n\nRewards are paid in JUP tokens and are claimable weekly. The program runs for 3 months starting today.\n\nNote: APY rates are variable and subject to change based on total liquidity deposited. Always DYOR before investing.',
-      link: 'https://jup.ag/earn',
-      timestamp: '1 day ago', reactions: 412, comments: 89, isNew: false,
-    },
-  ],
-};
+// Hub notifications are fetched from Firebase — no more hardcoded mock data
+const MOCK_HUB_NOTIFICATIONS = {};
 
 export default function HubNotificationsScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'Hub';

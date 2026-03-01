@@ -14,36 +14,29 @@ import { checkRateLimit, logger } from '../utils/security';
 // MOCK DATA
 // ============================================
 
-const MOCK_TOP_100 = [
-  { rank: 1, wallet: '7xK...9Qz', score: 945, boost: 12, talent: 5, feedback: 8 },
-  { rank: 2, wallet: '2pQ...mNp', score: 887, boost: 8, talent: 4, feedback: 12 },
-  { rank: 3, wallet: '8vN...4Wp', score: 832, boost: 10, talent: 3, feedback: 6 },
-  { rank: 4, wallet: '5tY...2Lm', score: 776, boost: 6, talent: 6, feedback: 10 },
-  { rank: 5, wallet: '3fR...8Kp', score: 723, boost: 7, talent: 2, feedback: 9 },
-];
+// Top 100 leaderboard — fetched from Firebase in production (empty by default)
+const MOCK_TOP_100 = [];
 
 // Initial pending hubs are now pre-seeded in appStore (no more runtime seeding).
 
 // MOCK_PENDING_ADS moved to appStore.js (Zustand) for cross-screen data flow
 
-// Stats per period
-const STATS_DATA = {
-  '7d': {
-    global: { totalUsers: 47832, activeUsers: 12450, totalHubs: 23, revenue: 145200, adsSold: 8, feedbackCount: 342, daoProposals: 12, growth: 4.2 },
-    users: { newRegistrations: 1234, activeUsers: 12450, avgScore: 342, legendCount: 23, diamondCount: 87, feedbackSent: 342, subscriptions: 2890 },
-    brands: { activeHubs: 23, revenuePerHub: 6313, adsPurchased: 8, approvalRate: 85, avgResponseTime: '2.4h', suspendedCount: 1 },
-  },
-  '30d': {
-    global: { totalUsers: 47832, activeUsers: 28900, totalHubs: 23, revenue: 892450, adsSold: 34, feedbackCount: 2156, daoProposals: 67, growth: 34 },
-    users: { newRegistrations: 8920, activeUsers: 28900, avgScore: 389, legendCount: 23, diamondCount: 87, feedbackSent: 2156, subscriptions: 15400 },
-    brands: { activeHubs: 23, revenuePerHub: 38802, adsPurchased: 34, approvalRate: 78, avgResponseTime: '3.1h', suspendedCount: 2 },
-  },
-  '90d': {
-    global: { totalUsers: 47832, activeUsers: 35200, totalHubs: 23, revenue: 2450000, adsSold: 89, feedbackCount: 6780, daoProposals: 145, growth: 89 },
-    users: { newRegistrations: 22340, activeUsers: 35200, avgScore: 412, legendCount: 23, diamondCount: 87, feedbackSent: 6780, subscriptions: 38900 },
-    brands: { activeHubs: 23, revenuePerHub: 106521, adsPurchased: 89, approvalRate: 82, avgResponseTime: '2.8h', suspendedCount: 4 },
-  },
-};
+// Stats computed dynamically from store data (no more hardcoded values)
+function computeStats(storeHubs, pendingAds, daoProposals) {
+  const activeHubs = storeHubs.filter(h => h.status === 'ACTIVE').length;
+  const totalHubs = storeHubs.length;
+  const suspendedCount = storeHubs.filter(h => h.status === 'SUSPENDED').length;
+  const totalSubscribers = storeHubs.reduce((sum, h) => sum + (h.subscribers || 0), 0);
+  const adsSold = pendingAds.filter(a => a.status === 'APPROVED').length;
+  const proposalCount = daoProposals ? daoProposals.length : 0;
+
+  const base = {
+    global: { totalUsers: totalSubscribers, activeUsers: 0, totalHubs, revenue: 0, adsSold, feedbackCount: 0, daoProposals: proposalCount, growth: 0 },
+    users: { newRegistrations: 0, activeUsers: 0, avgScore: 0, legendCount: 0, diamondCount: 0, feedbackSent: 0, subscriptions: totalSubscribers },
+    brands: { activeHubs, revenuePerHub: 0, adsPurchased: adsSold, approvalRate: 0, avgResponseTime: '—', suspendedCount },
+  };
+  return { '7d': base, '30d': base, '90d': base };
+}
 
 // ============================================
 // COMPONENT
@@ -77,6 +70,7 @@ export default function AdminScreen({ navigation }) {
   const customDeals = useAppStore((state) => state.customDeals);
   const storeAddDeal = useAppStore((state) => state.addCustomDeal);
   const storeRemoveDeal = useAppStore((state) => state.removeCustomDeal);
+  const daoProposals = useAppStore((state) => state.daoProposals);
   const [showDealModal, setShowDealModal] = useState(false);
   const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
 
@@ -354,9 +348,10 @@ export default function AdminScreen({ navigation }) {
   // RENDER: Overview
   // ============================================
   const renderOverview = () => {
+    const STATS_DATA = computeStats(storeHubs, pendingAds, daoProposals);
     const stats = STATS_DATA[statsPeriod];
     const pendingAdCount = pendingAds.length;
-    const unreadMessages = 3; // mock
+    const unreadMessages = 0;
 
     return (
       <ScrollView className="px-6 py-4">
@@ -655,6 +650,13 @@ export default function AdminScreen({ navigation }) {
         <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
       </TouchableOpacity>
       <Text className="text-text font-black text-2xl mb-4">Top 100</Text>
+      {MOCK_TOP_100.length === 0 && (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border mb-4">
+          <Ionicons name="trophy-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">No leaderboard data yet</Text>
+          <Text className="text-text-muted text-xs text-center mt-1">Rankings will populate from Firebase analytics</Text>
+        </View>
+      )}
       {MOCK_TOP_100.map((entry) => {
         const tier = getTierFromScore(entry.score);
         return (

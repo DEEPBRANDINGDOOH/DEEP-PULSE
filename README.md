@@ -827,6 +827,21 @@ A comprehensive security audit was performed across the entire application stack
 **Files modified in Audit #4 (8 files):**
 `firestore.rules`, `storage.rules`, `functions/index.js`, `src/services/firebaseService.js`, `App.js`, `android/build.gradle`, `android/app/build.gradle`, `android/settings.gradle`
 
+#### Audit #5 — Mock Data Cleanup + Production Readiness (Build 25)
+
+| Category | Details |
+|----------|---------|
+| **ProfileScreen** | Removed 20-entry hardcoded leaderboard. Balance now dynamic from Zustand store (`userBalance`). Empty state added for leaderboard |
+| **AdminScreen** | Removed hardcoded STATS_DATA (fake 47K users, fake revenue). Stats now computed dynamically from real Firestore data. Removed 5-entry fake Top 100 |
+| **HubNotificationsScreen** | Removed hardcoded notifications for non-existent hubs (Solana Gaming, NFT Artists, DeFi Alerts). Only real Firebase notifications displayed |
+| **TalentScreen** | Removed 2 hardcoded mock talent profiles. Removed fake "Previous Submissions" (RETAINED/REJECTED). Empty states added |
+| **NotificationsScreen** | Implemented scroll-to-index (FlatList ref). Implemented pull-to-refresh with `fetchNotificationsFromFirestore` |
+| **constants.js** | MOCK_USER zeroed out (balance: 0, score: 0, subscriptions: 0) — no more fake data leaking into production |
+| **appStore.js** | Added `userBalance` field (persisted) for real $SKR balance tracking |
+
+**Files modified in Audit #5 (7 files):**
+`src/screens/ProfileScreen.js`, `src/screens/AdminScreen.js`, `src/screens/HubNotificationsScreen.js`, `src/screens/TalentScreen.js`, `src/screens/NotificationsScreen.js`, `src/config/constants.js`, `src/store/appStore.js`
+
 ---
 
 ## Economic Model
@@ -917,7 +932,7 @@ After repeated actions of the same type, each additional action earns less:
 
 | Component | Status |
 |-----------|--------|
-| Smart contracts (23 instructions, 4 audits, 10/10 score) | ✅ Ready |
+| Smart contracts (23 instructions, 5 audits, 10/10 score) | ✅ Ready |
 | React Native app (20 screens, NativeWind UI) | ✅ Ready |
 | Mobile Wallet Adapter 2.0 (SeedVault + Phantom + Solflare) | ✅ Ready |
 | Firebase Cloud Functions (11 functions deployed) | ✅ Ready |

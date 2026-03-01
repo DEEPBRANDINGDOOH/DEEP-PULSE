@@ -349,13 +349,13 @@ export const API_ENDPOINTS = {
 export const MOCK_ENABLED = __DEV__;
 
 export const MOCK_USER = {
-  wallet: '7xKL...9Qz',
-  balance: 2450,
-  score: 1340,
-  tier: 'GOLD',
-  subscriptions: 5,
-  notifications: 127,
-  streakDays: 12,
+  wallet: 'Not connected',
+  balance: 0,
+  score: 0,
+  tier: 'BRONZE',
+  subscriptions: 0,
+  notifications: 0,
+  streakDays: 0,
 };
 
 export const MOCK_HUBS = [];  // Empty — hubs are fetched from Firebase

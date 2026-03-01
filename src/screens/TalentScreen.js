@@ -6,30 +6,8 @@ import { useAppStore } from '../store/appStore';
 import { submitTalent } from '../services/transactionHelper';
 import { isValidEmail, isValidHttpUrl, checkRateLimit, MAX_LENGTHS } from '../utils/security';
 
-const MOCK_TALENTS = [
-  {
-    id: '1',
-    role: 'UI/UX Designer',
-    rating: 4.9,
-    experience: '5+ years',
-    skills: ['Figma', 'React', 'Web3'],
-    availability: '2 weeks',
-    rate: 5000,
-    anonymous: true,
-    hub: 'NFT Artists',
-  },
-  {
-    id: '2',
-    role: 'Full Stack Dev',
-    rating: 4.8,
-    experience: '3+ years',
-    skills: ['Rust', 'Solana', 'Node.js'],
-    availability: '1 month',
-    rate: 8000,
-    anonymous: true,
-    hub: 'Solana Gaming',
-  },
-];
+// Talent profiles — populated from Firebase in production (empty by default)
+const MOCK_TALENTS = [];
 
 // MOCK_MY_SUBMISSIONS moved to appStore.js (Zustand talentSubmissions) for persistence
 
@@ -388,39 +366,17 @@ export default function TalentScreen({ navigation }) {
         </View>
       ))}
 
-      <Text className="text-text font-semibold text-lg mb-4 mt-4">
-        Previous Submissions
-      </Text>
-
-      <View className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-text font-bold text-base">Developer</Text>
-          <View className="bg-success/20 rounded-full px-3 py-1">
-            <Text className="text-success text-xs font-bold">RETAINED</Text>
-          </View>
-        </View>
-        <Text className="text-text-secondary text-sm mb-2">DeFi Alerts</Text>
-        <View className="flex-row items-center">
-          <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
-          <Text className="text-success text-sm ml-2">
-            Hired + 50 $SKR refunded
+      {mySubmissions.length === 0 && (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="document-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">
+            No submissions yet
+          </Text>
+          <Text className="text-text-muted text-xs text-center mt-1">
+            Submit your talent profile in the Submit tab
           </Text>
         </View>
-      </View>
-
-      <View className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-text font-bold text-base">Designer</Text>
-          <View className="bg-error/20 rounded-full px-3 py-1">
-            <Text className="text-error text-xs font-bold">REJECTED</Text>
-          </View>
-        </View>
-        <Text className="text-text-secondary text-sm mb-2">NFT Artists</Text>
-        <View className="flex-row items-center">
-          <Ionicons name="close-circle" size={16} color="#f44336" />
-          <Text className="text-error text-sm ml-2">Not selected</Text>
-        </View>
-      </View>
+      )}
     </ScrollView>
   );
 
