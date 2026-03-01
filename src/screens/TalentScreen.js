@@ -381,35 +381,6 @@ export default function TalentScreen({ navigation }) {
     </ScrollView>
   );
 
-  // Empty state — no subscribed hubs means the screen can't function
-  if (activeHubs.length === 0 || !selectedHub) {
-    return (
-      <SafeAreaView className="flex-1 bg-background">
-        <View className="p-6 pb-4">
-          <Text className="text-text font-black text-3xl">Showcase Talent</Text>
-        </View>
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="bg-background-card rounded-2xl p-8 items-center border border-border w-full">
-            <Ionicons name="briefcase-outline" size={56} color="#666" />
-            <Text className="text-text font-bold text-lg mt-5 text-center">No Hubs Subscribed</Text>
-            <Text className="text-text-secondary text-sm mt-3 text-center leading-5">
-              Subscribe to hubs in the Discover tab to showcase your talent to brands and projects.
-            </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('MainApp', { screen: 'Discover' })}
-              className="bg-primary rounded-xl px-8 py-3.5 mt-6"
-            >
-              <View className="flex-row items-center">
-                <Ionicons name="search" size={18} color="#fff" />
-                <Text className="text-white font-bold text-base ml-2">Discover Hubs</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
