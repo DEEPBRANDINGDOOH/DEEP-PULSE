@@ -346,7 +346,7 @@ const App = () => {
           <Stack.Screen
             name="Admin"
             component={AdminScreen}
-            options={{ title: 'Admin Dashboard' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="AdminMessages"

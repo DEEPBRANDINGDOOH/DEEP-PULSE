@@ -275,64 +275,77 @@ export default function DAOBoostScreen({ navigation }) {
   );
   };
 
-  const renderVaultTab = () => (
+  const renderVaultTab = () => {
+    const totalFunded = funded.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return (
     <ScrollView className="px-6 py-4">
-      <View className="bg-background-card rounded-xl p-5 mb-6 border border-border">
-        <Text className="text-primary text-2xl font-bold mb-1">95,000 $SKR</Text>
-        <Text className="text-text-secondary">Total This Month</Text>
-        <Text className="text-text-secondary text-sm mt-1">
-          across {funded.length} proposal{funded.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
-
-      {funded.map((proposal) => (
-        <View
-          key={proposal.id}
-          className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
-        >
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="bg-success/20 rounded-full px-3 py-1">
-              <Text className="text-success text-xs font-bold">FUNDED</Text>
-            </View>
-            <Text className="text-text-secondary text-sm">{proposal.status}</Text>
-          </View>
-
-          <Text className="text-text font-bold text-lg mb-4">{proposal.title}</Text>
-
-          <View className="bg-background-secondary rounded-xl p-4 mb-3">
-            <Text className="text-text font-semibold mb-2">
-              {proposal.amount.toLocaleString()} $SKR (100%)
-            </Text>
-            <View className="border-t border-border my-2" />
-            <Text className="text-text-secondary text-sm mb-1">Vault Breakdown:</Text>
-            <View className="flex-row justify-between mb-1">
-              <Text className="text-text-secondary text-sm">Brand (95%)</Text>
-              <Text className="text-text font-semibold">
-                {proposal.brandReceived.toLocaleString()} $SKR
-              </Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text className="text-text-secondary text-sm">Platform (5%)</Text>
-              <Text className="text-text font-semibold">
-                {proposal.platformFee.toLocaleString()} $SKR
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={() =>
-              Alert.alert(
-                'Vault details',
-                'Funded proposals are settled on-chain. View on Solana Explorer when connected. (Demo)'
-              )
-            }
-            className="bg-primary/20 rounded-xl py-2 border border-primary mt-2"
-          >
-            <Text className="text-primary font-semibold text-sm text-center">View on Explorer</Text>
-          </TouchableOpacity>
+      {funded.length === 0 ? (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+          <Ionicons name="wallet-outline" size={48} color="#666" />
+          <Text className="text-text-secondary text-base mt-4 text-center">No funded proposals yet</Text>
+          <Text className="text-text-muted text-sm mt-2 text-center">Funded proposals will appear here once completed</Text>
         </View>
-      ))}
+      ) : (
+        <>
+          <View className="bg-background-card rounded-xl p-5 mb-6 border border-border">
+            <Text className="text-primary text-2xl font-bold mb-1">{totalFunded.toLocaleString()} $SKR</Text>
+            <Text className="text-text-secondary">Total Funded</Text>
+            <Text className="text-text-secondary text-sm mt-1">
+              across {funded.length} proposal{funded.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+
+          {funded.map((proposal) => (
+            <View
+              key={proposal.id}
+              className="bg-background-card rounded-2xl p-5 mb-4 border border-border"
+            >
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="bg-success/20 rounded-full px-3 py-1">
+                  <Text className="text-success text-xs font-bold">FUNDED</Text>
+                </View>
+                <Text className="text-text-secondary text-sm">{proposal.status}</Text>
+              </View>
+
+              <Text className="text-text font-bold text-lg mb-4">{proposal.title}</Text>
+
+              <View className="bg-background-secondary rounded-xl p-4 mb-3">
+                <Text className="text-text font-semibold mb-2">
+                  {proposal.amount.toLocaleString()} $SKR (100%)
+                </Text>
+                <View className="border-t border-border my-2" />
+                <Text className="text-text-secondary text-sm mb-1">Vault Breakdown:</Text>
+                <View className="flex-row justify-between mb-1">
+                  <Text className="text-text-secondary text-sm">Brand (95%)</Text>
+                  <Text className="text-text font-semibold">
+                    {proposal.brandReceived.toLocaleString()} $SKR
+                  </Text>
+                </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-text-secondary text-sm">Platform (5%)</Text>
+                  <Text className="text-text font-semibold">
+                    {proposal.platformFee.toLocaleString()} $SKR
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Vault details',
+                    'Funded proposals are settled on-chain. View on Solana Explorer when connected.'
+                  )
+                }
+                className="bg-primary/20 rounded-xl py-2 border border-primary mt-2"
+              >
+                <Text className="text-primary font-semibold text-sm text-center">View on Explorer</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </>
+      )}
     </ScrollView>
   );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">

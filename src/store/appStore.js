@@ -546,7 +546,7 @@ export const useAppStore = create(
       // ============================================
       // ADMIN MESSAGES STATE (persisted — conversations between admin & brands)
       // ============================================
-      adminConversations: null, // null = use mock data on first load
+      adminConversations: [], // Empty — populated from real brand conversations
 
       setAdminConversations: (convs) => set({ adminConversations: convs }),
 
@@ -647,7 +647,40 @@ export const useAppStore = create(
     }),
     {
       name: 'deep-pulse-storage',
+      version: 2, // v2: force-clear all old mock data from persisted state
       storage: createJSONStorage(() => AsyncStorage),
+      // Migration: clean up old mock data when upgrading from v0/v1 to v2
+      migrate: (persistedState, version) => {
+        if (version < 2) {
+          logger.log('[Store] Migrating to v2: clearing old mock data');
+          return {
+            ...persistedState,
+            // Reset fields that may contain old mock data
+            customDeals: [],
+            talentSubmissions: [],
+            daoProposals: [],
+            adminConversations: null,
+            pendingAdCreatives: [],
+            approvedAds: [],
+            hubFeedbacks: {},
+            hubNotifications: {},
+            doohCampaigns: [],
+            // Reset user data earned from mock interactions
+            wallet: persistedState.wallet,
+            subscribedProjects: [],
+            pushToken: persistedState.pushToken,
+            theme: persistedState.theme || 'dark',
+            hubs: [],
+            pendingHubs: [],
+            userScore: 0,
+            userStreak: 0,
+            userBalance: 0,
+            hasGenesisToken: false,
+            genesisTokenMint: null,
+          };
+        }
+        return persistedState;
+      },
       // Only persist these keys (not mock data / alerts / projects)
       partialize: (state) => ({
         wallet: state.wallet,

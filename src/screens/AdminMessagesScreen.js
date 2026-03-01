@@ -18,14 +18,14 @@ export default function AdminMessagesScreen({ navigation, route }) {
   const brandHubName = route.params?.hubName || null;
   const hubIcon = route.params?.hubIcon || 'apps';
 
-  // Read persisted conversations from Zustand store (falls back to mock on first load)
+  // Read persisted conversations from Zustand store (empty by default)
   const storeConversations = useAppStore((state) => state.adminConversations);
   const setStoreConversations = useAppStore((state) => state.setAdminConversations);
   const updateStoreConversation = useAppStore((state) => state.updateAdminConversation);
 
   // If brand navigates with a hub name not in existing conversations, create one
   const getInitialConversations = () => {
-    const base = storeConversations || MOCK_CONVERSATIONS;
+    const base = storeConversations || [];
     if (brandHubName && !base.find(c => c.hubName === brandHubName)) {
       return [
         {

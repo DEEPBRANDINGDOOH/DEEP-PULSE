@@ -11,12 +11,7 @@ const MOCK_TALENTS = [];
 
 // MOCK_MY_SUBMISSIONS moved to appStore.js (Zustand talentSubmissions) for persistence
 
-// Fallback hubs if store is empty (first launch)
-const FALLBACK_HUBS = [
-  { id: '1', name: 'Solana Gaming' },
-  { id: '2', name: 'NFT Artists' },
-  { id: '3', name: 'DeFi Alerts' },
-];
+// No fallback hubs — populated from real subscribed hubs only
 
 const ROLE_OPTIONS = [
   'UI/UX Designer',
@@ -35,12 +30,12 @@ export default function TalentScreen({ navigation }) {
   const filteredHubs = storeHubs
     .filter(h => subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
     .map(h => ({ id: h.id, name: h.name }));
-  const activeHubs = filteredHubs.length > 0 ? filteredHubs : FALLBACK_HUBS;
+  const activeHubs = filteredHubs.length > 0 ? filteredHubs : [];
   // Read talent submissions from Zustand store (persisted)
   const mySubmissions = useAppStore((state) => state.talentSubmissions);
   const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
-  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || FALLBACK_HUBS[0]);
+  const [selectedHub, setSelectedHub] = useState(activeHubs[0] || [][0]);
   const [showHubPicker, setShowHubPicker] = useState(false);
   const [role, setRole] = useState(ROLE_OPTIONS[0]);
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -52,7 +47,7 @@ export default function TalentScreen({ navigation }) {
   // BUG #6 FIX: Re-sync selectedHub when store hubs change
   useEffect(() => {
     if (selectedHub && !activeHubs.find(h => h.id === selectedHub.id)) {
-      setSelectedHub(activeHubs[0] || FALLBACK_HUBS[0]);
+      setSelectedHub(activeHubs[0] || [][0]);
     }
   }, [activeHubs.length]);
 
