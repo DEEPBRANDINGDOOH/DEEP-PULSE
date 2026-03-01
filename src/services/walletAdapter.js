@@ -142,6 +142,23 @@ class MobileWalletAdapterService {
       }, { onWalletNotFound });
 
       logger.log('Wallet connected:', result.publicKey.toString());
+
+      // Authenticate with Firebase in background (non-blocking)
+      // On devnet: may fail silently (relaxed rules), on mainnet: required for Firestore/Storage writes
+      import('./firebaseService').then(fb => {
+        fb.authenticateWithFirebase(
+          result.publicKey.toString(),
+          (msg, token) => this.signMessage(msg, token),
+          result.authToken,
+        ).then(authResult => {
+          if (authResult.success) {
+            logger.log('[WalletAdapter] Firebase Auth successful');
+          } else {
+            logger.warn('[WalletAdapter] Firebase Auth skipped:', authResult.error || 'unavailable');
+          }
+        }).catch(e => logger.warn('[WalletAdapter] Firebase Auth error (non-blocking):', e?.message));
+      }).catch(() => {});
+
       return result;
     } catch (error) {
       logger.warn('[WalletAdapter] Connection failed:', error?.message || error);

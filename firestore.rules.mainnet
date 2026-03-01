@@ -1,0 +1,199 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper: Check if user is authenticated ──
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ── Helper: Check if auth UID matches wallet address ──
+    function isOwner(walletAddress) {
+      return isAuthenticated() && request.auth.uid == walletAddress;
+    }
+
+    // ── Helper: Check if user is admin ──
+    function isAdmin() {
+      return isAuthenticated() && request.auth.uid == '89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc';
+    }
+
+    // ── Notifications ──
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['hubId', 'title', 'body', 'walletAddress'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 500
+        && request.resource.data.hubId is string
+        && request.resource.data.walletAddress == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ── Hubs ──
+    match /hubs/{hubId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['name', 'status', 'creator'])
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 64
+        && request.resource.data.creator == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribers'])
+          && request.resource.data.subscribers is int
+          && request.resource.data.subscribers >= 0
+        ) || (
+          isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'active', 'approvedAt', 'approvedBy', 'rejectedAt', 'rejectedBy',
+                      'suspendedAt', 'suspendedBy', 'reactivatedAt', 'reactivatedBy',
+                      'deletedAt', 'deletedBy', 'subscriptionExpiresAt'])
+          && request.resource.data.status in ['ACTIVE', 'REJECTED', 'SUSPENDED', 'OVERDUE', 'DELETED']
+        )
+      );
+      allow delete: if false;
+    }
+
+    // ── Subscriptions ──
+    match /subscriptions/{subscriptionId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['walletAddress', 'hubId'])
+        && request.resource.data.walletAddress == request.auth.uid
+        && request.resource.data.hubId is string
+        && subscriptionId.matches(request.auth.uid + '_.*');
+      allow delete: if isAuthenticated()
+        && subscriptionId.matches(request.auth.uid + '_.*');
+      allow update: if false;
+    }
+
+    // ── FCM Tokens ──
+    match /fcmTokens/{walletAddress} {
+      allow read: if false;
+      allow write: if isAuthenticated()
+        && walletAddress == request.auth.uid
+        && request.resource.data.keys().hasAll(['token', 'platform'])
+        && request.resource.data.token is string
+        && request.resource.data.token.size() > 0
+        && request.resource.data.platform == 'android';
+    }
+
+    // ── Ad Creatives (pending review queue) ──
+    match /adCreatives/{creativeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Active Ads (rotation pool) ──
+    match /activeAds/{adId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Analytics per user ──
+    match /analytics/{walletAddress} {
+      allow read: if isOwner(walletAddress) || isAdmin();
+      allow write: if false;
+      match /{subcollection=**} {
+        allow read: if isOwner(walletAddress) || isAdmin();
+        allow write: if false;
+      }
+    }
+
+    // ── Global Stats ──
+    match /globalStats/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── User profiles / scores ──
+    match /users/{walletAddress} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Reports ──
+    match /reports/{reportId} {
+      allow read: if false;
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // ── Moderation Log ──
+    match /moderationLog/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ── Boost Vaults ──
+    match /boostVaults/{vaultId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ── Talent Submissions ──
+    match /talentSubmissions/{submissionId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // ── DAO Proposals ──
+    match /daoProposals/{proposalId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // ── Hub Feedbacks ──
+    match /hubFeedbacks/{feedbackId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // ── Custom Deals (DOOH) ──
+    match /customDeals/{dealId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() || isAdmin();
+      allow delete: if false;
+    }
+
+    // ── Admin Conversations ──
+    match /adminConversations/{conversationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // ── DOOH Campaigns ──
+    match /doohCampaigns/{campaignId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() || isAdmin();
+      allow delete: if false;
+    }
+
+    // ── User Scores ──
+    match /userScores/{walletAddress} {
+      allow read: if true;
+      allow write: if isOwner(walletAddress);
+    }
+
+    // ── Deny everything else ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

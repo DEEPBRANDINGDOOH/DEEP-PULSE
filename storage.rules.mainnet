@@ -1,0 +1,44 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Ad Creatives — uploaded by brands
+    // Path: ad-creatives/{walletAddress}/{filename}
+    match /ad-creatives/{walletAddress}/{fileName} {
+      // Anyone can read (ads are public content)
+      allow read: if true;
+
+      // MAINNET: Only authenticated wallet owner can upload
+      allow write: if request.auth != null
+                   && request.auth.uid == walletAddress
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      // Only wallet owner can delete their own creatives
+      allow delete: if request.auth != null
+                    && request.auth.uid == walletAddress;
+    }
+
+    // Hub Logos — uploaded by hub creators
+    // Path: hub-logos/{walletAddress}/{filename}
+    match /hub-logos/{walletAddress}/{fileName} {
+      // Anyone can read (logos are public)
+      allow read: if true;
+
+      // MAINNET: Only authenticated wallet owner can upload
+      allow write: if request.auth != null
+                   && request.auth.uid == walletAddress
+                   && request.resource.size < 1 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      // Only wallet owner can delete their own logos
+      allow delete: if request.auth != null
+                    && request.auth.uid == walletAddress;
+    }
+
+    // Deny all other paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
