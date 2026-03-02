@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DEEP Pulse — Web3 Notification Hub for Solana Mobile</title>
-  <meta name="description" content="The decentralized notification hub for Solana Mobile. Subscribe to hubs, earn DEEP Score, interact with sponsored content. Built for Solana Seeker.">
+  <title>DEEP Pulse — Web3 Notification Hub for Solana Mobile | Powered by $SKR</title>
+  <meta name="description" content="The decentralized notification hub for Solana Mobile. Powered by Solana Mobile's official $SKR token. Subscribe to hubs, earn DEEP Score, interact with sponsored content. Built for Solana Seeker.">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -121,6 +121,61 @@
     }
     .link:hover { border-color: #FF9F66; color: #FF9F66; }
 
+    /* SKR Badge */
+    .skr-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF9F66, #FF6B2B);
+      color: #0B0B0F;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 8px 20px;
+      border-radius: 30px;
+      margin-bottom: 2rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* Tokenomics */
+    .tokenomics {
+      background: #14141A;
+      border: 1px solid #FF9F66;
+      border-radius: 14px;
+      padding: 1.5rem 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .tokenomics-title {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #FF9F66;
+      margin-bottom: 0.6rem;
+    }
+    .tokenomics-desc {
+      font-size: 0.82rem;
+      color: #B0B0C0;
+      line-height: 1.5;
+      margin-bottom: 0.8rem;
+    }
+    .tokenomics-highlight {
+      display: inline-block;
+      background: rgba(255, 159, 102, 0.12);
+      border: 1px solid rgba(255, 159, 102, 0.3);
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      color: #FF9F66;
+      font-weight: 700;
+    }
+    .skr-tag {
+      display: inline-block;
+      background: rgba(255, 159, 102, 0.12);
+      color: #FF9F66;
+      font-weight: 700;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
     .footer {
       font-size: 0.75rem;
       color: #444;
@@ -143,6 +198,7 @@
   <div class="container">
     <h1>DEEP PULSE</h1>
     <p class="tagline">The Decentralized Notification Hub for Solana Mobile</p>
+    <div><span class="skr-badge">Powered by $SKR — Solana Mobile's Official Token</span></div>
 
     <!-- Stats -->
     <div class="stats">
@@ -168,27 +224,49 @@
     <div class="features">
       <div class="feature">
         <div class="feature-title">Hub Ecosystem</div>
-        <div class="feature-desc">Subscribe to notification hubs with custom logos and HubName push notifications</div>
+        <div class="feature-desc">Create hubs for 2,000 $SKR/month. Users subscribe on-chain and receive branded push notifications</div>
+        <span class="skr-tag">2,000 $SKR / hub</span>
       </div>
       <div class="feature">
         <div class="feature-title">Ad Marketplace</div>
-        <div class="feature-desc">5 ad formats — brands pay in $SKR tokens via on-chain transactions</div>
+        <div class="feature-desc">5 ad formats — brands reserve slots paying 600 to 1,500 $SKR/week via on-chain escrow</div>
+        <span class="skr-tag">600–1,500 $SKR / slot</span>
       </div>
       <div class="feature">
         <div class="feature-title">Swipe-to-Earn</div>
-        <div class="feature-desc">Lock screen rewards with DEEP Score v2 anti-farming algorithm</div>
+        <div class="feature-desc">Earn $SKR rewards on lock screen ads. DEEP Score v2 anti-farming ensures fair distribution</div>
+        <span class="skr-tag">$SKR Rewards</span>
       </div>
       <div class="feature">
         <div class="feature-title">DAO Brand Boost</div>
-        <div class="feature-desc">Community-funded sponsorship vaults with 95/5 split and auto-refund</div>
+        <div class="feature-desc">Community-funded $SKR vaults — 95% to creators, 5% platform fee. Auto-refund if target not met</div>
+        <span class="skr-tag">95/5 $SKR Split</span>
+      </div>
+      <div class="feature">
+        <div class="feature-title">Feedback & Talent</div>
+        <div class="feature-desc">Submit feedback (300 $SKR) or talent proposals (50 $SKR) — on-chain deposits with approval system</div>
+        <span class="skr-tag">50–300 $SKR Deposits</span>
       </div>
       <div class="feature">
         <div class="feature-title">DOOH Worldwide</div>
-        <div class="feature-desc">Digital Out-of-Home campaigns across airports, malls, stadiums</div>
+        <div class="feature-desc">Digital Out-of-Home campaigns paid in $SKR — airports, malls, stadiums across the globe</div>
+        <span class="skr-tag">$SKR Campaigns</span>
       </div>
-      <div class="feature">
-        <div class="feature-title">Talent Showcase</div>
-        <div class="feature-desc">Decentralized talent marketplace — users propose skills to brands</div>
+    </div>
+
+    <!-- Tokenomics -->
+    <div class="tokenomics">
+      <div class="tokenomics-title">$SKR Token — All Revenue On-Chain</div>
+      <div class="tokenomics-desc">
+        Every transaction in DEEP PULSE uses Solana Mobile's official <strong style="color:#FF9F66">$SKR token</strong>.
+        Hub subscriptions, ad slots, feedback deposits, DAO contributions — all paid and settled in $SKR through Anchor smart contracts.
+      </div>
+      <div class="tokenomics-desc">
+        We believe in the long-term vision of the Solana Mobile ecosystem.
+      </div>
+      <div class="tokenomics-highlight">
+        30% of all $SKR revenue staked long-term with Solana Mobile Guardians<br>
+        <span style="font-size:0.72rem; font-weight:400; color:#B0B0C0;">5-year vested schedule — aligned with the ecosystem's success</span>
       </div>
     </div>
 
@@ -219,6 +297,7 @@
     <div class="links">
       <a href="https://github.com/DEEPBRANDINGDOOH/DEEP-PULSE" class="link">GitHub</a>
       <a href="https://github.com/DEEPBRANDINGDOOH/DEEP-PULSE/releases" class="link">Releases</a>
+      <a href="https://x.com/deep_branding" class="link">X / Twitter</a>
     </div>
 
     <p class="footer">
