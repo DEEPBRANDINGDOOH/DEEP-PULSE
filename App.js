@@ -281,16 +281,18 @@ const App = () => {
           fetchDoohCampaigns(),
         ]);
         const store = useAppStore.getState();
-        if (hubs && hubs.length > 0) store.syncHubsFromFirebase(hubs);
-        if (notifications && notifications.length > 0) store.syncNotificationsFromFirebase(notifications);
-        if (ads && ads.length > 0) store.syncAdsFromFirebase(ads);
-        if (talents && talents.length > 0) store.syncTalentSubmissions(talents);
-        if (proposals && proposals.length > 0) store.syncDaoProposals(proposals);
+        // Always sync from Firebase (even empty arrays) so local cache stays fresh
+        // after a device cache clear. null = fetch failed → keep local data.
+        if (hubs !== null && hubs !== undefined) store.syncHubsFromFirebase(hubs);
+        if (notifications !== null && notifications !== undefined) store.syncNotificationsFromFirebase(notifications);
+        if (ads !== null && ads !== undefined) store.syncAdsFromFirebase(ads);
+        if (talents !== null && talents !== undefined) store.syncTalentSubmissions(talents);
+        if (proposals !== null && proposals !== undefined) store.syncDaoProposals(proposals);
         if (feedbacks) store.syncHubFeedbacks(feedbacks);
-        if (pendingAds && pendingAds.length > 0) store.syncPendingAdCreatives(pendingAds);
-        if (deals && deals.length > 0) store.syncCustomDeals(deals);
-        if (conversations && conversations.length > 0) store.setAdminConversations(conversations);
-        if (dooh && dooh.length > 0) store.syncDoohCampaigns(dooh);
+        if (pendingAds !== null && pendingAds !== undefined) store.syncPendingAdCreatives(pendingAds);
+        if (deals !== null && deals !== undefined) store.syncCustomDeals(deals);
+        if (conversations !== null && conversations !== undefined) store.setAdminConversations(conversations);
+        if (dooh !== null && dooh !== undefined) store.syncDoohCampaigns(dooh);
         logger.log(`[App] Firebase sync: ${hubs?.length || 0} hubs, ${notifications?.length || 0} notifs, ${ads?.length || 0} ads, ${talents?.length || 0} talents, ${proposals?.length || 0} proposals, ${deals?.length || 0} deals`);
       } catch (e) {
         logger.warn('[App] Firebase sync failed, using local data:', e?.message);

@@ -361,10 +361,12 @@ export const useAppStore = create(
 
             // Also trigger push to all users via global notification
             import('../services/firebaseService').then(fb => {
+              const w = get().wallet?.publicKey;
+              const walletStr = typeof w === 'string' ? w : (w?.toBase58?.() || w?.toString?.() || 'admin');
               fb.sendGlobalNotification(
                 ad.richTitle || 'Sponsored Content',
                 ad.richBody || '',
-                get().wallet?.publicKey || 'admin',
+                walletStr,
               );
             }).catch(e => logger.warn('[Store] Global push for rich_notif failed:', e));
           }

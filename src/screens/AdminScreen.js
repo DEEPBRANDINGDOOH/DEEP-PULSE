@@ -105,9 +105,10 @@ export default function AdminScreen({ navigation }) {
     }
     const slotLabel = ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom';
     const costLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
     Alert.alert(
       'Approve Ad',
-      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${slotLabel}\nDuration: ${ad.duration || 1} week(s)\nCost: ${costLabel} $SKR\n\nThe ad will go live immediately.`,
+      `Approve "${ad.brandName || 'Unknown'}" ad for ${ad.hubName || 'Unknown Hub'}?\n\nSlot: ${slotLabel}\nDuration: ${ad.duration || 1} week(s)\nCost: ${costLabel} $SKR\n\nThe ad will go live immediately.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -116,25 +117,35 @@ export default function AdminScreen({ navigation }) {
             try {
               // Update Zustand store (removes from pending, adds to approved)
               storeApproveAd(ad.id);
-              // Sync with Firebase backend
-              approveAdCreative(ad.id, wallet?.publicKey || 'admin')
-                .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
+            } catch (storeErr) {
+              logger.warn('[Admin] storeApproveAd error:', storeErr?.message);
+            }
 
-              // If it's a Rich Notification Ad, trigger push notification to hub subscribers
-              if (ad.slotType === 'rich_notif' && ad.hubName) {
+            try {
+              // Sync with Firebase backend
+              approveAdCreative(ad.id, walletStr)
+                .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
+            } catch (fbErr) {
+              logger.warn('[Admin] approveAdCreative call error:', fbErr?.message);
+            }
+
+            // If it's a Rich Notification Ad, trigger push notification to hub subscribers
+            if (ad.slotType === 'rich_notif' && ad.hubName) {
+              try {
                 const pushTitle = ad.richTitle || ad.brandName || 'Sponsored';
-                const pushBody = ad.richBody || `New sponsored content from ${ad.brandName}`;
-                // sendHubNotification(hubId, hubName, title, body, walletAddress, link)
+                const pushBody = ad.richBody || `New sponsored content from ${ad.brandName || 'brand'}`;
+
                 sendHubNotification(
-                  ad.hubId || ad.hubName, // hubId (fallback to hubName)
-                  ad.hubName,             // hubName (for display)
-                  pushTitle,              // title
-                  pushBody,               // body
-                  wallet?.publicKey || 'admin', // walletAddress
-                  ad.landingUrl || null    // link
+                  ad.hubId || ad.hubName,
+                  ad.hubName,
+                  pushTitle,
+                  pushBody,
+                  walletStr,
+                  ad.landingUrl || null
                 ).then(() => {
                   logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
                 }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
+
                 showLocalNotification(pushTitle, pushBody).catch(() => {});
 
                 // Store notification in Zustand so it appears in HomeScreen feed + bell icon
@@ -155,13 +166,12 @@ export default function AdminScreen({ navigation }) {
                   comments: 0,
                   isNew: true,
                 });
+              } catch (notifErr) {
+                logger.warn('[Admin] Rich notif handling error:', notifErr?.message);
               }
-
-              Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
-            } catch (error) {
-              logger.warn('[Admin] handleApproveAd error:', error?.message);
-              Alert.alert('Error', 'Ad approval failed. Please try again.');
             }
+
+            Alert.alert('Ad Approved', `"${ad.brandName || 'Ad'}" is now live on ${ad.hubName || 'hub'}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
           },
         },
       ]
@@ -174,9 +184,10 @@ export default function AdminScreen({ navigation }) {
       return;
     }
     const rejectCostLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
     Alert.alert(
       'Reject Ad',
-      `Reject "${ad.brandName}" ad?\n\nYou will need to manually refund ${rejectCostLabel} $SKR to wallet:\n${ad.brandWallet}`,
+      `Reject "${ad.brandName || 'Unknown'}" ad?\n\nYou will need to manually refund ${rejectCostLabel} $SKR to wallet:\n${ad.brandWallet || 'N/A'}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -185,11 +196,11 @@ export default function AdminScreen({ navigation }) {
           onPress: async () => {
             try {
               storeRejectAd(ad.id);
-              rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Rejected by admin — refund required')
+              rejectAdCreative(ad.id, walletStr, 'Rejected by admin — refund required')
                 .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
               Alert.alert(
                 'Ad Rejected',
-                `Ad rejected.\n\nRefund required:\nWallet: ${ad.brandWallet}\nAmount: ${rejectCostLabel} $SKR\n\nPlease process the refund manually.`
+                `Ad rejected.\n\nRefund required:\nWallet: ${ad.brandWallet || 'N/A'}\nAmount: ${rejectCostLabel} $SKR\n\nPlease process the refund manually.`
               );
             } catch (error) {
               logger.warn('[Admin] handleRejectAd error:', error?.message);
@@ -206,24 +217,29 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
+    const spamCostLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
     Alert.alert(
       'Flag as Spam',
-      `Flag "${ad.brandName}" as spam?\n\nFunds (${ad.totalCost.toLocaleString()} $SKR) will be RETAINED.\nThe brand will be notified of the violation.`,
+      `Flag "${ad.brandName || 'Unknown'}" as spam?\n\nFunds (${spamCostLabel} $SKR) will be RETAINED.\nThe brand will be notified of the violation.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Flag Spam & Retain Funds',
           style: 'destructive',
           onPress: async () => {
-            // Update Zustand store (removes from pending)
-            storeRejectAd(ad.id);
-            // Sync with Firebase backend
-            rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Flagged as spam — funds retained')
-              .catch(e => logger.warn('[Admin] flagSpam backend failed:', e));
-            Alert.alert(
-              'Flagged as Spam',
-              `"${ad.brandName}" flagged as spam.\nFunds retained: ${ad.totalCost.toLocaleString()} $SKR\nBrand wallet: ${ad.brandWallet}`
-            );
+            try {
+              storeRejectAd(ad.id);
+              rejectAdCreative(ad.id, walletStr, 'Flagged as spam — funds retained')
+                .catch(e => logger.warn('[Admin] flagSpam backend failed:', e));
+              Alert.alert(
+                'Flagged as Spam',
+                `"${ad.brandName || 'Ad'}" flagged as spam.\nFunds retained: ${spamCostLabel} $SKR\nBrand wallet: ${ad.brandWallet || 'N/A'}`
+              );
+            } catch (error) {
+              logger.warn('[Admin] handleFlagSpam error:', error?.message);
+              Alert.alert('Error', 'Flag spam failed. Please try again.');
+            }
           },
         },
       ]
