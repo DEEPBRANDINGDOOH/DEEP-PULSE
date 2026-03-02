@@ -869,6 +869,26 @@ export async function fetchUserScore(walletAddress) {
   }
 }
 
+/**
+ * Fetch user's hub subscriptions from Firestore
+ * @param {string} walletAddress - User wallet address
+ * @returns {Promise<Array>} Array of hub IDs the user is subscribed to
+ */
+export async function fetchUserSubscriptions(walletAddress) {
+  if (!walletAddress) return null;
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const snapshot = await db.collection('subscriptions')
+      .where('walletAddress', '==', walletAddress)
+      .get();
+    return snapshot.docs.map(doc => doc.data().hubId);
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchUserSubscriptions failed:', error.message);
+    return null;
+  }
+}
+
 // =====================================================
 //  6. FETCH OPERATIONS — Read from Firestore
 // =====================================================

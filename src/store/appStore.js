@@ -110,6 +110,11 @@ export const useAppStore = create(
         return subscribedProjects.includes(projectId);
       },
 
+      // Restore subscriptions from Firebase (used after cache clear)
+      setSubscribedProjects: (hubIds) => {
+        set({ subscribedProjects: hubIds || [] });
+      },
+
       // ============================================
       // ALERTS STATE (not persisted — resets on app start)
       // ============================================

@@ -19,6 +19,8 @@ import {
   fetchCustomDeals,
   fetchAdminConversations,
   fetchDoohCampaigns,
+  fetchUserSubscriptions,
+  fetchUserScore,
   authenticateWithFirebase,
   initCrashlytics,
   logCrashlyticsError,
@@ -268,7 +270,10 @@ const App = () => {
     // Sync data from Firebase (non-blocking — replaces local data with server data)
     const syncFromFirebase = async () => {
       try {
-        const [hubs, notifications, ads, talents, proposals, feedbacks, pendingAds, deals, conversations, dooh] = await Promise.all([
+        const walletPk = useAppStore.getState().wallet?.publicKey;
+        const walletStr = typeof walletPk === 'string' ? walletPk : (walletPk?.toBase58?.() || walletPk?.toString?.() || null);
+
+        const [hubs, notifications, ads, talents, proposals, feedbacks, pendingAds, deals, conversations, dooh, userSubs, userScore] = await Promise.all([
           fetchHubsFromFirestore(),
           fetchNotificationsFromFirestore(),
           fetchApprovedAdsFromFirestore(),
@@ -279,6 +284,8 @@ const App = () => {
           fetchCustomDeals(),
           fetchAdminConversations(),
           fetchDoohCampaigns(),
+          fetchUserSubscriptions(walletStr),
+          fetchUserScore(walletStr),
         ]);
         const store = useAppStore.getState();
         // Always sync from Firebase (even empty arrays) so local cache stays fresh
@@ -293,7 +300,23 @@ const App = () => {
         if (deals !== null && deals !== undefined) store.syncCustomDeals(deals);
         if (conversations !== null && conversations !== undefined) store.setAdminConversations(conversations);
         if (dooh !== null && dooh !== undefined) store.syncDoohCampaigns(dooh);
-        logger.log(`[App] Firebase sync: ${hubs?.length || 0} hubs, ${notifications?.length || 0} notifs, ${ads?.length || 0} ads, ${talents?.length || 0} talents, ${proposals?.length || 0} proposals, ${deals?.length || 0} deals`);
+        // Restore user subscriptions from Firebase (survives cache clear)
+        if (userSubs && userSubs.length > 0) {
+          const currentSubs = store.subscribedProjects || [];
+          if (currentSubs.length === 0) {
+            // Only restore if local is empty (cache was cleared)
+            store.setSubscribedProjects(userSubs);
+          }
+        }
+        // Restore user score from Firebase
+        if (userScore && userScore.score != null) {
+          const currentScore = store.userScore || 0;
+          // Use server score if higher (or local was reset to 0)
+          if (userScore.score > currentScore) {
+            store.setUserScore(userScore.score);
+          }
+        }
+        logger.log(`[App] Firebase sync: ${hubs?.length || 0} hubs, ${notifications?.length || 0} notifs, ${ads?.length || 0} ads, ${talents?.length || 0} talents, ${proposals?.length || 0} proposals, ${deals?.length || 0} deals, ${userSubs?.length || 0} subs`);
       } catch (e) {
         logger.warn('[App] Firebase sync failed, using local data:', e?.message);
       }
