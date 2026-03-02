@@ -46,7 +46,7 @@
 ### Key Differentiators
 
 - **Fully on-chain** — All business logic enforced by a Solana program
-- **Serverless backend** — Firebase Cloud Functions (11 functions) for push notifications, analytics, moderation, ad processing, wallet authentication — $0/month on free tier
+- **Serverless backend** — Firebase Cloud Functions (11 functions) for push notifications, analytics, moderation, ad processing, wallet authentication — Firebase Spark/Blaze plan
 - **Firebase Auth** — Sign-in-with-wallet using ed25519 signature verification (Cloud Function + tweetnacl) — Firestore rules enforce `request.auth.uid == walletAddress`
 - **Firebase Crashlytics** — Global JS error handler + non-fatal error logging + wallet-based user attribution
 - **Firebase App Check** — Play Integrity (release) + Debug Provider (dev) to protect Cloud Functions from abuse
@@ -541,7 +541,7 @@ await walletAdapter.disconnect(authToken);
 
 ## Backend API (Firebase Cloud Functions)
 
-The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 20) — **$0/month** on the free tier. No traditional server required.
+The backend runs entirely on **Firebase Cloud Functions v2** (Node.js 20). No traditional server required.
 
 ### 11 Serverless Functions
 
@@ -807,7 +807,7 @@ A comprehensive security audit was performed across the entire application stack
 | **Console logging migration** | ~90+ `console.log`/`console.warn` statements replaced with environment-aware `logger` across 13 files — prevents sensitive data leaks (wallet addresses, transaction hashes, token amounts) in production builds |
 | **ProGuard / R8 enabled** | Release builds now use ProGuard/R8 for code obfuscation + dead code elimination + optimization — comprehensive keep rules added for React Native, Solana Mobile (MWA), Firebase, Hermes, and all native modules |
 | **ProGuard keep rules** | `android/app/proguard-rules.pro` updated with rules for React Native core, Hermes engine, Solana Mobile SDK, Firebase (Auth, Firestore, Functions, Messaging, Storage), OkHttp, Gson, and crypto libraries |
-| **Security score** | **10 / 10** (up from 8.5 → 9.5 → 10) |
+| **Security audits** | **5 audits, 155+ issues fixed** (up from 8.5 → 9.5 → 10) |
 
 **Files modified in Audit #3 (13 files):**
 `HomeScreen.js`, `DiscoverScreen.js`, `HubDashboardScreen.js`, `AdSlotsScreen.js`, `AdminScreen.js`, `SwipeEarnScreen.js`, `PushNotificationAdScreen.js`, `DOOHScreen.js`, `walletAdapter.js`, `programService.js`, `transactionHelper.js`, `firebaseService.js`, `storageService.js` — plus `android/app/build.gradle` (ProGuard enable) and `android/app/proguard-rules.pro` (keep rules).
@@ -822,7 +822,7 @@ A comprehensive security audit was performed across the entire application stack
 | **Firestore rules hardened** | All client writes require `request.auth.uid == walletAddress`. Analytics restricted to owner-only read. Boost vaults restricted to authenticated users |
 | **Storage rules hardened** | `allow write` requires `request.auth.uid == walletAddress`. `allow delete` restricted to wallet owner only (was `if true`) |
 | **sendPushToSubscribers secured** | Ownership check now mandatory (was optional). Function verifies caller is hub creator or admin before sending |
-| **Security score** | **10 / 10** — all items addressed |
+| **Security audits** | **5 audits, 155+ issues fixed** — all items addressed |
 
 **Files modified in Audit #4 (8 files):**
 `firestore.rules`, `storage.rules`, `functions/index.js`, `src/services/firebaseService.js`, `App.js`, `android/build.gradle`, `android/app/build.gradle`, `android/settings.gradle`
@@ -932,7 +932,7 @@ After repeated actions of the same type, each additional action earns less:
 
 | Component | Status |
 |-----------|--------|
-| Smart contracts (23 instructions, 5 audits, 10/10 score) | ✅ Ready |
+| Smart contracts (23 instructions, 5 audits, 155+ fixes) | ✅ Ready |
 | React Native app (20 screens, NativeWind UI) | ✅ Ready |
 | Mobile Wallet Adapter 2.0 (SeedVault + Phantom + Solflare) | ✅ Ready |
 | Firebase Cloud Functions (11 functions deployed) | ✅ Ready |
@@ -1002,7 +1002,7 @@ The $SKR mint (`SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) must exist on main
 | ~~Crash reporting~~ | ~~Medium~~ | ✅ **DONE (Build 23)** — Firebase Crashlytics with global JS error handler + wallet user attribution |
 | **Admin multi-sig** | Low | Replace single admin wallet with multi-sig for added security |
 
-**Security score: 10/10** — all critical and high priority items addressed.
+**5 security audits completed** — all critical and high priority items addressed (155+ issues fixed).
 
 ### Step 5 — Solana Mobile dApp Store Submission
 
@@ -1147,4 +1147,4 @@ MIT License
 **$SKR Mint:** `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`
 **Program ID:** `3N5coxatEEbdLuTKovXdzrJX9E7ZAD6t2bWuz7BgGR63`
 **Admin Wallet:** `89Ez94pHfSNAUAPYrN7y3UmEfh4ggxr9biA4AS2nXVZc`
-**Status:** Smart contracts compiled + security-audited (155+ issues fixed, 5 full security audits, 10/10) ✓ | Firebase Auth (sign-in-with-wallet, ed25519, wired on connect) ✓ | Firebase Crashlytics (error monitoring) ✓ | Firebase App Check (Play Integrity) ✓ | Firestore + Storage rules (relaxed devnet deployed, strict .mainnet ready) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (11 functions, us-central1, Node.js 20) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Hub Lifecycle ✓ | DOOH Worldwide ✓ | Discord → Hub pipeline ✓ | Build 22: Firebase sync + Helius RPC ✓ | Build 23: Firebase Auth + Crashlytics + App Check ✓ | Build 24: Security audit fixes ✓ | Build 29: Firebase real uploads + hub/DAO/talent fixes ✓ | Build 30: Firebase Auth wired on connect + mainnet-ready preparation ✓
+**Status:** Smart contracts compiled + security-audited (5 full security audits, 155+ issues fixed) ✓ | Firebase Auth (sign-in-with-wallet, ed25519, wired on connect) ✓ | Firebase Crashlytics (error monitoring) ✓ | Firebase App Check (Play Integrity) ✓ | Firestore + Storage rules (relaxed devnet deployed, strict .mainnet ready) ✓ | Env-aware logging (no sensitive data in production) ✓ | ProGuard/R8 enabled ✓ | Frontend connected to real on-chain transactions (MWA 2.0) ✓ | SeedVault compatible (Solana Seeker) ✓ | Firebase Cloud Functions deployed (11 functions, us-central1, Node.js 20) ✓ | Firebase Cloud Messaging ✓ | Firebase Storage (ad upload + hub logo upload) ✓ | Swipe-to-Earn LockScreen Overlay ✓ | DEEP Score v2 (anti-farming) ✓ | Hub Lifecycle ✓ | DOOH Worldwide ✓ | Discord → Hub pipeline ✓ | Build 29: Firebase real uploads + hub/DAO/talent fixes ✓ | Build 30: Firebase Auth wired + mainnet-ready ✓ | Build 31: Wallet double dialog fix + profile header reactivity ✓
