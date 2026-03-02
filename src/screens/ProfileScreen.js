@@ -33,8 +33,8 @@ export default function ProfileScreen({ navigation }) {
   const [notifMuted, setNotifMuted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Use real wallet if connected, otherwise fall back to mock
-  const connectedPubkey = getWalletPublicKey();
+  // Use Zustand wallet state for reactive UI (getWalletPublicKey is non-reactive module variable)
+  const connectedPubkey = storeWallet?.connected ? storeWallet.publicKey : null;
   const walletDisplay = connectedPubkey ? formatWallet(connectedPubkey) : 'Not connected';
   const fullWalletAddress = connectedPubkey ? connectedPubkey.toString() : '';
 
