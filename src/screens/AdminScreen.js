@@ -103,58 +103,65 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
+    const slotLabel = ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom';
+    const costLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
     Alert.alert(
       'Approve Ad',
-      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${ad.slotType === 'top' ? 'Top' : ad.slotType === 'lockscreen' ? 'Lockscreen' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom'}\nDuration: ${ad.duration} week(s)\nCost: ${ad.totalCost.toLocaleString()} $SKR\n\nThe ad will go live immediately.`,
+      `Approve "${ad.brandName}" ad for ${ad.hubName}?\n\nSlot: ${slotLabel}\nDuration: ${ad.duration || 1} week(s)\nCost: ${costLabel} $SKR\n\nThe ad will go live immediately.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Approve',
           onPress: async () => {
-            // Update Zustand store (removes from pending, adds to approved)
-            storeApproveAd(ad.id);
-            // Sync with Firebase backend
-            approveAdCreative(ad.id, wallet?.publicKey || 'admin')
-              .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
+            try {
+              // Update Zustand store (removes from pending, adds to approved)
+              storeApproveAd(ad.id);
+              // Sync with Firebase backend
+              approveAdCreative(ad.id, wallet?.publicKey || 'admin')
+                .catch(e => logger.warn('[Admin] approveAd backend failed:', e));
 
-            // If it's a Rich Notification Ad, trigger push notification to hub subscribers
-            if (ad.slotType === 'rich_notif' && ad.hubName) {
-              const pushTitle = ad.richTitle || ad.brandName || 'Sponsored';
-              const pushBody = ad.richBody || `New sponsored content from ${ad.brandName}`;
-              // sendHubNotification(hubId, hubName, title, body, walletAddress, link)
-              sendHubNotification(
-                ad.hubId || ad.hubName, // hubId (fallback to hubName)
-                ad.hubName,             // hubName (for display)
-                pushTitle,              // title
-                pushBody,               // body
-                wallet?.publicKey || 'admin', // walletAddress
-                ad.landingUrl || null    // link
-              ).then(() => {
-                logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
-              }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
-              showLocalNotification(pushTitle, pushBody);
+              // If it's a Rich Notification Ad, trigger push notification to hub subscribers
+              if (ad.slotType === 'rich_notif' && ad.hubName) {
+                const pushTitle = ad.richTitle || ad.brandName || 'Sponsored';
+                const pushBody = ad.richBody || `New sponsored content from ${ad.brandName}`;
+                // sendHubNotification(hubId, hubName, title, body, walletAddress, link)
+                sendHubNotification(
+                  ad.hubId || ad.hubName, // hubId (fallback to hubName)
+                  ad.hubName,             // hubName (for display)
+                  pushTitle,              // title
+                  pushBody,               // body
+                  wallet?.publicKey || 'admin', // walletAddress
+                  ad.landingUrl || null    // link
+                ).then(() => {
+                  logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
+                }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
+                showLocalNotification(pushTitle, pushBody).catch(() => {});
 
-              // Store notification in Zustand so it appears in HomeScreen feed + bell icon
-              addHubNotification(ad.hubName, {
-                id: `rich_notif_${Date.now()}`,
-                title: pushTitle,
-                hubName: ad.hubName,
-                hubIcon: 'notifications',
-                message: pushBody,
-                fullMessage: pushBody,
-                link: ad.landingUrl || null,
-                imageUrl: ad.imageUrl || null,
-                ctaLabel: ad.richCtaLabel || null,
-                ctaUrl: ad.landingUrl || null,
-                isSponsored: true,
-                timestamp: 'Just now',
-                reactions: 0,
-                comments: 0,
-                isNew: true,
-              });
+                // Store notification in Zustand so it appears in HomeScreen feed + bell icon
+                addHubNotification(ad.hubName, {
+                  id: `rich_notif_${Date.now()}`,
+                  title: pushTitle,
+                  hubName: ad.hubName,
+                  hubIcon: 'notifications',
+                  message: pushBody,
+                  fullMessage: pushBody,
+                  link: ad.landingUrl || null,
+                  imageUrl: ad.imageUrl || null,
+                  ctaLabel: ad.richCtaLabel || null,
+                  ctaUrl: ad.landingUrl || null,
+                  isSponsored: true,
+                  timestamp: 'Just now',
+                  reactions: 0,
+                  comments: 0,
+                  isNew: true,
+                });
+              }
+
+              Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
+            } catch (error) {
+              logger.warn('[Admin] handleApproveAd error:', error?.message);
+              Alert.alert('Error', 'Ad approval failed. Please try again.');
             }
-
-            Alert.alert('Ad Approved', `"${ad.brandName}" ad is now live on ${ad.hubName}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
           },
         },
       ]
@@ -166,24 +173,28 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Wallet Required', 'Please connect your admin wallet.');
       return;
     }
+    const rejectCostLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
     Alert.alert(
       'Reject Ad',
-      `Reject "${ad.brandName}" ad?\n\nYou will need to manually refund ${ad.totalCost.toLocaleString()} $SKR to wallet:\n${ad.brandWallet}`,
+      `Reject "${ad.brandName}" ad?\n\nYou will need to manually refund ${rejectCostLabel} $SKR to wallet:\n${ad.brandWallet}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Reject & Note Refund',
           style: 'destructive',
           onPress: async () => {
-            // Update Zustand store (removes from pending)
-            storeRejectAd(ad.id);
-            // Sync with Firebase backend
-            rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Rejected by admin — refund required')
-              .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
-            Alert.alert(
-              'Ad Rejected',
-              `Ad rejected.\n\nRefund required:\nWallet: ${ad.brandWallet}\nAmount: ${ad.totalCost.toLocaleString()} $SKR\n\nPlease process the refund manually.`
-            );
+            try {
+              storeRejectAd(ad.id);
+              rejectAdCreative(ad.id, wallet?.publicKey || 'admin', 'Rejected by admin — refund required')
+                .catch(e => logger.warn('[Admin] rejectAd backend failed:', e));
+              Alert.alert(
+                'Ad Rejected',
+                `Ad rejected.\n\nRefund required:\nWallet: ${ad.brandWallet}\nAmount: ${rejectCostLabel} $SKR\n\nPlease process the refund manually.`
+              );
+            } catch (error) {
+              logger.warn('[Admin] handleRejectAd error:', error?.message);
+              Alert.alert('Error', 'Ad rejection failed. Please try again.');
+            }
           },
         },
       ]
@@ -571,7 +582,7 @@ export default function AdminScreen({ navigation }) {
                 </View>
               </View>
               <View className="bg-primary/20 rounded-full px-3 py-1">
-                <Text className="text-primary text-xs font-bold">{ad.totalCost.toLocaleString()} $SKR</Text>
+                <Text className="text-primary text-xs font-bold">{(ad.totalCost || 0).toLocaleString()} $SKR</Text>
               </View>
             </View>
 
