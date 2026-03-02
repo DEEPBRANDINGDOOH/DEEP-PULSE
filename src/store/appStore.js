@@ -555,6 +555,9 @@ export const useAppStore = create(
       // ============================================
       syncHubsFromFirebase: (firebaseHubs) => set({ hubs: firebaseHubs }),
 
+      // Restore pending hubs from Firebase (survives cache clear)
+      syncPendingHubsFromFirebase: (firebasePendingHubs) => set({ pendingHubs: firebasePendingHubs || [] }),
+
       syncNotificationsFromFirebase: (firebaseNotifs) => {
         // Group notifications by hubName for hubNotifications format
         const grouped = {};

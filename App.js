@@ -19,6 +19,7 @@ import {
   fetchCustomDeals,
   fetchAdminConversations,
   fetchDoohCampaigns,
+  fetchPendingHubsFromFirestore,
   fetchUserSubscriptions,
   fetchUserScore,
   authenticateWithFirebase,
@@ -273,8 +274,9 @@ const App = () => {
         const walletPk = useAppStore.getState().wallet?.publicKey;
         const walletStr = typeof walletPk === 'string' ? walletPk : (walletPk?.toBase58?.() || walletPk?.toString?.() || null);
 
-        const [hubs, notifications, ads, talents, proposals, feedbacks, pendingAds, deals, conversations, dooh, userSubs, userScore] = await Promise.all([
+        const [hubs, pendingHubs, notifications, ads, talents, proposals, feedbacks, pendingAds, deals, conversations, dooh, userSubs, userScore] = await Promise.all([
           fetchHubsFromFirestore(),
+          fetchPendingHubsFromFirestore(),
           fetchNotificationsFromFirestore(),
           fetchApprovedAdsFromFirestore(),
           fetchTalentSubmissions(),
@@ -291,6 +293,7 @@ const App = () => {
         // Always sync from Firebase (even empty arrays) so local cache stays fresh
         // after a device cache clear. null = fetch failed → keep local data.
         if (hubs !== null && hubs !== undefined) store.syncHubsFromFirebase(hubs);
+        if (pendingHubs !== null && pendingHubs !== undefined) store.syncPendingHubsFromFirebase(pendingHubs);
         if (notifications !== null && notifications !== undefined) store.syncNotificationsFromFirebase(notifications);
         if (ads !== null && ads !== undefined) store.syncAdsFromFirebase(ads);
         if (talents !== null && talents !== undefined) store.syncTalentSubmissions(talents);

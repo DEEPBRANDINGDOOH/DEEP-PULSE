@@ -911,6 +911,23 @@ export async function fetchHubsFromFirestore() {
 }
 
 /**
+ * Fetch all pending hubs from Firestore (for admin approval)
+ * @returns {Promise<Array>} Array of pending hub objects
+ */
+export async function fetchPendingHubsFromFirestore() {
+  const db = getDb();
+  if (!db) return null;
+
+  try {
+    const snapshot = await db.collection('hubs').where('status', '==', 'PENDING').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchPendingHubs failed:', error.message);
+    return null;
+  }
+}
+
+/**
  * Fetch recent notifications from Firestore
  * @returns {Promise<Array>} Array of notification objects
  */
@@ -942,7 +959,7 @@ export async function fetchApprovedAdsFromFirestore() {
   try {
     const snapshot = await db
       .collection('adCreatives')
-      .where('status', '==', 'APPROVED')
+      .where('status', '==', 'approved')
       .get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
