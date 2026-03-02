@@ -110,7 +110,6 @@ Hackathon Submission — March 2026
 +---------------------------+-------------------------------+
 |   Quality & Security                                      |
 |   5 Security Audits, 155+ Issues Fixed                    |
-|   10/10 Security Score                                    |
 |   Firebase Auth + Crashlytics + App Check                 |
 |   Env-aware Logging + ProGuard                            |
 +-----------------------------------------------------------+
@@ -156,7 +155,7 @@ Hackathon Submission — March 2026
 - Deposits locked in PDA escrows until resolution
 - DAO vaults: 95% to brand, 5% to platform treasury
 - 5% fee on contributions + rejected deposits kept
-- $0 server cost (Firebase free tier)
+- Firebase Spark/Blaze plan (Cloud Functions, Firestore, Storage, Hosting)
 
 ---
 
@@ -222,7 +221,7 @@ Hackathon Submission — March 2026
 | DAO Brand Boost | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Hub Ecosystem | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**WHY WE WIN:** First-mover Solana Mobile | 23 On-Chain Instructions | $0 Server Cost | Anti-Farming DEEP Score
+**WHY WE WIN:** First-mover Solana Mobile | 23 On-Chain Instructions | Full Firebase Backend | Anti-Farming DEEP Score
 
 ---
 
@@ -319,16 +318,16 @@ Hackathon Submission — March 2026
 | Scale | 50,000 | Q4 2026 |
 | Target | 100,000 | 2027 |
 
-**Financial:**
-- $SKR Volume Monthly: $1,757+
-- Annual: $21,000+
-- At Scale: $85,000+/year
+**$SKR Token Volume (projected):**
+- Monthly (25 hubs): 223,750+ $SKR
+- Annual (25 hubs): 2,685,000+ $SKR
+- At Scale (100 hubs): 895,000+ $SKR/month
 
-**Ecosystem:**
-- 25+ Hubs Target
-- 10,000 Users Scenario
-- $0 Server Cost
-- 5% Fee + Rejected Deposits
+**Revenue Streams (in $SKR):**
+- Hub Subscriptions: 2,000 $SKR/hub/month
+- Ad Slots: 800-1,500 $SKR/week
+- DAO Vault Fee: 5% on completed vaults
+- Feedback/Talent Deposits: 50-300 $SKR each
 
 ---
 
@@ -338,17 +337,16 @@ Hackathon Submission — March 2026
 
 **Links:**
 - GitHub: github.com/DEEPBRANDINGDOOH/DEEP-PULSE
-- Twitter: @DeepPulseSol
-- Discord: dsc.gg/deeppulse
+- X: x.com/deep_branding
 - Web: deep-pulse.web.app
 
 **VIEW SOURCE CODE:**
 23 Anchor instructions, 11 Cloud Functions, 19 screens, Firebase sync, Helius RPC.
-5 security audits, 10/10 score. Open source.
+5 security audits, 155+ issues fixed. Open source.
 
 **TRY THE APP:**
 Native experience optimized for Solana Seeker devices.
-Available via APK download and dApp Store.
+Available via APK download. dApp Store submission planned for Q2 2026.
 
 Built by DEEP BRANDING for the Solana Mobile Hackathon.
 
@@ -359,7 +357,7 @@ Built by DEEP BRANDING for the Solana Mobile Hackathon.
 - 8 on-chain account types
 - 33 custom error codes
 - 19 on-chain events
-- 5 security audits (10/10 score)
+- 5 security audits, 155+ issues fixed
 - Firebase Auth + Crashlytics + App Check
 
 **Built on Solana Mobile. Powered by $SKR. Ready for mainnet.**
