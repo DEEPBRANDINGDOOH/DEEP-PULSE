@@ -176,6 +176,94 @@
       margin-top: 4px;
     }
 
+    /* Founder */
+    .founder {
+      background: #14141A;
+      border: 1px solid #2A2A35;
+      border-radius: 14px;
+      padding: 1.5rem 1.2rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+    .founder-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .founder-flag {
+      font-size: 2rem;
+      line-height: 1;
+    }
+    .founder-name {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fafafa;
+    }
+    .founder-role {
+      font-size: 0.72rem;
+      color: #FF9F66;
+      font-weight: 600;
+    }
+    .founder-text {
+      font-size: 0.78rem;
+      color: #8888AA;
+      line-height: 1.6;
+      margin-bottom: 0.6rem;
+    }
+    .founder-text strong { color: #B0B0C0; }
+
+    /* Funding */
+    .funding {
+      background: #14141A;
+      border: 1px solid #2A2A35;
+      border-radius: 14px;
+      padding: 1.5rem 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .funding-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fafafa;
+      margin-bottom: 0.6rem;
+    }
+    .funding-desc {
+      font-size: 0.78rem;
+      color: #8888AA;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .funding-needs {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .funding-tag {
+      background: rgba(255, 159, 102, 0.08);
+      border: 1px solid rgba(255, 159, 102, 0.2);
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.72rem;
+      color: #FF9F66;
+      font-weight: 600;
+    }
+    .funding-cta {
+      display: inline-block;
+      background: transparent;
+      border: 2px solid #FF9F66;
+      color: #FF9F66;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 10px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .funding-cta:hover { background: #FF9F66; color: #0B0B0F; }
+
     .footer {
       font-size: 0.75rem;
       color: #444;
@@ -283,6 +371,44 @@
         <span class="tech-tag">SeedVault</span>
         <span class="tech-tag">Helius RPC</span>
       </div>
+    </div>
+
+    <!-- Founder -->
+    <div class="founder">
+      <div class="founder-header">
+        <span class="founder-flag">🇲🇶</span>
+        <div>
+          <div class="founder-name">Solo Builder from Martinique</div>
+          <div class="founder-role">Programmatic Advertising Specialist</div>
+        </div>
+      </div>
+      <p class="founder-text">
+        DEEP PULSE is built by a <strong>solo vibe coder</strong> from the French Caribbean.
+        With years of experience in <strong>programmatic advertising for major Caribbean and French brands</strong>,
+        I'm bringing real-world ad-tech expertise to the Solana Mobile ecosystem.
+      </p>
+      <p class="founder-text">
+        This is <strong>my first mobile app</strong> — designed, coded, and shipped solo for the Solana Mobile Hackathon.
+        23 smart contract instructions, 19 screens, 11 Cloud Functions, 5 security audits.
+        No team. No funding. Just conviction and code.
+      </p>
+    </div>
+
+    <!-- Funding -->
+    <div class="funding">
+      <div class="funding-title">Looking for Partners & Funding</div>
+      <p class="funding-desc">
+        DEEP PULSE is fully functional on devnet. To bring it to mainnet and reach
+        the 2.5M+ Solana Mobile users, I'm looking for support in the following areas:
+      </p>
+      <div class="funding-needs">
+        <span class="funding-tag">Mainnet Deployment</span>
+        <span class="funding-tag">Security Audit</span>
+        <span class="funding-tag">Marketing</span>
+        <span class="funding-tag">Dev Support</span>
+        <span class="funding-tag">DOOH Partnerships</span>
+      </div>
+      <a href="https://x.com/deep_branding" class="funding-cta">Let's Talk on X</a>
     </div>
 
     <!-- Download -->
