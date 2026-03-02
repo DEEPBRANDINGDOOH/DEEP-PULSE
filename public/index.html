@@ -19,7 +19,6 @@
       padding: 3rem 1.5rem;
       text-align: center;
     }
-    .logo { font-size: 3.5rem; margin-bottom: 0.8rem; }
     h1 {
       font-size: 2.8rem;
       font-weight: 900;
@@ -30,9 +29,8 @@
     .tagline {
       font-size: 1.1rem;
       color: #B0B0C0;
-      margin-bottom: 0.6rem;
+      margin-bottom: 2rem;
     }
-    .sub { font-size: 0.9rem; color: #666680; margin-bottom: 2rem; }
 
     /* Stats */
     .stats {
@@ -66,16 +64,31 @@
       padding: 1.2rem 1rem;
       text-align: left;
     }
-    .feature-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
-    .feature-title { font-weight: 700; font-size: 0.85rem; color: #fafafa; }
-    .feature-desc { font-size: 0.72rem; color: #8888AA; margin-top: 3px; }
+    .feature-title { font-weight: 700; font-size: 0.85rem; color: #fafafa; margin-bottom: 3px; }
+    .feature-desc { font-size: 0.72rem; color: #8888AA; }
+
+    /* Tech */
+    .tech-section { margin-bottom: 2rem; }
+    .tech-title { font-size: 0.8rem; color: #666680; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+    .tech-grid {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .tech-tag {
+      background: #14141A;
+      border: 1px solid #2A2A35;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      color: #B0B0C0;
+    }
 
     /* Download */
     .download-section { margin-bottom: 2rem; }
     .download-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      display: inline-block;
       background: #FF9F66;
       color: #0B0B0F;
       font-weight: 800;
@@ -108,32 +121,12 @@
     }
     .link:hover { border-color: #FF9F66; color: #FF9F66; }
 
-    /* Badges */
-    .badges {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-    .badge {
-      background: rgba(255,159,102,0.1);
-      border: 1px solid rgba(255,159,102,0.25);
-      border-radius: 20px;
-      padding: 0.3rem 0.8rem;
-      font-size: 0.72rem;
-      color: #FF9F66;
-      font-weight: 600;
-    }
-
     .footer {
       font-size: 0.75rem;
       color: #444;
       margin-top: 1rem;
     }
-    .footer a { color: #666680; text-decoration: none; }
 
-    /* Privacy link */
     .privacy { margin-top: 1.5rem; }
     .privacy a { color: #666680; font-size: 0.75rem; text-decoration: underline; }
 
@@ -148,71 +141,78 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">🔔</div>
     <h1>DEEP PULSE</h1>
     <p class="tagline">The Decentralized Notification Hub for Solana Mobile</p>
-    <p class="sub">Real-time push notifications · Ad marketplace · Swipe-to-Earn · DAO Boost · DOOH Worldwide</p>
 
     <!-- Stats -->
     <div class="stats">
       <div class="stat">
         <div class="stat-num">23</div>
-        <div class="stat-label">Instructions</div>
+        <div class="stat-label">Smart Contract Instructions</div>
       </div>
       <div class="stat">
         <div class="stat-num">19</div>
-        <div class="stat-label">Screens</div>
+        <div class="stat-label">Mobile Screens</div>
       </div>
       <div class="stat">
         <div class="stat-num">11</div>
         <div class="stat-label">Cloud Functions</div>
       </div>
       <div class="stat">
-        <div class="stat-num">10/10</div>
-        <div class="stat-label">Security Score</div>
+        <div class="stat-num">5</div>
+        <div class="stat-label">Security Audits</div>
       </div>
     </div>
 
     <!-- Features -->
     <div class="features">
       <div class="feature">
-        <div class="feature-icon">📡</div>
         <div class="feature-title">Hub Ecosystem</div>
-        <div class="feature-desc">Subscribe to notification hubs with custom logos & HubName push</div>
+        <div class="feature-desc">Subscribe to notification hubs with custom logos and HubName push notifications</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">🎯</div>
         <div class="feature-title">Ad Marketplace</div>
-        <div class="feature-desc">5 ad formats — brands pay in $SKR tokens</div>
+        <div class="feature-desc">5 ad formats — brands pay in $SKR tokens via on-chain transactions</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">📱</div>
         <div class="feature-title">Swipe-to-Earn</div>
-        <div class="feature-desc">Lock screen rewards with DEEP Score tiers</div>
+        <div class="feature-desc">Lock screen rewards with DEEP Score v2 anti-farming algorithm</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">🏛️</div>
         <div class="feature-title">DAO Brand Boost</div>
-        <div class="feature-desc">Community-funded vaults, 95/5 split</div>
+        <div class="feature-desc">Community-funded sponsorship vaults with 95/5 split and auto-refund</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">🌍</div>
         <div class="feature-title">DOOH Worldwide</div>
-        <div class="feature-desc">Digital Out-of-Home campaigns globally</div>
+        <div class="feature-desc">Digital Out-of-Home campaigns across airports, malls, stadiums</div>
       </div>
       <div class="feature">
-        <div class="feature-icon">⭐</div>
         <div class="feature-title">Talent Showcase</div>
-        <div class="feature-desc">Decentralized talent marketplace per hub</div>
+        <div class="feature-desc">Decentralized talent marketplace — users propose skills to brands</div>
+      </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div class="tech-section">
+      <div class="tech-title">Tech Stack</div>
+      <div class="tech-grid">
+        <span class="tech-tag">React Native 0.76</span>
+        <span class="tech-tag">Solana Anchor 0.30</span>
+        <span class="tech-tag">MWA 2.0</span>
+        <span class="tech-tag">Firebase</span>
+        <span class="tech-tag">$SKR Token</span>
+        <span class="tech-tag">Solana Seeker</span>
+        <span class="tech-tag">SeedVault</span>
+        <span class="tech-tag">Helius RPC</span>
       </div>
     </div>
 
     <!-- Download -->
     <div class="download-section">
       <a href="https://github.com/DEEPBRANDINGDOOH/DEEP-PULSE/releases/tag/v1.0.0-hackathon" class="download-btn">
-        ⬇ Download APK
+        Download APK
       </a>
-      <p class="download-note">Android APK · Solana Seeker compatible · Debug & Release builds available</p>
+      <p class="download-note">Android APK — compatible Solana Seeker, Phantom, Solflare</p>
     </div>
 
     <!-- Links -->
@@ -221,20 +221,8 @@
       <a href="https://github.com/DEEPBRANDINGDOOH/DEEP-PULSE/releases" class="link">Releases</a>
     </div>
 
-    <!-- Badges -->
-    <div class="badges">
-      <span class="badge">Solana Seeker</span>
-      <span class="badge">SeedVault</span>
-      <span class="badge">MWA 2.0</span>
-      <span class="badge">Anchor 0.30.1</span>
-      <span class="badge">$SKR Token</span>
-      <span class="badge">Firebase</span>
-      <span class="badge">5 Security Audits</span>
-      <span class="badge">$0/month</span>
-    </div>
-
     <p class="footer">
-      Built by <strong>DEEP BRANDING</strong> for the Solana Mobile Hackathon · March 2026
+      Built by DEEP BRANDING for the Solana Mobile Hackathon — March 2026
     </p>
 
     <div class="privacy">
