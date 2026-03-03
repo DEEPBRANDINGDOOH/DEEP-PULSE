@@ -1,7 +1,7 @@
 {
   "name": "deep-pulse",
   "version": "2.0.0",
-  "description": "Web3 Notification Hub for Solana Mobile - Hackathon Ready",
+  "description": "Web3 Brand Engagement Platform for Solana Mobile - Hackathon Ready",
   "main": "index.js",
   "scripts": {
     "android": "react-native run-android",

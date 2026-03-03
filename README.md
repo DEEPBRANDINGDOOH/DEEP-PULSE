@@ -1,11 +1,11 @@
-# DEEP PULSE — Web3 Notification Hub for Solana Mobile
+# DEEP PULSE — Web3 Brand Engagement Platform for Solana Mobile
 
 [![Solana](https://img.shields.io/badge/Solana-Anchor%200.30-9945FF?logo=solana)](https://www.anchor-lang.com/)
 [![React Native](https://img.shields.io/badge/React_Native-0.76.9-61DAFB?logo=react)](https://reactnative.dev)
 [![MWA](https://img.shields.io/badge/MWA-2.1.0-success)](https://docs.solanamobile.com)
 [![Token](https://img.shields.io/badge/%24SKR-SPL_Token-blue)](https://solscan.io/token/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3)
 
-**DEEP Pulse** is a decentralized notification platform built on Solana Mobile. Brands create notification hubs, users subscribe for free, and all economic activity (subscriptions, deposits, DAO vaults, ad slots) runs on-chain via a single Anchor program using the **$SKR** token.
+**DEEP Pulse** is a Web3 brand engagement platform built on Solana Mobile. Brands create hubs to connect directly with their community through push notifications, an on-chain ad marketplace, Swipe-to-Earn lock screen rewards, DAO crowdfunding vaults, a talent marketplace, and DOOH worldwide campaigns. All economic activity runs on-chain via a single Anchor program using the **$SKR** token.
 
 ---
 

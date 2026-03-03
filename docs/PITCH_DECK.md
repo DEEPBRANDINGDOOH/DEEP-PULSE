@@ -1,12 +1,12 @@
 # DEEP PULSE — Pitch Deck
-## Web3 Notification Hub for Solana Mobile
+## Web3 Brand Engagement Platform for Solana Mobile
 
 ---
 
 ### SLIDE 1 — COVER
 
 **DEEP PULSE**
-*The Decentralized Notification Hub for Solana Mobile*
+*Web3 Brand Engagement Platform for Solana Mobile*
 
 Built for Solana Seeker & Mobile Ecosystem
 React Native + Anchor + Firebase
@@ -16,7 +16,7 @@ Hackathon Submission — March 2026
 
 ### SLIDE 2 — EXECUTIVE SUMMARY
 
-**DEEP Pulse** is a decentralized notification hub for Solana Mobile (Seeker). Users subscribe to hubs, receive push notifications, earn DEEP Score rewards, and interact with sponsored content. Brands create hubs, manage ad slots, and launch DOOH campaigns.
+**DEEP Pulse** is a Web3 brand engagement platform for Solana Mobile (Seeker). Brands create hubs to connect with their community through push notifications, an on-chain ad marketplace, Swipe-to-Earn rewards, DAO crowdfunding, a talent marketplace, and DOOH worldwide campaigns. Users subscribe, earn DEEP Score, and interact with sponsored content.
 
 **Key Pillars:**
 - Hub Ecosystem — 50+ hubs with custom logos & HubName push
@@ -207,7 +207,7 @@ Hackathon Submission — March 2026
 
 ### SLIDE 10 — COMPETITIVE LANDSCAPE
 
-**The Only Native Notification Hub for Solana Mobile**
+**The Only Native Brand Engagement Platform for Solana Mobile**
 
 | Feature | DEEP PULSE | Discord | Telegram | Twitter/X | Push Protocol |
 |---------|-----------|---------|----------|-----------|---------------|
@@ -333,7 +333,7 @@ Hackathon Submission — March 2026
 
 ### SLIDE 16 — JOIN THE MOBILE REVOLUTION
 
-**The decentralized notification hub Solana Mobile has been waiting for.**
+**The Web3 brand engagement platform Solana Mobile has been waiting for.**
 
 **Links:**
 - GitHub: github.com/DEEPBRANDINGDOOH/DEEP-PULSE

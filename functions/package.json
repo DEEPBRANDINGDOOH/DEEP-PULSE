@@ -1,6 +1,6 @@
 {
   "name": "deep-pulse-functions",
-  "description": "Firebase Cloud Functions for DEEP Pulse — Web3 Notification Hub",
+  "description": "Firebase Cloud Functions for DEEP Pulse — Web3 Brand Engagement Platform",
   "version": "1.0.0",
   "private": true,
   "scripts": {

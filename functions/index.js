@@ -1,7 +1,7 @@
 /**
  * DEEP Pulse — Firebase Cloud Functions
  *
- * Backend functions for the DEEP Pulse Web3 Notification Hub.
+ * Backend functions for the DEEP Pulse Web3 Brand Engagement Platform.
  * All functions use Firestore as the primary database (free tier).
  *
  * Function categories:

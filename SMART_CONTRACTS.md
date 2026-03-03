@@ -28,7 +28,7 @@
 
 ## Vue d'ensemble
 
-L'application DEEP Pulse est un **Web3 Notification Hub pour Solana Mobile**. Avant cette mise à jour, l'app était 100% frontend — les transactions étaient simulées via `SystemProgram.transfer` et les données stockées dans `AsyncStorage`.
+L'application DEEP Pulse est une **Web3 Brand Engagement Platform pour Solana Mobile**. Avant cette mise à jour, l'app était 100% frontend — les transactions étaient simulées via `SystemProgram.transfer` et les données stockées dans `AsyncStorage`.
 
 Ce document couvre le **programme Anchor on-chain** qui remplace toute la logique simulée par de vraies transactions Solana :
 

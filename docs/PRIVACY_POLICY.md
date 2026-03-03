@@ -2,7 +2,7 @@
 
 **Last updated:** February 25, 2026
 
-DEEP PULSE ("we", "our", "the app") is a decentralized notification hub built on the Solana blockchain. This Privacy Policy describes how we collect, use, and protect your information when you use the DEEP PULSE mobile application.
+DEEP PULSE ("we", "our", "the app") is a Web3 brand engagement platform built on the Solana blockchain. This Privacy Policy describes how we collect, use, and protect your information when you use the DEEP PULSE mobile application.
 
 ---
 
