@@ -103,7 +103,7 @@ export default function MyHubsScreen({ navigation }) {
           <AdRotation
             ads={[
               ...approvedAds
-                .filter(ad => ad.slotType === 'top' && ad.status === 'APPROVED')
+                .filter(ad => ad.slotType === 'top' && (ad.status === 'approved' || ad.status === 'APPROVED'))
                 .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
               ...MOCK_ADS.TOP,
             ]}
@@ -205,7 +205,7 @@ export default function MyHubsScreen({ navigation }) {
           <AdRotation
             ads={[
               ...approvedAds
-                .filter(ad => ad.slotType === 'bottom' && ad.status === 'APPROVED')
+                .filter(ad => ad.slotType === 'bottom' && (ad.status === 'approved' || ad.status === 'APPROVED'))
                 .map(ad => ({ id: ad.id, advertiserId: ad.brandWallet, imageUrl: ad.imageUrl, landingUrl: ad.landingUrl, active: true })),
               ...MOCK_ADS.BOTTOM,
             ]}

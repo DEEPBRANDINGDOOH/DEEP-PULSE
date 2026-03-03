@@ -23,7 +23,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
-import { USE_DEVNET } from '../config/constants';
+import { USE_DEVNET, ADMIN_WALLET } from '../config/constants';
 import { createHub } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -133,7 +133,7 @@ export default function BrandBoostScreen({ navigation }) {
                     logoUrl: logoUrl, // null if no logo uploaded
                     subscribers: 0,
                     status: 'PENDING',
-                    creator: wallet.publicKey || 'mock_admin',
+                    creator: (typeof wallet.publicKey === 'string' ? wallet.publicKey : (wallet.publicKey?.toBase58?.() || wallet.publicKey?.toString?.() || ADMIN_WALLET)),
                     createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                   };
                   useAppStore.getState().addPendingHub(newHub);

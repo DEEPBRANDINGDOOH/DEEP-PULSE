@@ -6,7 +6,7 @@ import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
 import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
-import { USE_DEVNET } from '../config/constants';
+import { USE_DEVNET, ADMIN_WALLET } from '../config/constants';
 
 export default function HubDashboardScreen({ navigation, route }) {
   const hubName = route.params?.hubName || 'My Hub';
@@ -227,7 +227,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                       hubName,
                       notifTitle,
                       notifMessage,
-                      wallet.publicKey || 'mock_admin',
+                      (typeof wallet.publicKey === 'string' ? wallet.publicKey : (wallet.publicKey?.toBase58?.() || wallet.publicKey?.toString?.() || ADMIN_WALLET)),
                       linkUrl.trim() || null,
                     ).then((res) => {
                       logger.log('[HubDashboard] Push sent:', res);

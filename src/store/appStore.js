@@ -473,6 +473,28 @@ export const useAppStore = create(
         return hubNotifications[hubName] || [];
       },
 
+      // Track read hub notification IDs (persisted)
+      readHubNotificationIds: [],
+
+      markHubNotificationRead: (notifId) => {
+        const { readHubNotificationIds } = get();
+        if (!readHubNotificationIds.includes(notifId)) {
+          set({ readHubNotificationIds: [...readHubNotificationIds, notifId] });
+        }
+      },
+
+      markAllHubNotificationsRead: () => {
+        const { hubNotifications } = get();
+        const allIds = Object.values(hubNotifications || {}).flat().map(n => n.id);
+        set({ readHubNotificationIds: allIds });
+      },
+
+      getUnreadHubNotifCount: () => {
+        const { hubNotifications, readHubNotificationIds } = get();
+        const allNotifs = Object.values(hubNotifications || {}).flat();
+        return allNotifs.filter(n => !readHubNotificationIds.includes(n.id)).length;
+      },
+
       // ============================================
       // TALENT SUBMISSIONS STATE (persisted)
       // ============================================
@@ -605,7 +627,11 @@ export const useAppStore = create(
             id: n.id,
             title: n.title || '',
             body: n.body || '',
+            message: n.body || n.message || '',
+            fullMessage: n.body || n.fullMessage || n.message || '',
             hubName,
+            hubIcon: n.hubIcon || 'apps',
+            hubLogoUrl: n.hubLogoUrl || null,
             timestamp: n.createdAt?.toDate?.() || new Date(n.createdAt),
             read: false,
             link: n.link || null,
@@ -859,6 +885,7 @@ export const useAppStore = create(
         customDeals: state.customDeals,
         adminConversations: state.adminConversations,
         doohCampaigns: state.doohCampaigns,
+        readHubNotificationIds: state.readHubNotificationIds,
       }),
     }
   )

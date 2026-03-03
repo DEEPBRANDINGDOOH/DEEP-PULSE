@@ -24,6 +24,9 @@ export default function NotificationsScreen({ navigation, route }) {
   const { alerts, markAlertAsRead, markAllAlertsAsRead, getUnreadCount } =
     useAppStore();
   const hubNotifications = useAppStore((state) => state.hubNotifications);
+  const readHubNotificationIds = useAppStore((state) => state.readHubNotificationIds) || [];
+  const markHubNotificationRead = useAppStore((state) => state.markHubNotificationRead);
+  const markAllHubNotificationsRead = useAppStore((state) => state.markAllHubNotificationsRead);
   const [filter, setFilter] = useState('all'); // 'all' | 'unread'
   const [refreshing, setRefreshing] = useState(false);
   const flatListRef = useRef(null);
@@ -55,15 +58,15 @@ export default function NotificationsScreen({ navigation, route }) {
       message: n.message || n.fullMessage,
       fullMessage: n.fullMessage || n.message,
       timestamp: n.timestamp || 'Recently',
-      read: false,
+      read: readHubNotificationIds.includes(n.id),
       category: 'Hub Update',
       link: n.link,
       reactions: n.reactions || 0,
       comments: n.comments || 0,
-      isNew: true,
+      isNew: !readHubNotificationIds.includes(n.id),
     }));
     return [...hubNotifs, ...alerts];
-  }, [hubNotifications, alerts]);
+  }, [hubNotifications, alerts, readHubNotificationIds]);
 
   const filteredAlerts = React.useMemo(() => {
     if (filter === 'unread') {
@@ -73,19 +76,17 @@ export default function NotificationsScreen({ navigation, route }) {
   }, [allNotifications, filter]);
 
   const unreadCount = getUnreadCount();
-  const hubNotifsCount = Object.values(hubNotifications || {}).flat().length;
-  const totalUnread = unreadCount + hubNotifsCount;
+  const unreadHubCount = allNotifications.filter(n => n.category === 'Hub Update' && !n.read).length;
+  const totalUnread = unreadCount + unreadHubCount;
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       const freshNotifs = await fetchNotificationsFromFirestore();
       if (freshNotifs && freshNotifs.length > 0) {
-        // Merge fresh notifications into hub notifications store
-        const addHubNotification = useAppStore.getState().addHubNotification;
-        freshNotifs.forEach(n => {
-          if (n.hubName) addHubNotification(n.hubName, n);
-        });
+        // Use syncNotificationsFromFirebase (merge by ID) — NOT addHubNotification (which duplicates)
+        const syncNotifs = useAppStore.getState().syncNotificationsFromFirebase;
+        syncNotifs(freshNotifs);
       }
     } catch (e) {
       // Silent fail — pull-to-refresh is non-critical
@@ -95,6 +96,7 @@ export default function NotificationsScreen({ navigation, route }) {
 
   const handleMarkAllRead = () => {
     markAllAlertsAsRead();
+    markAllHubNotificationsRead();
   };
 
   return (
@@ -183,6 +185,7 @@ export default function NotificationsScreen({ navigation, route }) {
             onMarkAsRead={markAlertAsRead}
             onPress={() => {
               markAlertAsRead(item.id);
+              if (item.category === 'Hub Update') markHubNotificationRead(item.id);
               // Map alert schema to notification schema for NotificationDetailScreen
               const notification = {
                 ...item,

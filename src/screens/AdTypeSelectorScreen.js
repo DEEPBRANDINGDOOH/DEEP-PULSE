@@ -94,17 +94,20 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
   const bottomOccupied = approvedAds.filter(a => a.slotType === 'bottom').length;
   const lockscreenOccupied = approvedAds.filter(a => a.slotType === 'lockscreen').length;
 
-  // Override occupiedSlots dynamically
-  AD_TYPES.IN_APP[0].occupiedSlots = Math.min(topOccupied + 3, 8); // base mock + real
-  AD_TYPES.IN_APP[1].occupiedSlots = Math.min(bottomOccupied + 1, 8);
-  AD_TYPES.OUT_OF_APP[0].occupiedSlots = Math.min(lockscreenOccupied + 2, 4);
+  // Compute occupiedSlots dynamically (without mutating module-level constants)
+  const slotOccupancy = {
+    top: Math.min(topOccupied + 3, 8),       // base mock + real
+    bottom: Math.min(bottomOccupied + 1, 8),
+    lockscreen: Math.min(lockscreenOccupied + 2, 4),
+  };
 
   const handleSelectType = (slotType) => {
     navigation.navigate('AdSlots', { slotType, hubId, hubName });
   };
 
   const AdTypeCard = ({ adType }) => {
-    const available = adType.maxSlots ? adType.maxSlots - adType.occupiedSlots : null;
+    const occupied = slotOccupancy[adType.key] !== undefined ? slotOccupancy[adType.key] : adType.occupiedSlots;
+    const available = adType.maxSlots ? adType.maxSlots - occupied : null;
 
     return (
       <TouchableOpacity

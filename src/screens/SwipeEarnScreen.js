@@ -74,7 +74,7 @@ export default function SwipeEarnScreen({ navigation }) {
     try {
       // Merge approved lockscreen ads from store with mock data
       const storeLocksreenAds = approvedAds
-        .filter(ad => ad.slotType === 'lockscreen' && ad.status === 'APPROVED')
+        .filter(ad => ad.slotType === 'lockscreen' && (ad.status === 'approved' || ad.status === 'APPROVED'))
         .map(ad => ({
           contentUrl: ad.imageUrl || ad.contentUrl,
           title: ad.title || ad.brandName || 'Sponsored',

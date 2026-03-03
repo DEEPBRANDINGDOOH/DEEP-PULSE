@@ -22,12 +22,12 @@ const MOCK_TOP_100 = [];
 // MOCK_PENDING_ADS moved to appStore.js (Zustand) for cross-screen data flow
 
 // Stats computed dynamically from store data (no more hardcoded values)
-function computeStats(storeHubs, pendingAds, daoProposals) {
+function computeStats(storeHubs, pendingAds, daoProposals, approvedAds) {
   const activeHubs = storeHubs.filter(h => h.status === 'ACTIVE').length;
   const totalHubs = storeHubs.length;
   const suspendedCount = storeHubs.filter(h => h.status === 'SUSPENDED').length;
   const totalSubscribers = storeHubs.reduce((sum, h) => sum + (h.subscribers || 0), 0);
-  const adsSold = pendingAds.filter(a => a.status === 'APPROVED').length;
+  const adsSold = (approvedAds || []).length;
   const proposalCount = daoProposals ? daoProposals.length : 0;
 
   const base = {
@@ -57,6 +57,7 @@ export default function AdminScreen({ navigation }) {
   const [globalNotifTitle, setGlobalNotifTitle] = useState('');
   const [globalNotifMessage, setGlobalNotifMessage] = useState('');
   const pendingAds = useAppStore((state) => state.pendingAdCreatives);
+  const storeApprovedAds = useAppStore((state) => state.approvedAds);
   const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
   const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
   const addHubNotification = useAppStore((state) => state.addHubNotification);
@@ -375,7 +376,7 @@ export default function AdminScreen({ navigation }) {
   // RENDER: Overview
   // ============================================
   const renderOverview = () => {
-    const STATS_DATA = computeStats(storeHubs, pendingAds, daoProposals);
+    const STATS_DATA = computeStats(storeHubs, pendingAds, daoProposals, storeApprovedAds);
     const stats = STATS_DATA[statsPeriod];
     const pendingAdCount = pendingAds.length;
     const unreadMessages = 0;
