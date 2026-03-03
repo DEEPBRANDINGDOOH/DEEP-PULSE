@@ -171,6 +171,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   const { wallet, platformPricing } = useAppStore();
   const storeHubs = useAppStore((state) => state.hubs);
   const addPendingAdCreative = useAppStore((state) => state.addPendingAdCreative);
+  const resubmitAdForReview = useAppStore((state) => state.resubmitAdForReview);
   const storePendingAds = useAppStore((state) => state.pendingAdCreatives);
   const storeApprovedAds = useAppStore((state) => state.approvedAds);
   // Resolve hub name from route params or store lookup
@@ -247,7 +248,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         slotType: a.slotType,
         imageUrl: a.imageUrl,
         landingUrl: a.landingUrl,
-        status: a.status === 'PENDING' ? 'PENDING_REVIEW' : a.status,
+        status: (a.status === 'PENDING' || a.status === 'pending') ? 'PENDING_REVIEW' : a.status,
         remainingDays: (a.duration || 1) * 7,
         totalWeeks: a.duration || 1,
         impressions: 0,
@@ -255,7 +256,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         richTitle: a.richTitle,
         richBody: a.richBody,
       }));
-    return fromStore.length > 0 ? fromStore : MOCK_MY_ADS;
+    return fromStore;
   }, [storePendingAds, storeApprovedAds]);
   const [myAds, setMyAds] = useState(storeMyAds);
 
@@ -586,11 +587,13 @@ export default function AdSlotsScreen({ route, navigation }) {
               finalImageUrl = uploadResult.url;
             }
 
-            setMyAds(prev => prev.map(a =>
-              a.id === editingAd.id
-                ? { ...a, imageUrl: finalImageUrl, landingUrl: editLandingUrl.trim(), status: 'PENDING_REVIEW' }
-                : a
-            ));
+            // Move ad from approved → pending in Zustand store + sync to Firestore
+            // This makes the edited ad visible in Admin's Ad Moderation tab
+            resubmitAdForReview(editingAd.id, {
+              imageUrl: finalImageUrl,
+              landingUrl: editLandingUrl.trim(),
+            });
+
             setShowEditModal(false);
             Alert.alert(
               'Creative Updated',

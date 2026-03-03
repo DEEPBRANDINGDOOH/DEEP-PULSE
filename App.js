@@ -268,9 +268,21 @@ const App = () => {
     // Check hub subscription expiry on app start (detect OVERDUE hubs)
     useAppStore.getState().checkHubSubscriptions();
 
-    // Sync data from Firebase (non-blocking — replaces local data with server data)
+    // Sync data from Firebase (non-blocking — MERGES with local data)
     const syncFromFirebase = async () => {
       try {
+        // Wait for Zustand to finish hydrating from AsyncStorage
+        // This prevents the race condition where sync runs before local data is loaded,
+        // which would cause Firebase empty results to overwrite locally-created data.
+        if (!useAppStore.persist.hasHydrated()) {
+          await new Promise(resolve => {
+            const unsub = useAppStore.persist.onFinishHydration(() => {
+              unsub();
+              resolve();
+            });
+          });
+        }
+
         const walletPk = useAppStore.getState().wallet?.publicKey;
         const walletStr = typeof walletPk === 'string' ? walletPk : (walletPk?.toBase58?.() || walletPk?.toString?.() || null);
 
@@ -290,8 +302,9 @@ const App = () => {
           fetchUserScore(walletStr),
         ]);
         const store = useAppStore.getState();
-        // Always sync from Firebase (even empty arrays) so local cache stays fresh
-        // after a device cache clear. null = fetch failed → keep local data.
+        // MERGE Firebase data with local data (not replace).
+        // Firebase version wins for existing items; local-only items preserved.
+        // null = fetch failed → keep local data entirely.
         if (hubs !== null && hubs !== undefined) store.syncHubsFromFirebase(hubs);
         if (pendingHubs !== null && pendingHubs !== undefined) store.syncPendingHubsFromFirebase(pendingHubs);
         if (notifications !== null && notifications !== undefined) store.syncNotificationsFromFirebase(notifications);

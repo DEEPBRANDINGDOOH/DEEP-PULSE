@@ -29,6 +29,17 @@ import {
 } from '../services/firebaseService';
 import { logger } from '../utils/security';
 
+// Helper: merge local + firebase arrays by ID
+// Firebase version wins for existing items; local-only items are preserved
+// This prevents data loss when Firebase writes failed (fire-and-forget)
+function mergeArraysById(localItems, firebaseItems) {
+  if (!localItems || localItems.length === 0) return firebaseItems;
+  if (!firebaseItems || firebaseItems.length === 0) return localItems;
+  const fbMap = new Map(firebaseItems.map(item => [item.id, item]));
+  const localOnly = localItems.filter(item => !fbMap.has(item.id));
+  return [...firebaseItems, ...localOnly];
+}
+
 export const useAppStore = create(
   persist(
     (set, get) => ({
@@ -338,7 +349,7 @@ export const useAppStore = create(
         if (ad) {
           const updates = {
             pendingAdCreatives: pendingAdCreatives.filter(a => a.id !== adId),
-            approvedAds: [...approvedAds, { ...ad, status: 'APPROVED' }],
+            approvedAds: [...approvedAds, { ...ad, status: 'approved' }],
           };
 
           // Rich Notification Ads → inject into ALL users' notification feed as "Sponsored"
@@ -384,6 +395,22 @@ export const useAppStore = create(
         set((state) => ({
           pendingAdCreatives: state.pendingAdCreatives.filter(a => a.id !== adId),
         }));
+      },
+
+      // Resubmit an edited ad for admin review (moves from approved → pending)
+      resubmitAdForReview: (adId, updates) => {
+        const { approvedAds, pendingAdCreatives } = get();
+        const ad = approvedAds.find(a => a.id === adId);
+        if (ad) {
+          const updatedAd = { ...ad, ...updates, status: 'pending', editedAt: new Date().toISOString() };
+          set({
+            approvedAds: approvedAds.filter(a => a.id !== adId),
+            pendingAdCreatives: [updatedAd, ...pendingAdCreatives],
+          });
+          // Sync to Firestore (update status back to 'pending' so admin sees it)
+          import('../services/firebaseService').then(fb => fb.saveAdCreative(updatedAd))
+            .catch(e => logger.warn('[Store] resubmitAdForReview sync failed:', e));
+        }
       },
 
       // ============================================
@@ -553,13 +580,23 @@ export const useAppStore = create(
       // ============================================
       // FIREBASE SYNC — Replace local data with Firebase data
       // ============================================
-      syncHubsFromFirebase: (firebaseHubs) => set({ hubs: firebaseHubs }),
+      // All sync functions use MERGE (not replace) to prevent data loss
+      // when Firebase writes failed silently (fire-and-forget pattern).
+      // Firebase version wins for items that exist in both; local-only items preserved.
 
-      // Restore pending hubs from Firebase (survives cache clear)
-      syncPendingHubsFromFirebase: (firebasePendingHubs) => set({ pendingHubs: firebasePendingHubs || [] }),
+      syncHubsFromFirebase: (firebaseHubs) => {
+        const { hubs: localHubs } = get();
+        set({ hubs: mergeArraysById(localHubs, firebaseHubs) });
+      },
+
+      syncPendingHubsFromFirebase: (firebasePendingHubs) => {
+        const { pendingHubs: localPending } = get();
+        set({ pendingHubs: mergeArraysById(localPending, firebasePendingHubs || []) });
+      },
 
       syncNotificationsFromFirebase: (firebaseNotifs) => {
-        // Group notifications by hubName for hubNotifications format
+        const { hubNotifications: localNotifs } = get();
+        // Group Firebase notifications by hubName
         const grouped = {};
         firebaseNotifs.forEach(n => {
           const hubName = n.hubName || 'General';
@@ -574,17 +611,58 @@ export const useAppStore = create(
             link: n.link || null,
           });
         });
-        set({ hubNotifications: grouped });
+        // Merge: keep local notifications that aren't in Firebase
+        const allHubNames = new Set([...Object.keys(localNotifs || {}), ...Object.keys(grouped)]);
+        const merged = {};
+        for (const hubName of allHubNames) {
+          const local = (localNotifs || {})[hubName] || [];
+          const firebase = grouped[hubName] || [];
+          const fbIds = new Set(firebase.map(n => n.id));
+          const localOnly = local.filter(n => !fbIds.has(n.id));
+          merged[hubName] = [...firebase, ...localOnly];
+        }
+        set({ hubNotifications: merged });
       },
 
-      syncAdsFromFirebase: (firebaseAds) => set({ approvedAds: firebaseAds }),
+      syncAdsFromFirebase: (firebaseAds) => {
+        const { approvedAds: localAds } = get();
+        set({ approvedAds: mergeArraysById(localAds, firebaseAds) });
+      },
 
-      syncTalentSubmissions: (submissions) => set({ talentSubmissions: submissions }),
-      syncDaoProposals: (proposals) => set({ daoProposals: proposals }),
-      syncHubFeedbacks: (feedbacks) => set({ hubFeedbacks: feedbacks }),
-      syncPendingAdCreatives: (ads) => set({ pendingAdCreatives: ads }),
-      syncCustomDeals: (deals) => set({ customDeals: deals }),
-      syncDoohCampaigns: (campaigns) => set({ doohCampaigns: campaigns }),
+      syncTalentSubmissions: (submissions) => {
+        const { talentSubmissions: local } = get();
+        set({ talentSubmissions: mergeArraysById(local, submissions) });
+      },
+      syncDaoProposals: (proposals) => {
+        const { daoProposals: local } = get();
+        set({ daoProposals: mergeArraysById(local, proposals) });
+      },
+      syncHubFeedbacks: (feedbacks) => {
+        const { hubFeedbacks: local } = get();
+        // feedbacks is an object keyed by hubName — merge per hub
+        const allHubNames = new Set([...Object.keys(local || {}), ...Object.keys(feedbacks || {})]);
+        const merged = {};
+        for (const hubName of allHubNames) {
+          const localFb = (local || {})[hubName] || [];
+          const firebaseFb = (feedbacks || {})[hubName] || [];
+          const fbIds = new Set(firebaseFb.map(f => f.id));
+          const localOnly = localFb.filter(f => !fbIds.has(f.id));
+          merged[hubName] = [...firebaseFb, ...localOnly];
+        }
+        set({ hubFeedbacks: merged });
+      },
+      syncPendingAdCreatives: (ads) => {
+        const { pendingAdCreatives: local } = get();
+        set({ pendingAdCreatives: mergeArraysById(local, ads) });
+      },
+      syncCustomDeals: (deals) => {
+        const { customDeals: local } = get();
+        set({ customDeals: mergeArraysById(local, deals) });
+      },
+      syncDoohCampaigns: (campaigns) => {
+        const { doohCampaigns: local } = get();
+        set({ doohCampaigns: mergeArraysById(local, campaigns) });
+      },
 
       // ============================================
       // CUSTOM DEALS STATE (persisted — admin brand deals)
@@ -614,7 +692,10 @@ export const useAppStore = create(
       // ============================================
       adminConversations: [], // Empty — populated from real brand conversations
 
-      setAdminConversations: (convs) => set({ adminConversations: convs }),
+      setAdminConversations: (convs) => {
+        const { adminConversations: local } = get();
+        set({ adminConversations: mergeArraysById(local || [], convs) });
+      },
 
       updateAdminConversation: (convId, updates) => {
         set((state) => ({
