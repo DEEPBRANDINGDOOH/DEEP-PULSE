@@ -573,7 +573,7 @@ export const useAppStore = create(
         const { userScore, userStreak, wallet } = get();
         const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
         if (addr) {
-          import('../services/firebaseService').then(fb => fb.saveUserScore(addr, (userScore || 0) + points, userStreak))
+          import('../services/firebaseService').then(fb => fb.saveUserScore(addr, userScore, userStreak))
             .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
         }
       },
