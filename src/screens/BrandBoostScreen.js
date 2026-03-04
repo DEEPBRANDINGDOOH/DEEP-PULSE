@@ -136,7 +136,15 @@ export default function BrandBoostScreen({ navigation }) {
                     creator: (typeof wallet.publicKey === 'string' ? wallet.publicKey : (wallet.publicKey?.toBase58?.() || wallet.publicKey?.toString?.() || ADMIN_WALLET)),
                     createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                   };
+                  // Save to local store + await Firebase sync
                   useAppStore.getState().addPendingHub(newHub);
+
+                  // [B43] Await Firebase write directly — don't rely on fire-and-forget
+                  const { createHubInFirestore: createHubFb } = require('../services/firebaseService');
+                  const fbResult = await createHubFb(newHub);
+                  if (!fbResult.success) {
+                    console.error('[BrandBoost] Firebase hub sync failed:', fbResult.error || 'unknown');
+                  }
 
                   // Reset form
                   setHubName('');
@@ -150,7 +158,7 @@ export default function BrandBoostScreen({ navigation }) {
 
                   Alert.alert(
                     'Hub Created!',
-                    `Your hub "${createdHubName}" has been submitted for review!\n\nThe admin will approve it shortly. You can manage it from your dashboard now.`,
+                    `Your hub "${createdHubName}" has been submitted for review!${!fbResult.success ? '\n\n⚠️ Cloud sync pending — hub saved locally.' : '\n\n✅ Synced to cloud.'}\n\nThe admin will approve it shortly.`,
                     [{
                       text: 'Go to Dashboard',
                       onPress: () => navigation.navigate('HubDashboard', {

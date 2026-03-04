@@ -163,13 +163,12 @@ export const useAppStore = create(
       pendingHubs: [],
 
       addPendingHub: (hub) => {
-        // 1. Update local state immediately
+        // Update local state immediately
+        // [B43] Firebase sync is now awaited by the calling screen (BrandBoostScreen)
+        // to provide visible user feedback (✅ synced / ⚠️ pending)
         set((state) => ({
           pendingHubs: [hub, ...state.pendingHubs],
         }));
-        // 2. Sync with Firestore
-        createHubInFirestore(hub)
-          .catch(e => logger.warn('[Store] Firestore createHub failed:', e));
       },
 
       approveHub: (hubId) => {

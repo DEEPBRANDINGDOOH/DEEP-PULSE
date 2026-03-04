@@ -164,22 +164,27 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
  * @param {Object} hubData - { id, name, description, category, icon, creator, createdDate }
  */
 export async function createHubInFirestore(hubData) {
-  logger.log(`[FirebaseService] createHub: ${hubData.name}`);
+  logger.log(`[FirebaseService] createHub: ${hubData.name} (id: ${hubData.id})`);
   const db = getDb();
-  if (!db) return { success: false };
+  if (!db) {
+    logger.warn('[FirebaseService] createHub: Firestore not available (db is null)');
+    return { success: false, error: 'Firestore not initialized' };
+  }
 
   try {
-    await db.collection('hubs').doc(hubData.id).set({
+    const docData = {
       ...hubData,
       status: 'PENDING',
       active: false,
       subscribers: 0,
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
-    logger.log('[FirebaseService] Hub created in Firestore:', hubData.id);
+    };
+    logger.log('[FirebaseService] createHub: writing to hubs/' + hubData.id);
+    await db.collection('hubs').doc(hubData.id).set(docData);
+    logger.log('[FirebaseService] Hub created in Firestore OK:', hubData.id);
     return { success: true };
   } catch (error) {
-    logger.warn('[FirebaseService] createHub failed:', error.message);
+    logger.warn('[FirebaseService] createHub FAILED:', error.message, error.code || '');
     return { success: false, error: error.message };
   }
 }
