@@ -55,7 +55,7 @@
 - ✅ `src/services/walletAdapter.js` - **IMPROVED** MWA 2.1.0
 - ✅ `src/services/notificationService.js` - FCM registration + listeners
 - ✅ `src/services/firebaseService.js` - **NEW** Firebase backend wiring (Firestore + Cloud Functions + FCM topics + suspendHub/reactivateHub/deleteHub)
-- ✅ `src/services/programService.js` - Anchor program interactions (21 instructions)
+- ✅ `src/services/programService.js` - Anchor program interactions (23 instructions)
 - ✅ `src/services/transactionHelper.js` - Transaction builder + MWA signing
 - ✅ `src/services/storageService.js` - Firebase Storage uploads (ad creatives + hub logo upload with 500KB/200x200px/format validation)
 
@@ -471,7 +471,7 @@ Complete data persistence overhaul: all user actions now survive navigation. Ad 
 - [ ] Tester le flow MWA complet sur Seeker avec un vrai wallet (SeedVault)
 - [ ] `ADMIN_WALLET` (`89Ez94...`) — s'assurer que c'est le bon wallet de production
 - [ ] Remplacer `isAdmin(__DEV__) return true` par vérification réelle multi-sig
-- [ ] Tester toutes les 21 instructions Anchor avec des vrais tokens
+- [ ] Tester toutes les 23 instructions Anchor avec des vrais tokens
 - [ ] Gérer les erreurs réseau / timeout / insufficient funds en production
 
 ### 6. Sécurité Production

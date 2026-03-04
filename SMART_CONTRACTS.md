@@ -13,7 +13,7 @@
 - [Architecture du programme](#architecture-du-programme)
 - [Token $SKR](#token-skr)
 - [Comptes on-chain (State)](#comptes-on-chain-state)
-- [Instructions (21)](#instructions-21)
+- [Instructions (23)](#instructions-23)
 - [Événements](#événements)
 - [Codes d'erreur](#codes-derreur)
 - [Sécurité](#sécurité)
@@ -45,7 +45,7 @@ Ce document couvre le **programme Anchor on-chain** qui remplace toute la logiqu
 | Atomicité | Pas de CPI entre modules = transactions atomiques garanties |
 | Simplicité | Un seul Program ID à gérer côté frontend |
 | Déploiement | Une seule commande `anchor deploy` |
-| Maintenance | ~21 instructions, taille modérée |
+| Maintenance | ~23 instructions, taille modérée |
 
 ---
 
@@ -78,7 +78,7 @@ deep-pulse-complete/
 ├── programs/deep-pulse/
 │   ├── Cargo.toml                       # Dépendances (anchor-lang 0.30.1, anchor-spl)
 │   └── src/
-│       ├── lib.rs                       # declare_id!, #[program], 21 instructions
+│       ├── lib.rs                       # declare_id!, #[program], 23 instructions
 │       ├── constants.rs                 # Seeds PDA, pricing, scoring, limites
 │       ├── errors.rs                    # 33 codes d'erreur
 │       ├── events.rs                    # 18 événements on-chain

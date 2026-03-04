@@ -221,7 +221,7 @@ Hackathon Submission — March 2026
 | DAO Brand Boost | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Hub Ecosystem | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**WHY WE WIN:** First-mover Solana Mobile | 21 On-Chain Instructions | Full Firebase Backend | Anti-Farming DEEP Score
+**WHY WE WIN:** First-mover Solana Mobile | 23 On-Chain Instructions | Full Firebase Backend | Anti-Farming DEEP Score
 
 ---
 
@@ -231,7 +231,7 @@ Hackathon Submission — March 2026
 
 | Phase | Timeline | Milestones |
 |-------|----------|------------|
-| **1. Hackathon** | Q1 2026 (NOW) | 19 screens, 21 instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, Firebase sync + Helius RPC |
+| **1. Hackathon** | Q1 2026 (NOW) | 19 screens, 23 instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, Firebase sync + Helius RPC |
 | **2. Launch** | Q2 2026 | Mainnet Deploy, Solana dApp Store listing, 500 Beta Users, 10 Launch Partner Hubs |
 | **3. Growth** | Q3 2026 | 25+ Brand Hubs, 10,000+ Active Users, Self-serve Hub Portal, Seeker Device Optimized |
 | **4. Scale** | Q4 2026 | 100K+ Users Target, SDK for developers, DAO Governance Launch, Series A Preparation |
@@ -299,7 +299,7 @@ Hackathon Submission — March 2026
 
 | Quarter | Phase | Key Deliverables |
 |---------|-------|-----------------|
-| **Q1 2026** | HACKATHON (NOW) | 19 Mobile Screens, 21 Anchor Instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, 5 Audits + Firebase Sync + Helius RPC |
+| **Q1 2026** | HACKATHON (NOW) | 19 Mobile Screens, 23 Anchor Instructions, 11 Cloud Functions, Swipe-to-Earn + DEEP Score v2, 5 Audits + Firebase Sync + Helius RPC |
 | **Q2 2026** | LAUNCH | Mainnet Deploy, dApp Store Listing, 500 Beta Users, 10 Partner Hubs, Activate Ad Marketplace |
 | **Q3 2026** | GROWTH | 25+ Brand Hubs, 10,000+ Active Users, Self-serve Hub Portal, Brand Boost Campaigns, Discord Pipeline Active |
 | **Q4 2026** | SCALE | 100,000+ Users, SDK for Developers, DAO Governance Launch, Series A Preparation, Enterprise Offerings |
@@ -341,7 +341,7 @@ Hackathon Submission — March 2026
 - Web: deep-pulse.web.app
 
 **VIEW SOURCE CODE:**
-21 Anchor instructions, 11 Cloud Functions, 19 screens, Firebase sync, Helius RPC.
+23 Anchor instructions, 11 Cloud Functions, 19 screens, Firebase sync, Helius RPC.
 5 security audits, 155+ issues fixed. Open source.
 
 **TRY THE APP:**
@@ -351,7 +351,7 @@ Available via APK download. dApp Store submission planned for Q2 2026.
 Built by DEEP BRANDING for the Solana Mobile Hackathon.
 
 **Tech Stats:**
-- 21 smart contract instructions
+- 23 smart contract instructions
 - 19 mobile screens
 - 11 Cloud Functions (incl. signInWithWallet)
 - 8 on-chain account types
