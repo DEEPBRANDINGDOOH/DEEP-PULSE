@@ -28,6 +28,7 @@ import { createHub } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadHubLogo, validateHubLogo } from '../services/storageService';
+import { createHubInFirestore } from '../services/firebaseService';
 
 export default function BrandBoostScreen({ navigation }) {
   const { wallet } = useAppStore();
@@ -139,9 +140,8 @@ export default function BrandBoostScreen({ navigation }) {
                   // Save to local store + await Firebase sync
                   useAppStore.getState().addPendingHub(newHub);
 
-                  // [B43] Await Firebase write directly — don't rely on fire-and-forget
-                  const { createHubInFirestore: createHubFb } = require('../services/firebaseService');
-                  const fbResult = await createHubFb(newHub);
+                  // [B44] Await Firebase write directly (imported at top level)
+                  const fbResult = await createHubInFirestore(newHub);
                   if (!fbResult.success) {
                     console.error('[BrandBoost] Firebase hub sync failed:', fbResult.error || 'unknown');
                   }
