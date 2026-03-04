@@ -28,7 +28,7 @@ const AD_TYPES = {
       price: PRICING.TOP_AD_SLOT,
       description: 'Premium placement above content feed',
       maxSlots: 8,
-      occupiedSlots: 3, // Mock data
+      occupiedSlots: 0, // Derived from store
       rotationInfo: 'Rotates every 6s among up to 8 advertisers',
       dimensions: '390 x 120 px',
     },
@@ -39,7 +39,7 @@ const AD_TYPES = {
       price: PRICING.BOTTOM_AD_SLOT,
       description: 'Standard placement below content feed',
       maxSlots: 8,
-      occupiedSlots: 1, // Mock data
+      occupiedSlots: 0, // Derived from store
       rotationInfo: 'Rotates every 6s among up to 8 advertisers',
       dimensions: '390 x 100 px',
     },
@@ -52,7 +52,7 @@ const AD_TYPES = {
       price: PRICING.LOCKSCREEN_AD,
       description: 'Full-screen premium overlay (Swipe-to-Earn)',
       maxSlots: 4,
-      occupiedSlots: 2, // Mock data
+      occupiedSlots: 0, // Derived from store
       rotationInfo: 'Fixed display, max 4 advertisers',
       dimensions: '1080 x 1920 px',
       isPremium: true,
@@ -94,11 +94,11 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
   const bottomOccupied = approvedAds.filter(a => a.slotType === 'bottom').length;
   const lockscreenOccupied = approvedAds.filter(a => a.slotType === 'lockscreen').length;
 
-  // Compute occupiedSlots dynamically (without mutating module-level constants)
+  // Compute occupiedSlots dynamically from real store data (no mock offsets)
   const slotOccupancy = {
-    top: Math.min(topOccupied + 3, 8),       // base mock + real
-    bottom: Math.min(bottomOccupied + 1, 8),
-    lockscreen: Math.min(lockscreenOccupied + 2, 4),
+    top: Math.min(topOccupied, 8),
+    bottom: Math.min(bottomOccupied, 8),
+    lockscreen: Math.min(lockscreenOccupied, 4),
   };
 
   const handleSelectType = (slotType) => {

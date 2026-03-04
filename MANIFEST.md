@@ -471,7 +471,7 @@ Complete data persistence overhaul: all user actions now survive navigation. Ad 
 - [ ] Tester le flow MWA complet sur Seeker avec un vrai wallet (SeedVault)
 - [ ] `ADMIN_WALLET` (`89Ez94...`) — s'assurer que c'est le bon wallet de production
 - [ ] Remplacer `isAdmin(__DEV__) return true` par vérification réelle multi-sig
-- [ ] Tester toutes les 23 instructions Anchor avec des vrais tokens
+- [ ] Tester toutes les 21 instructions Anchor avec des vrais tokens
 - [ ] Gérer les erreurs réseau / timeout / insufficient funds en production
 
 ### 6. Sécurité Production

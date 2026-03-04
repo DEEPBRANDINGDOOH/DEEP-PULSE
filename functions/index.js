@@ -336,10 +336,11 @@ exports.sendPushToSubscribers = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "hubId, title, and body are required.");
   }
 
-  // Verify caller owns the hub (or is admin) — MANDATORY check
-  const callerWallet = request.data.walletAddress;
+  // [C10 FIX] Prefer Firebase Auth UID over client-supplied wallet address
+  // When authenticated, request.auth.uid is verified server-side (tamper-proof)
+  const callerWallet = request.auth?.uid || request.data.walletAddress;
   if (!callerWallet) {
-    throw new HttpsError("unauthenticated", "walletAddress is required to send notifications.");
+    throw new HttpsError("unauthenticated", "Authentication or walletAddress is required to send notifications.");
   }
 
   const hubDoc = await db.collection("hubs").doc(hubId).get();
@@ -469,7 +470,9 @@ exports.onAdCreativeUploaded = onObjectFinalized(
  *   - walletAddress: string (admin wallet for auth check)
  */
 exports.moderateAdCreative = onCall(async (request) => {
-  const { creativeId, action, rejectionReason, walletAddress } = request.data;
+  const { creativeId, action, rejectionReason } = request.data;
+  // [C10 FIX] Prefer Firebase Auth UID over client-supplied wallet
+  const walletAddress = request.auth?.uid || request.data.walletAddress;
 
   if (!creativeId || !action) {
     throw new HttpsError("invalid-argument", "creativeId and action are required.");
@@ -550,7 +553,9 @@ exports.moderateAdCreative = onCall(async (request) => {
  *   - metadata: object (optional)
  */
 exports.trackEvent = onCall(async (request) => {
-  const { walletAddress, eventType, hubId, metadata } = request.data;
+  // [C10 FIX] Prefer Firebase Auth UID over client-supplied wallet
+  const walletAddress = request.auth?.uid || request.data.walletAddress;
+  const { eventType, hubId, metadata } = request.data;
 
   if (!walletAddress || !eventType) {
     throw new HttpsError("invalid-argument", "walletAddress and eventType are required.");
@@ -739,7 +744,9 @@ exports.getAnalyticsDashboard = onCall(async (request) => {
  *   - reason: string
  */
 exports.reportContent = onCall(async (request) => {
-  const { walletAddress, contentType, contentId, reason } = request.data;
+  // [C10 FIX] Prefer Firebase Auth UID over client-supplied wallet
+  const walletAddress = request.auth?.uid || request.data.walletAddress;
+  const { contentType, contentId, reason } = request.data;
 
   if (!walletAddress || !contentType || !contentId || !reason) {
     throw new HttpsError(

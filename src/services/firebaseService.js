@@ -150,9 +150,9 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
     }
   }
 
-  // No Firebase available — notification saved locally only
-  logger.log('[FirebaseService] No Firebase — notification local only');
-  return { success: true, notificationId: null };
+  // No Firebase available — notification NOT synced (local only)
+  logger.warn('[FirebaseService] No Firebase — notification local only, NOT synced');
+  return { success: false, notificationId: null, error: 'No Firebase available' };
 }
 
 // =====================================================
@@ -569,7 +569,7 @@ export async function sendGlobalNotification(title, body, walletAddress) {
     }
   }
 
-  return { success: true }; // Always return success for UI
+  return { success: false, error: 'No Firebase available' };
 }
 
 // =====================================================

@@ -29,6 +29,8 @@ export default function ProfileScreen({ navigation }) {
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
   const pendingHubs = useAppStore((state) => state.pendingHubs);
+  const getUnreadCount = useAppStore((state) => state.getUnreadCount);
+  const unreadCount = getUnreadCount ? getUnreadCount() : 0;
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -57,7 +59,7 @@ export default function ProfileScreen({ navigation }) {
     subscriptions: subscribedProjects.length || 0,
     score: storeScore > 0 ? storeScore : 0,
     streakDays: storeStreak || 0,
-    notifications: 0,
+    notifications: unreadCount || 0, // [W7 FIX] Use actual unread count from store
   };
   const tier = getTierFromScore(user.score);
 

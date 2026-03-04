@@ -587,7 +587,6 @@ class ProgramService {
     return this._executeMwaTransaction(async (tx, userPubkey) => {
       const [depositPda] = getDepositPda(userPubkey, depositIndex);
       const [escrowPda] = getEscrowPda(depositPda);
-      const [escrowAuthorityPda] = getEscrowAuthorityPda(depositPda); // [C-02 FIX]
       const [platformConfigPda] = getPlatformConfigPda();
       const [userScorePda] = getUserScorePda(userPubkey);
 
@@ -611,6 +610,7 @@ class ProgramService {
         userScore = userScorePda;
       }
 
+      // [C6 FIX] IDL create_deposit does NOT include escrowAuthority — removed
       const ix = await program.methods
         .createDeposit(typeEnum, contentHash, depositIndex)
         .accounts({
@@ -618,7 +618,6 @@ class ProgramService {
           hub: hubPda,
           deposit: depositPda,
           escrowTokenAccount: escrowPda,
-          escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           platformConfig: platformConfigPda,
           depositorTokenAccount: depositorAta,
           skrMint: SKR_MINT,
@@ -653,7 +652,7 @@ class ProgramService {
       const ix = await program.methods
         .approveFeedback()
         .accounts({
-          resolver: userPubkey,
+          brand: userPubkey, // [C5 FIX] IDL expects 'brand' not 'resolver'
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
@@ -688,7 +687,7 @@ class ProgramService {
       const ix = await program.methods
         .approveTalent()
         .accounts({
-          resolver: userPubkey,
+          brand: userPubkey, // [C5 FIX] IDL expects 'brand' not 'resolver'
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
@@ -726,13 +725,12 @@ class ProgramService {
       const ix = await program.methods
         .rejectDeposit()
         .accounts({
-          resolver: userPubkey,
+          brand: userPubkey, // [C5 FIX] IDL expects 'brand' not 'resolver'
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
           escrowAuthority: escrowAuthorityPda, // [C-02 FIX] Distinct PDA
           treasuryTokenAccount: treasuryAta,
-          depositor: depositorPubkey,
           platformConfig: platformConfigPda,
           tokenProgram: TOKEN_PROGRAM_ID,
         })
@@ -782,7 +780,7 @@ class ProgramService {
           new BN(expiresAt)
         )
         .accounts({
-          resolver: userPubkey,
+          brand: userPubkey, // [C5 FIX] IDL expects 'brand' not 'resolver'
           deposit: depositPda,
           hub: hubPda,
           escrowTokenAccount: escrowPda,
@@ -861,9 +859,15 @@ class ProgramService {
     landingUrlHash,
     durationWeeks
   ) {
+    // [C7 FIX] On-chain SlotType only has Top(0) and Bottom(1).
+    // Lockscreen and rich_notif ads are Firebase-only (no on-chain slot).
+    if (slotType === 'lockscreen' || slotType === 'rich_notif') {
+      logger.log(`[ProgramService] ${slotType} ad is off-chain only — skipping on-chain purchaseAdSlot`);
+      return { success: true, offChain: true };
+    }
+
     return this._executeMwaTransaction(async (tx, userPubkey) => {
-      // [H-06 FIX] Support all three slot types (top, bottom, lockscreen)
-      const slotTypeMap = { top: 0, bottom: 1, lockscreen: 2 };
+      const slotTypeMap = { top: 0, bottom: 1 };
       const slotTypeNum = slotTypeMap[slotType] ?? 1;
       const [adSlotPda] = getAdSlotPda(hubPda, slotTypeNum, slotIndex);
       const [platformConfigPda] = getPlatformConfigPda();
@@ -884,7 +888,7 @@ class ProgramService {
         connection: this.connection,
       });
 
-      const typeEnumMap = { top: { top: {} }, bottom: { bottom: {} }, lockscreen: { lockscreen: {} } };
+      const typeEnumMap = { top: { top: {} }, bottom: { bottom: {} } };
       const typeEnum = typeEnumMap[slotType] || { bottom: {} };
 
       const ix = await program.methods

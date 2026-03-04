@@ -78,7 +78,7 @@ export const useAppStore = create(
             // Increment subscriber count on the hub
             hubs: hubs.map(h => h.id === projectId ? { ...h, subscribers: (h.subscribers || 0) + 1 } : h),
           });
-          get().incrementScore(10); // 10 pts per subscription
+          get().incrementScore(5); // [W6 FIX] Aligned with SCORING_COEFFICIENTS.SUBSCRIBE_HUB (5)
           // 2. Sync with Firebase backend (FCM topic + Firestore)
           // [H-03 FIX] Rollback on failure instead of swallowing errors
           subscribeToHubBackend(projectId, wallet?.publicKey || 'mock_user')
@@ -425,7 +425,7 @@ export const useAppStore = create(
             [hubName]: [feedback, ...(state.hubFeedbacks[hubName] || [])],
           },
         }));
-        get().incrementScore(25); // 25 pts per feedback
+        get().incrementScore(15); // [W6 FIX] Aligned with SCORING_COEFFICIENTS.SEND_FEEDBACK (15)
         // Sync to Firebase
         import('../services/firebaseService').then(fb => fb.saveHubFeedback(hubName, feedback))
           .catch(e => logger.warn('[Store] saveHubFeedback sync failed:', e));
@@ -504,7 +504,7 @@ export const useAppStore = create(
         set((state) => ({
           talentSubmissions: [submission, ...state.talentSubmissions],
         }));
-        get().incrementScore(30); // 30 pts per talent submission
+        get().incrementScore(25); // [W6 FIX] Aligned with SCORING_COEFFICIENTS.TALENT_SUBMIT (25)
         // Sync to Firebase
         import('../services/firebaseService').then(fb => fb.saveTalentSubmission(submission))
           .catch(e => logger.warn('[Store] saveTalentSubmission sync failed:', e));
@@ -886,6 +886,7 @@ export const useAppStore = create(
         adminConversations: state.adminConversations,
         doohCampaigns: state.doohCampaigns,
         readHubNotificationIds: state.readHubNotificationIds,
+        platformPricing: state.platformPricing,
       }),
     }
   )
