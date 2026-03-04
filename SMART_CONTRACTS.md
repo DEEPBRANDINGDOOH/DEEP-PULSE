@@ -13,7 +13,7 @@
 - [Architecture du programme](#architecture-du-programme)
 - [Token $SKR](#token-skr)
 - [Comptes on-chain (State)](#comptes-on-chain-state)
-- [Instructions (23)](#instructions-23)
+- [Instructions (21)](#instructions-21)
 - [Événements](#événements)
 - [Codes d'erreur](#codes-derreur)
 - [Sécurité](#sécurité)
