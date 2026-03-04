@@ -14,6 +14,10 @@
 # React Native Flipper (debug only, stripped in release)
 -dontwarn com.facebook.flipper.**
 
+# Fresco animated-gif (GIF banner support)
+-dontwarn com.facebook.imagepipeline.cache.AnimatedCache
+-dontwarn com.facebook.imagepipeline.cache.AnimationFrames
+
 # Keep JavaScript interface annotations
 -keepclassmembers class * {
     @com.facebook.react.bridge.ReactMethod *;

@@ -393,10 +393,17 @@ export default function AdSlotsScreen({ route, navigation }) {
       }
     }
 
+    // Auto-prefix https:// if user forgot it
+    let cleanLandingUrl = landingUrl?.trim() || '';
+    if (cleanLandingUrl && !cleanLandingUrl.startsWith('http://') && !cleanLandingUrl.startsWith('https://')) {
+      cleanLandingUrl = 'https://' + cleanLandingUrl;
+      setLandingUrl(cleanLandingUrl);
+    }
+
     // Validate landing URL (required in both modes)
-    if (!landingUrl || !landingUrl.trim()) {
+    if (!cleanLandingUrl) {
       errors.push('Landing page URL is required');
-    } else if (!landingUrl.startsWith('https://')) {
+    } else if (!cleanLandingUrl.startsWith('https://')) {
       errors.push('Landing URL must start with https:// for security');
     }
 
@@ -889,7 +896,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 </View>
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text className="text-text font-bold text-lg mb-1">Push Notification Ad</Text>
+                    <Text className="text-text font-bold text-lg mb-1">Rich Notification Ad</Text>
                     <View className="bg-yellow-500/20 rounded-full px-2 py-0.5 ml-2">
                       <Text className="text-yellow-400 text-xs font-bold">SPONSORED</Text>
                     </View>
@@ -1410,7 +1417,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-text font-black text-2xl">
-                  Push Notification Ad
+                  Rich Notification Ad
                 </Text>
                 <TouchableOpacity onPress={() => { setShowRichNotifModal(false); setDuration(1); }}>
                   <Ionicons name="close" size={28} color="#888" />
@@ -1494,7 +1501,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 {/* Image URL (optional) */}
                 <View className="mb-4">
                   <Text className="text-text font-bold text-sm mb-2">
-                    Image URL <Text className="text-text-secondary font-normal">(optional, 512x256 px)</Text>
+                    Image URL <Text className="text-text-secondary font-normal">(optional)</Text>
                   </Text>
                   <TextInput
                     value={richImageUrl}
@@ -1505,6 +1512,9 @@ export default function AdSlotsScreen({ route, navigation }) {
                     autoCapitalize="none"
                     keyboardType="url"
                   />
+                  <Text className="text-text-secondary text-xs mt-1">
+                    390 × 200 px recommended • Max 2 MB • PNG, JPG, GIF, WebP
+                  </Text>
                 </View>
 
                 {/* Duration */}

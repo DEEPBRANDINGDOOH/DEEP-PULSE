@@ -54,8 +54,6 @@ export default function HubDashboardScreen({ navigation, route }) {
   const [linkUrl, setLinkUrl] = useState('');
   const [discordWebhook, setDiscordWebhook] = useState('');
   const [discordConnected, setDiscordConnected] = useState(false);
-  const [discordServer, setDiscordServer] = useState('');
-  const [discordChannel, setDiscordChannel] = useState('');
 
   // Use real data from the store; fallback to mock for legacy hubs
   const sentNotifs = hubNotifications[hubName] || [];
@@ -290,7 +288,7 @@ export default function HubDashboardScreen({ navigation, route }) {
               <Ionicons name="megaphone" size={24} color="#FF9F66" />
               <View className="ml-3">
                 <Text className="text-text font-semibold text-base">Manage Ad Slots</Text>
-                <Text className="text-text-secondary text-xs">In-app, lockscreen & push notification ads</Text>
+                <Text className="text-text-secondary text-xs">In-app, lockscreen & rich notification ads</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
@@ -320,35 +318,10 @@ export default function HubDashboardScreen({ navigation, route }) {
             {!discordConnected ? (
               <>
                 <Text className="text-text-secondary text-xs mb-3">
-                  Connect your Discord server and select the specific section where you post major announcements. Only messages from this section will be forwarded as push notifications to your hub subscribers.
+                  Paste your Discord webhook URL below. Announcements will be forwarded as push notifications to your hub subscribers.
                 </Text>
-
-                <Text className="text-text font-semibold text-xs mb-1">Discord Server (optional)</Text>
-                <TextInput
-                  value={discordServer}
-                  onChangeText={setDiscordServer}
-                  placeholder="e.g. Solana Official, Jupiter Exchange..."
-                  placeholderTextColor="#666"
-                  className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border"
-                />
-
-                <Text className="text-text font-semibold text-xs mb-1">Announcements Section (optional)</Text>
-                <Text className="text-text-secondary text-xs mb-1">
-                  Select the exact category → channel where your major announcements are posted
-                </Text>
-                <TextInput
-                  value={discordChannel}
-                  onChangeText={setDiscordChannel}
-                  placeholder="e.g. Announcements > Major Updates"
-                  placeholderTextColor="#666"
-                  className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-3 border border-border"
-                  autoCapitalize="none"
-                />
 
                 <Text className="text-text font-semibold text-xs mb-1">Webhook URL</Text>
-                <Text className="text-text-secondary text-xs mb-1">
-                  Create a webhook in that specific channel to connect it
-                </Text>
                 <TextInput
                   value={discordWebhook}
                   onChangeText={setDiscordWebhook}
@@ -359,23 +332,23 @@ export default function HubDashboardScreen({ navigation, route }) {
                   autoCapitalize="none"
                 />
                 <Text className="text-text-secondary text-xs mb-3 italic">
-                  Go to your Discord Server → Settings → Integrations → Webhooks → New Webhook → Select your announcements channel → Copy URL
+                  Discord Server → Settings → Integrations → Webhooks → New Webhook → Select announcements channel → Copy URL
                 </Text>
                 <TouchableOpacity
                   className="bg-indigo-600 rounded-xl py-3"
                   onPress={() => {
                     if (!discordWebhook.trim() || !isValidDiscordWebhook(discordWebhook)) {
-                      Alert.alert('Invalid Webhook', 'Please paste a valid Discord webhook URL from your announcements channel.');
+                      Alert.alert('Invalid Webhook', 'Please paste a valid Discord webhook URL.');
                       return;
                     }
                     Alert.alert(
                       'Connect Discord',
-                      `Connect ${discordServer || 'your Discord server'} to "${hubName}"?\n\nAnnouncements will be forwarded as push notifications to your ${stats.subscribers.toLocaleString()} subscribers.`,
+                      `Connect Discord webhook to "${hubName}"?\n\nAnnouncements will be forwarded as push notifications to your ${stats.subscribers.toLocaleString()} subscribers.`,
                       [
                         { text: 'Cancel', style: 'cancel' },
                         { text: 'Connect', onPress: () => {
                           setDiscordConnected(true);
-                          Alert.alert('Connected!', `${discordServer} → ${hubName} pipeline is live!\n\nYour ${stats.subscribers.toLocaleString()} subscribers will receive push notifications from "${discordChannel}".`);
+                          Alert.alert('Connected!', `Discord Webhook → ${hubName} is live!\n\nYour ${stats.subscribers.toLocaleString()} subscribers will receive push notifications.`);
                         }},
                       ]
                     );
@@ -383,7 +356,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                 >
                   <View className="flex-row items-center justify-center">
                     <Ionicons name="logo-discord" size={18} color="#fff" />
-                    <Text className="text-white font-bold ml-2">Connect Channel</Text>
+                    <Text className="text-white font-bold ml-2">Connect Webhook</Text>
                   </View>
                 </TouchableOpacity>
               </>
@@ -393,25 +366,23 @@ export default function HubDashboardScreen({ navigation, route }) {
                   <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
                   <View className="ml-2 flex-1">
                     <Text className="text-green-400 font-semibold">
-                      {discordServer} → {hubName}
+                      Discord Webhook → {hubName}
                     </Text>
                     <Text className="text-green-400/70 text-xs">
-                      {discordChannel}
+                      Announcements forwarded as push notifications
                     </Text>
                   </View>
                 </View>
                 <Text className="text-text-secondary text-xs mb-3">
-                  Major announcements from "{discordChannel}" are automatically forwarded as push notifications to your {stats.subscribers.toLocaleString()} subscribers.
+                  Push notifications are sent to your {stats.subscribers.toLocaleString()} subscribers whenever a message is posted via the webhook.
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
-                    Alert.alert('Disconnect Discord', `Stop forwarding from "${discordServer}" → ${discordChannel}?`, [
+                    Alert.alert('Disconnect Discord', `Stop forwarding webhook → ${hubName}?`, [
                       { text: 'Cancel', style: 'cancel' },
                       { text: 'Disconnect', style: 'destructive', onPress: () => {
                         setDiscordConnected(false);
                         setDiscordWebhook('');
-                        setDiscordServer('');
-                        setDiscordChannel('');
                       }},
                     ]);
                   }}
