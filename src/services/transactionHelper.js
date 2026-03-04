@@ -10,7 +10,7 @@ import { Alert } from 'react-native';
 import { programService } from './programService';
 import { walletAdapter } from './walletAdapter';
 import { notificationService } from './notificationService';
-import { PRICING, DEPOSITS, USE_DEVNET } from '../config/constants';
+import { PRICING, DEPOSITS, MOCK_TRANSACTIONS } from '../config/constants';
 import { logger } from '../utils/security';
 
 // ============================================
@@ -37,8 +37,8 @@ export const isWalletConnected = () => _walletPublicKey !== null;
  * @returns {Promise<boolean>} true if balance is sufficient (or check skipped)
  */
 export const checkSkrBalance = async (requiredAmount, actionName) => {
-  // In devnet mode, always skip balance check ($SKR token doesn't exist on devnet)
-  if (USE_DEVNET) return true;
+  // [B46] Skip balance check when transactions are mocked (program not on mainnet yet)
+  if (MOCK_TRANSACTIONS) return true;
   try {
     const { PublicKey } = require('@solana/web3.js');
     const pubkey = typeof _walletPublicKey === 'string'
@@ -73,10 +73,10 @@ export const checkSkrBalance = async (requiredAmount, actionName) => {
 export const executeTransaction = async (actionName, txFn, options = {}) => {
   const { onSuccess, onError, requiresWallet = true } = options;
 
-  // In devnet mode, always return mock success ($SKR token doesn't exist on devnet)
+  // [B46] Mock transactions when program not deployed on-chain
   // Wallet connection is real (MWA), but $SKR transactions are simulated
-  if (USE_DEVNET) {
-    logger.log(`[Transaction] ${actionName} — devnet mock (no $SKR on devnet)`);
+  if (MOCK_TRANSACTIONS) {
+    logger.log(`[Transaction] ${actionName} — mock (program not deployed on-chain yet)`);
     const mockResult = {
       signature: `devnet_mock_${actionName.replace(/\s/g, '_')}_${Date.now()}`,
       message: `${actionName} completed (devnet simulation)`,

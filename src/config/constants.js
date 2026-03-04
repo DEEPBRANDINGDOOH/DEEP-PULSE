@@ -22,20 +22,28 @@ export const APP_IDENTITY = {
 // ========================================
 
 /**
- * HACKATHON FLAG: Set to true for devnet testing, false for mainnet production.
- * This overrides __DEV__ which is always false in release bundles.
+ * [B46] USE_DEVNET is now automatic:
+ *   - Debug APK (Metro --dev true)  → __DEV__=true  → devnet
+ *   - Release APK (Metro --dev false) → __DEV__=false → mainnet
  *
  * MAINNET DEPLOYMENT CHECKLIST:
  * 1. Deploy Anchor program to mainnet-beta: `anchor deploy --provider.cluster mainnet`
  * 2. Update PROGRAM_ID below with the mainnet program address
  * 3. Update SKR_MINT if the mainnet token mint is different
- * 4. Set USE_DEVNET = false
+ * 4. Set MOCK_TRANSACTIONS = false (below)
  * 5. Copy firestore.rules.mainnet → firestore.rules & storage.rules.mainnet → storage.rules
  * 6. Deploy strict Firebase rules: `firebase deploy --only firestore:rules,storage`
  * 7. Rebuild APKs: `./gradlew clean assembleRelease`
  * 8. Test with a real wallet + real SOL on mainnet
  */
-export const USE_DEVNET = true;
+export const USE_DEVNET = __DEV__;
+
+/**
+ * MOCK_TRANSACTIONS: Set to false ONLY after deploying the Anchor program to mainnet.
+ * When true, all $SKR transactions return mock signatures (program not on-chain yet).
+ * This is independent of USE_DEVNET — allows mainnet config with mocked transactions.
+ */
+export const MOCK_TRANSACTIONS = true;
 
 // SECURITY NOTE: Helius API key is hardcoded for hackathon demo.
 // TODO (mainnet): Move to .env / react-native-config and rotate the key.
