@@ -29,8 +29,8 @@ export default function ProfileScreen({ navigation }) {
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
   const pendingHubs = useAppStore((state) => state.pendingHubs);
-  const getUnreadCount = useAppStore((state) => state.getUnreadCount);
-  const unreadCount = getUnreadCount ? getUnreadCount() : 0;
+  const getUnreadHubNotifCount = useAppStore((state) => state.getUnreadHubNotifCount); // [B42] Use hub notif count, consistent with HomeScreen
+  const unreadCount = getUnreadHubNotifCount ? getUnreadHubNotifCount() : 0;
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);

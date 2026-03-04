@@ -73,7 +73,7 @@ export default function SwipeEarnScreen({ navigation }) {
 
     try {
       // Merge approved lockscreen ads from store with mock data
-      const storeLocksreenAds = approvedAds
+      const storeLockscreenAds = approvedAds
         .filter(ad => ad.slotType === 'lockscreen' && (ad.status === 'approved' || ad.status === 'APPROVED'))
         .map(ad => ({
           contentUrl: ad.imageUrl || ad.contentUrl,
@@ -90,13 +90,13 @@ export default function SwipeEarnScreen({ navigation }) {
       }));
 
       // Store ads first, then mocks as fallback
-      const lockscreenAds = storeLocksreenAds.length > 0
-        ? [...storeLocksreenAds, ...mockLockscreenAds]
+      const lockscreenAds = storeLockscreenAds.length > 0
+        ? [...storeLockscreenAds, ...mockLockscreenAds]
         : mockLockscreenAds;
 
       if (lockscreenAds.length > 0) {
         const queued = await lockScreenService.pushAdQueue(lockscreenAds);
-        logger.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module (${storeLocksreenAds.length} approved + ${mockLockscreenAds.length} mock)`);
+        logger.log(`[SwipeEarn] Pushed ${queued} lockscreen ads to native module (${storeLockscreenAds.length} approved + ${mockLockscreenAds.length} mock)`);
       }
     } catch (e) {
       logger.warn('[SwipeEarn] Failed to push ad queue:', e);

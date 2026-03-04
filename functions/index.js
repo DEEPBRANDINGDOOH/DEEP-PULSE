@@ -673,8 +673,7 @@ exports.trackEvent = onCall(async (request) => {
  *   - recentActivity: last 24h event count
  */
 exports.getAnalyticsDashboard = onCall(async (request) => {
-  const callerUid = request.auth?.uid || request.data?.walletAddress; // [B41-C10] Prefer verified auth
-  const walletAddress = callerUid || request.data?.walletAddress;
+  const walletAddress = request.auth?.uid || request.data?.walletAddress; // [B41-C10] Prefer verified auth
 
   // Admin check (optional: allow any user to see limited stats)
   const adminOnly = walletAddress && isAdmin(walletAddress);

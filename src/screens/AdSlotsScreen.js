@@ -621,7 +621,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    switch ((status || '').toUpperCase()) { // [B42] Case-insensitive — handles 'approved' and 'APPROVED'
       case 'APPROVED': return '#4CAF50';
       case 'PENDING_REVIEW': return '#FF9F66';
       case 'REJECTED': return '#f44336';
@@ -630,7 +630,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   };
 
   const getStatusLabel = (status) => {
-    switch (status) {
+    switch ((status || '').toUpperCase()) { // [B42] Case-insensitive
       case 'APPROVED': return 'Live';
       case 'PENDING_REVIEW': return 'Pending Review';
       case 'REJECTED': return 'Rejected';
@@ -1641,8 +1641,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                               setMyAds(prev => [...prev, {
                                 id: `my_rich_${Date.now()}`,
                                 slotType: 'rich_notif',
-                                imageUrl: richImageUrl.trim() || null,
-                                landingUrl: richCtaUrl.trim() || null,
+                                imageUrl: cleanRichImageUrl || null, // [B42] Use cleaned URL (not stale closure)
+                                landingUrl: cleanRichCtaUrl || null, // [B42] Use cleaned URL
                                 status: 'PENDING_REVIEW',
                                 remainingDays: duration * 7,
                                 totalWeeks: duration,
@@ -1663,8 +1663,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                                   : 'Your Wallet',
                                 hubName: hubName,
                                 slotType: 'rich_notif',
-                                imageUrl: richImageUrl.trim() || null,
-                                landingUrl: richCtaUrl.trim() || null,
+                                imageUrl: cleanRichImageUrl || null, // [B42] Use cleaned URL
+                                landingUrl: cleanRichCtaUrl || null, // [B42] Use cleaned URL
                                 duration: duration,
                                 totalCost: totalCost,
                                 status: 'pending_review', // [B41] Normalize — Firestore uses 'pending_review'
