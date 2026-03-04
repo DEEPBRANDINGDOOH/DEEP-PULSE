@@ -673,7 +673,8 @@ exports.trackEvent = onCall(async (request) => {
  *   - recentActivity: last 24h event count
  */
 exports.getAnalyticsDashboard = onCall(async (request) => {
-  const { walletAddress } = request.data || {};
+  const callerUid = request.auth?.uid || request.data?.walletAddress; // [B41-C10] Prefer verified auth
+  const walletAddress = callerUid || request.data?.walletAddress;
 
   // Admin check (optional: allow any user to see limited stats)
   const adminOnly = walletAddress && isAdmin(walletAddress);
@@ -1008,7 +1009,7 @@ exports.cleanExpiredBoostVaults = onSchedule(
       return;
     }
 
-    const batch = db.batch();
+    let batch = db.batch();
     let count = 0;
 
     for (const doc of expiredSnap.docs) {
@@ -1021,6 +1022,7 @@ exports.cleanExpiredBoostVaults = onSchedule(
 
       if (count % 450 === 0) {
         await batch.commit();
+        batch = db.batch(); // [B41] New batch after commit — cannot reuse
       }
     }
 

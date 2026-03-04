@@ -571,7 +571,7 @@ class ProgramService {
           user: userPubkey,
           hub: hubPda,
           subscription: subscriptionPda,
-          systemProgram: SystemProgram.programId,
+          // [B41] Removed systemProgram — not in IDL for unsubscribe_from_hub
         })
         .instruction();
 
@@ -790,11 +790,10 @@ class ProgramService {
           daoVault: vaultPda,
           vaultTokenAccount: vaultTokenPda,
           vaultTokenAuthority: vaultAuthorityPda, // [C-01 FIX] Distinct PDA
-          platformConfig: platformConfigPda,
+          // [B41] Removed platformConfig & rent — not in IDL for approve_dao_proposal
           skrMint: SKR_MINT,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
-          rent: web3.SYSVAR_RENT_PUBKEY,
         })
         .instruction();
 

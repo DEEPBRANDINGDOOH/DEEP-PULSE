@@ -15,11 +15,11 @@ import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore();
+  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
-  const unreadCount = getUnreadCount();
+  const unreadCount = getUnreadHubNotifCount(); // [B41] Badge shows real hub notification count
 
   // Load notifications from store (synced from Firebase on app start)
   // Exclude 'Sponsored' hub — those ads are injected separately via approvedAds to avoid duplicates
@@ -116,6 +116,7 @@ export default function HomeScreen({ navigation }) {
   const [submitting, setSubmitting] = useState(false);
 
   const submitFeedback = async () => {
+    if (submitting) return; // [B41] Guard against double-submit
     if (!checkRateLimit('submit_feedback')) return;
     if (!feedbackText.trim()) {
       Alert.alert('Error', 'Please write your feedback before submitting.');

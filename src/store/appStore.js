@@ -402,12 +402,12 @@ export const useAppStore = create(
         const { approvedAds, pendingAdCreatives } = get();
         const ad = approvedAds.find(a => a.id === adId);
         if (ad) {
-          const updatedAd = { ...ad, ...updates, status: 'pending', editedAt: new Date().toISOString() };
+          const updatedAd = { ...ad, ...updates, status: 'pending_review', editedAt: new Date().toISOString() }; // [B41] Normalize status
           set({
             approvedAds: approvedAds.filter(a => a.id !== adId),
             pendingAdCreatives: [updatedAd, ...pendingAdCreatives],
           });
-          // Sync to Firestore (update status back to 'pending' so admin sees it)
+          // Sync to Firestore (update status back to 'pending_review' so admin sees it)
           import('../services/firebaseService').then(fb => fb.saveAdCreative(updatedAd))
             .catch(e => logger.warn('[Store] resubmitAdForReview sync failed:', e));
         }
@@ -491,7 +491,10 @@ export const useAppStore = create(
 
       getUnreadHubNotifCount: () => {
         const { hubNotifications, readHubNotificationIds } = get();
-        const allNotifs = Object.values(hubNotifications || {}).flat();
+        // [B41] Exclude 'Sponsored' pseudo-hub — those are injected ads, not real notifications
+        const allNotifs = Object.entries(hubNotifications || {})
+          .filter(([hubName]) => hubName !== 'Sponsored')
+          .flatMap(([, notifs]) => notifs);
         return allNotifs.filter(n => !readHubNotificationIds.includes(n.id)).length;
       },
 

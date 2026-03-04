@@ -510,7 +510,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 landingUrl: cleanLandingUrl,
                 duration: duration,
                 totalCost: totalCost,
-                status: 'PENDING',
+                status: 'pending_review', // [B41] Normalize — Firestore uses 'pending_review'
                 submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
               });
 
@@ -1615,11 +1615,22 @@ export default function AdSlotsScreen({ route, navigation }) {
                       Alert.alert('Missing Fields', 'Please fill in at least the title and message.');
                       return;
                     }
+                    // [B41] Auto-prefix https:// on URLs if missing
+                    let cleanRichCtaUrl = richCtaUrl.trim();
+                    if (cleanRichCtaUrl && !cleanRichCtaUrl.startsWith('http://') && !cleanRichCtaUrl.startsWith('https://')) {
+                      cleanRichCtaUrl = 'https://' + cleanRichCtaUrl;
+                      setRichCtaUrl(cleanRichCtaUrl);
+                    }
+                    let cleanRichImageUrl = richImageUrl.trim();
+                    if (cleanRichImageUrl && !cleanRichImageUrl.startsWith('http://') && !cleanRichImageUrl.startsWith('https://')) {
+                      cleanRichImageUrl = 'https://' + cleanRichImageUrl;
+                      setRichImageUrl(cleanRichImageUrl);
+                    }
                     const totalCost = PRICING.PUSH_NOTIFICATION_AD * duration * (1 - calculateDiscount(duration));
                     setIsSubmittingRich(true);
                     Alert.alert(
                       'Confirm Campaign',
-                      `Purchase push notification campaign?\n\nTitle: ${richTitle}\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYour notification will be submitted for admin review.`,
+                      `Purchase Rich Notification Ad campaign?\n\nTitle: ${richTitle}\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYour ad will be submitted for admin review.`,
                       [
                         { text: 'Cancel', style: 'cancel', onPress: () => setIsSubmittingRich(false) },
                         {
@@ -1656,18 +1667,19 @@ export default function AdSlotsScreen({ route, navigation }) {
                                 landingUrl: richCtaUrl.trim() || null,
                                 duration: duration,
                                 totalCost: totalCost,
-                                status: 'PENDING',
+                                status: 'pending_review', // [B41] Normalize — Firestore uses 'pending_review'
                                 submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
                                 richTitle: richTitle.trim(),
                                 richBody: richBody.trim(),
                                 richCtaLabel: richCtaLabel.trim(),
+                                richCtaUrl: richCtaUrl.trim() || null, // [B41] Was missing — admin needs CTA URL
                               });
 
                               setIsSubmittingRich(false);
                               setShowRichNotifModal(false);
                               Alert.alert(
                                 'Campaign Submitted!',
-                                `Your push notification ad has been submitted for admin review.\n\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYou will be notified once approved.`,
+                                `Your Rich Notification Ad has been submitted for admin review.\n\nDuration: ${duration} week${duration > 1 ? 's' : ''}\nCost: ${totalCost.toLocaleString()} $SKR\n\nYou will be notified once approved.`,
                               );
                             }, 1500);
                           },
