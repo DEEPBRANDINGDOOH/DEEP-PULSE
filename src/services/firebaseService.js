@@ -702,7 +702,7 @@ export async function saveAdCreative(ad) {
   try {
     await db.collection('adCreatives').doc(ad.id).set({
       ...ad,
-      status: 'pending',
+      status: 'pending_review',
       createdAt: firestore.FieldValue.serverTimestamp(),
     });
     return { success: true };
@@ -716,7 +716,7 @@ export async function fetchPendingAdCreatives() {
   const db = getDb();
   if (!db) return null;
   try {
-    const snapshot = await db.collection('adCreatives').where('status', '==', 'pending').get();
+    const snapshot = await db.collection('adCreatives').where('status', '==', 'pending_review').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     logger.warn('[FirebaseService] fetchPendingAdCreatives failed:', error.message);

@@ -453,8 +453,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                 const imageUrlHash = finalImageUrl
                   ? await programService.hashContent(finalImageUrl)
                   : Array.from(new Uint8Array(32));
-                const landingUrlHash = landingUrl
-                  ? await programService.hashContent(landingUrl)
+                const landingUrlHash = cleanLandingUrl
+                  ? await programService.hashContent(cleanLandingUrl)
                   : Array.from(new Uint8Array(32));
                 const result = await purchaseAdSlotTx(
                   hubId,
@@ -487,7 +487,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 id: adId,
                 slotType: selectedSlot,
                 imageUrl: finalImageUrl,
-                landingUrl: landingUrl.trim(),
+                landingUrl: cleanLandingUrl,
                 status: 'PENDING_REVIEW',
                 remainingDays: duration * 7,
                 totalWeeks: duration,
@@ -507,7 +507,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 hubName: hubName,
                 slotType: selectedSlot,
                 imageUrl: finalImageUrl,
-                landingUrl: landingUrl.trim(),
+                landingUrl: cleanLandingUrl,
                 duration: duration,
                 totalCost: totalCost,
                 status: 'PENDING',

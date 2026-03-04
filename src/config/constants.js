@@ -37,10 +37,14 @@ export const APP_IDENTITY = {
  */
 export const USE_DEVNET = true;
 
+// SECURITY NOTE: Helius API key is hardcoded for hackathon demo.
+// TODO (mainnet): Move to .env / react-native-config and rotate the key.
+const HELIUS_API_KEY = '4adf30fe-e315-44fa-b0e2-168416d726fc';
+
 export const SOLANA_CONFIG = {
   NETWORK: USE_DEVNET ? 'devnet' : 'mainnet-beta',
-  RPC_ENDPOINT_DEV: 'https://devnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
-  RPC_ENDPOINT_PROD: 'https://mainnet.helius-rpc.com/?api-key=4adf30fe-e315-44fa-b0e2-168416d726fc',
+  RPC_ENDPOINT_DEV: `https://devnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`,
+  RPC_ENDPOINT_PROD: `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`,
 
   // DEEP Pulse Program ID (single monolithic Anchor program)
   // Replace after `anchor deploy` with the actual deployed program ID

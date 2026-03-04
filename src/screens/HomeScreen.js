@@ -22,13 +22,17 @@ export default function HomeScreen({ navigation }) {
   const unreadCount = getUnreadCount();
 
   // Load notifications from store (synced from Firebase on app start)
-  const storeNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
-    ...n,
-    hubIcon: n.hubIcon || 'apps',
-    reactions: n.reactions || 0,
-    comments: n.comments || 0,
-    isNew: true,
-  }));
+  // Exclude 'Sponsored' hub — those ads are injected separately via approvedAds to avoid duplicates
+  const storeNotifs = Object.entries(hubNotifications || {})
+    .filter(([hubName]) => hubName !== 'Sponsored')
+    .flatMap(([, notifs]) => notifs)
+    .map(n => ({
+      ...n,
+      hubIcon: n.hubIcon || 'apps',
+      reactions: n.reactions || 0,
+      comments: n.comments || 0,
+      isNew: true,
+    }));
 
   // Inject approved Rich Notification Ads into feed with SPONSORED badge
   const sponsoredNotifs = (approvedAds || [])
@@ -58,13 +62,17 @@ export default function HomeScreen({ navigation }) {
 
   // Re-sync when brand sends new notifications or new sponsored ads are approved
   useEffect(() => {
-    const freshStoreNotifs = Object.values(hubNotifications || {}).flat().map(n => ({
-      ...n,
-      hubIcon: n.hubIcon || 'apps',
-      reactions: n.reactions || 0,
-      comments: n.comments || 0,
-      isNew: true,
-    }));
+    // Exclude 'Sponsored' hub — those ads are injected separately via approvedAds to avoid duplicates
+    const freshStoreNotifs = Object.entries(hubNotifications || {})
+      .filter(([hubName]) => hubName !== 'Sponsored')
+      .flatMap(([, notifs]) => notifs)
+      .map(n => ({
+        ...n,
+        hubIcon: n.hubIcon || 'apps',
+        reactions: n.reactions || 0,
+        comments: n.comments || 0,
+        isNew: true,
+      }));
     const freshSponsored = (approvedAds || [])
       .filter(ad => ad.slotType === 'rich_notif' && (ad.status === 'approved' || ad.status === 'APPROVED'))
       .map(ad => ({

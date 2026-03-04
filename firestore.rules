@@ -166,9 +166,11 @@ service cloud.firestore {
     }
 
     // ── User Scores ──
+    // Read: anyone can view scores (leaderboard)
+    // Write: only via incrementScore Cloud Function (client writes go through Firebase callable)
     match /userScores/{walletAddress} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAuthenticated() && walletAddress == request.auth.uid;
     }
 
     // ── Deny everything else ──

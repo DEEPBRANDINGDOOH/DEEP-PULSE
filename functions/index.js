@@ -886,7 +886,7 @@ exports.dailyScoreUpdate = onSchedule(
 
     const now = new Date();
     const scores = []; // { walletAddress, score, tier }
-    const batch = db.batch();
+    let batch = db.batch();
     let processedCount = 0;
 
     for (const doc of analyticsSnap.docs) {
@@ -934,14 +934,15 @@ exports.dailyScoreUpdate = onSchedule(
 
       processedCount++;
 
-      // Firestore batch limit is 500 writes
+      // Firestore batch limit is 500 writes — commit and create a NEW batch
       if (processedCount % 450 === 0) {
         await batch.commit();
+        batch = db.batch(); // Create fresh batch (cannot reuse after commit)
         logger.info(`Committed batch at ${processedCount} users`);
       }
     }
 
-    // Commit remaining
+    // Commit remaining writes in the current batch
     if (processedCount % 450 !== 0) {
       await batch.commit();
     }
