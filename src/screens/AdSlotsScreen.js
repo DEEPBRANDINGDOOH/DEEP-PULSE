@@ -248,7 +248,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         slotType: a.slotType,
         imageUrl: a.imageUrl,
         landingUrl: a.landingUrl,
-        status: (a.status === 'PENDING' || a.status === 'pending') ? 'PENDING_REVIEW' : a.status,
+        status: (a.status === 'PENDING' || a.status === 'pending' || a.status === 'pending_review') ? 'PENDING_REVIEW' : (a.status || '').toUpperCase(),
         remainingDays: (a.duration || 1) * 7,
         totalWeeks: a.duration || 1,
         impressions: 0,
@@ -375,6 +375,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   };
 
   const handleConfirmPurchase = async () => {
+    if (!checkRateLimit('ad_purchase', 10000)) return;
     const errors = [];
 
     // Validate image — either uploaded file or URL required
@@ -907,7 +908,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 </View>
               </View>
               <View className="bg-success/20 px-3 py-1 rounded-lg">
-                <Text className="text-success font-bold text-sm">{PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week</Text>
+                <Text className="text-success font-bold text-sm">{(platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD).toLocaleString()} $SKR/week</Text>
               </View>
             </View>
 
@@ -985,7 +986,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               </View>
               {[
                 ['Title + Message + Link', 'Title + Body + CTA + Image'],
-                ['Included in hub plan', `${PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week`],
+                ['Included in hub plan', `${(platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD).toLocaleString()} $SKR/week`],
                 ['Manual send', '1 push/day guaranteed'],
                 ['Basic delivery', 'Full analytics dashboard'],
               ].map(([free, rich], i) => (
@@ -1036,7 +1037,7 @@ export default function AdSlotsScreen({ route, navigation }) {
               activeOpacity={0.7}
             >
               <Text className="text-white font-bold text-center">
-                <Ionicons name="create" size={18} /> Create Campaign ({PRICING.PUSH_NOTIFICATION_AD.toLocaleString()} $SKR/week)
+                <Ionicons name="create" size={18} /> Create Campaign ({(platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD).toLocaleString()} $SKR/week)
               </Text>
             </TouchableOpacity>
           </View>
@@ -1588,13 +1589,13 @@ export default function AdSlotsScreen({ route, navigation }) {
                 <View className="bg-success/10 rounded-xl p-4 border border-success/30 mb-4">
                   <View className="flex-row justify-between mb-2">
                     <Text className="text-text-secondary">Base Price</Text>
-                    <Text className="text-text font-semibold">{(PRICING.PUSH_NOTIFICATION_AD * duration).toLocaleString()} $SKR</Text>
+                    <Text className="text-text font-semibold">{((platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD) * duration).toLocaleString()} $SKR</Text>
                   </View>
                   {calculateDiscount(duration) > 0 && (
                     <View className="flex-row justify-between mb-2">
                       <Text className="text-success">Discount ({(calculateDiscount(duration) * 100).toFixed(0)}%)</Text>
                       <Text className="text-success font-semibold">
-                        -{(PRICING.PUSH_NOTIFICATION_AD * duration * calculateDiscount(duration)).toLocaleString()} $SKR
+                        -{((platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD) * duration * calculateDiscount(duration)).toLocaleString()} $SKR
                       </Text>
                     </View>
                   )}
@@ -1602,7 +1603,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                     <View className="flex-row justify-between items-center">
                       <Text className="text-success font-bold text-lg">Total</Text>
                       <Text className="text-success font-black text-lg">
-                        {(PRICING.PUSH_NOTIFICATION_AD * duration * (1 - calculateDiscount(duration))).toLocaleString()} $SKR
+                        {((platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD) * duration * (1 - calculateDiscount(duration))).toLocaleString()} $SKR
                       </Text>
                     </View>
                   </View>
@@ -1626,7 +1627,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       cleanRichImageUrl = 'https://' + cleanRichImageUrl;
                       setRichImageUrl(cleanRichImageUrl);
                     }
-                    const totalCost = PRICING.PUSH_NOTIFICATION_AD * duration * (1 - calculateDiscount(duration));
+                    const totalCost = (platformPricing?.pushNotificationAd || PRICING.PUSH_NOTIFICATION_AD) * duration * (1 - calculateDiscount(duration));
                     setIsSubmittingRich(true);
                     Alert.alert(
                       'Confirm Campaign',
@@ -1672,7 +1673,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                                 richTitle: richTitle.trim(),
                                 richBody: richBody.trim(),
                                 richCtaLabel: richCtaLabel.trim(),
-                                richCtaUrl: richCtaUrl.trim() || null, // [B41] Was missing — admin needs CTA URL
+                                richCtaUrl: cleanRichCtaUrl || null, // [B41] Use cleaned URL (not stale closure)
                               });
 
                               setIsSubmittingRich(false);

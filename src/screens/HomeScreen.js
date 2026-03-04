@@ -102,6 +102,11 @@ export default function HomeScreen({ navigation }) {
 
   const handleAdClick = (data) => {
     AdRotationManager.trackClick(data);
+    // [B45] Open landing URL on ad click
+    if (data?.landingUrl) {
+      const { safeOpenURL } = require('../utils/security');
+      safeOpenURL(data.landingUrl, 'ad');
+    }
   };
 
   const handleSendFeedback = (notification) => {
@@ -300,7 +305,7 @@ export default function HomeScreen({ navigation }) {
                   {/* Content */}
                   <Text className="text-text font-bold text-base mb-1.5" style={{ letterSpacing: -0.2 }}>{notif.title}</Text>
                   <Text className="text-text-secondary text-sm mb-3 leading-5" numberOfLines={2}>
-                    {notif.message}
+                    {notif.message || notif.body}
                   </Text>
 
                   {/* Rich Notification Image */}
@@ -390,7 +395,7 @@ export default function HomeScreen({ navigation }) {
                     <Text className="text-primary font-bold text-sm ml-1.5">Feedback</Text>
                     <View className="ml-1.5 bg-primary/20 rounded-md px-1.5 py-0.5">
                       <Text className="text-primary font-black" style={{ fontSize: 9 }}>
-                        {(() => { const count = getHubFeedbacks(notif.hubName).filter(fb => fb.notificationId === notif.id).length; return count > 0 ? count : feedbackDepositAmount; })()}
+                        {(() => { const count = getHubFeedbacks(notif.hubName).filter(fb => fb.notificationId === notif.id).length; return count > 0 ? count : `${feedbackDepositAmount} $SKR`; })()}
                       </Text>
                     </View>
                     {getHubFeedbacks(notif.hubName).filter(fb => fb.notificationId === notif.id).length > 0 && (

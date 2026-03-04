@@ -83,7 +83,10 @@ function handleNotificationNavigation(data) {
         });
       } else if (data.screen) {
         // Generic screen navigation from notification payload
-        navigationRef.navigate(data.screen, data.params ? JSON.parse(data.params) : {});
+        // [B45] Guard against malformed JSON in notification params
+        let parsedParams = {};
+        try { parsedParams = data.params ? JSON.parse(data.params) : {}; } catch (_) {}
+        navigationRef.navigate(data.screen, parsedParams);
       } else {
         // Default: go to Home
         navigationRef.navigate('MainApp', { screen: 'Home' });

@@ -571,13 +571,18 @@ export const useAppStore = create(
         set((state) => ({
           userScore: (state.userScore || 0) + points,
         }));
-        // Sync score to Firebase (debounced — runs after each increment)
-        const { userScore, userStreak, wallet } = get();
-        const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
-        if (addr) {
-          import('../services/firebaseService').then(fb => fb.saveUserScore(addr, userScore, userStreak))
-            .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
-        }
+        // [B45] Debounce Firebase sync — wait 2s after last increment
+        if (get()._scoreDebounceTimer) clearTimeout(get()._scoreDebounceTimer);
+        const timer = setTimeout(() => {
+          const { userScore, userStreak, wallet } = get();
+          const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
+          if (addr) {
+            import('../services/firebaseService').then(fb => fb.saveUserScore(addr, userScore, userStreak))
+              .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
+          }
+          set({ _scoreDebounceTimer: null });
+        }, 2000);
+        set({ _scoreDebounceTimer: timer });
       },
 
       setUserScore: (score) => {

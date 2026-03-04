@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Clipboard, Switch, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Switch, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
@@ -64,7 +64,7 @@ export default function ProfileScreen({ navigation }) {
   const tier = getTierFromScore(user.score);
 
   const handleCopyWallet = () => {
-    Clipboard.setString(fullWalletAddress);
+    try { require('react-native').Clipboard?.setString(fullWalletAddress); } catch (_) {}
     Alert.alert('Copied!', `Wallet address copied to clipboard.`);
   };
 

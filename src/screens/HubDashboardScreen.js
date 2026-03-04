@@ -185,6 +185,12 @@ export default function HubDashboardScreen({ navigation, route }) {
                   Alert.alert('Wallet Required', 'Please connect your wallet to manage your hub and send notifications.');
                   return;
                 }
+                // [B45] Verify hub ownership before sending
+                const walletAddr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : wallet?.publicKey?.toString?.();
+                if (!USE_DEVNET && walletAddr && hubData?.creator && walletAddr !== hubData.creator) {
+                  Alert.alert('Permission Denied', 'Only the hub creator can send notifications.');
+                  return;
+                }
                 if (!title.trim() || !message.trim()) {
                   Alert.alert('Error', 'Please fill in both title and message.');
                   return;

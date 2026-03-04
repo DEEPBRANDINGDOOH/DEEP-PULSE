@@ -54,7 +54,12 @@ export default function SwipeEarnScreen({ navigation }) {
     const unsubscribe = lockScreenService.onSwipe((event) => {
       // Sync swipe points to DEEP Score in store
       if (event.points > 0) {
-        incrementScore(5); // 5 DEEP Score points per swipe interaction
+        // [B45] Use correct scoring coefficient (0.5 for engage) with daily cap
+        const SWIPE_DAILY_CAP = 15; // Max swipe points per day
+        const todaySwipePoints = stats.totalPoints || 0;
+        if (todaySwipePoints < SWIPE_DAILY_CAP) {
+          incrementScore(1); // 1 DEEP Score point per swipe (capped at 15/day)
+        }
       }
       // Refresh stats after each swipe
       loadStats();

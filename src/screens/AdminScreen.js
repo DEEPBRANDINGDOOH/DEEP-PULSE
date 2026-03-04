@@ -8,7 +8,7 @@ import { useAppStore } from '../store/appStore';
 import { programService } from '../services/programService';
 import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
-import { checkRateLimit, logger } from '../utils/security';
+import { checkRateLimit, logger, safeOpenURL } from '../utils/security';
 
 // ============================================
 // MOCK DATA
@@ -341,6 +341,11 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendGlobalNotification = () => {
+    if (!checkRateLimit('global_notification', 5000)) return;
+    if (!globalNotifTitle.trim() || !globalNotifMessage.trim()) {
+      Alert.alert('Missing Info', 'Please fill in both title and message');
+      return;
+    }
     if (!USE_DEVNET && !wallet?.connected) {
       Alert.alert('Wallet Required', `Connect your admin wallet.\nCost: ${PRICING.GLOBAL_NOTIFICATION} $SKR.`);
       return;
@@ -628,7 +633,7 @@ export default function AdminScreen({ navigation }) {
               <Text className="text-text-secondary text-xs mb-1">Image URL:</Text>
               <Text className="text-primary text-xs mb-2" numberOfLines={2}>{ad.imageUrl}</Text>
               <Text className="text-text-secondary text-xs mb-1">Landing URL:</Text>
-              <TouchableOpacity onPress={() => Linking.openURL(ad.landingUrl).catch(() => {})}>
+              <TouchableOpacity onPress={() => safeOpenURL(ad.landingUrl, 'ad landing page')}>
                 <Text className="text-primary text-xs underline" numberOfLines={1}>{ad.landingUrl}</Text>
               </TouchableOpacity>
             </View>
@@ -890,12 +895,14 @@ export default function AdminScreen({ navigation }) {
         <TextInput
           value={globalNotifTitle} onChangeText={setGlobalNotifTitle}
           placeholder="Notification title..." placeholderTextColor="#666"
+          maxLength={100}
           className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 border border-border"
         />
         <Text className="text-text font-semibold mb-2">Message</Text>
         <TextInput
           value={globalNotifMessage} onChangeText={setGlobalNotifMessage}
           placeholder="Notification message..." placeholderTextColor="#666"
+          maxLength={500}
           multiline numberOfLines={4} textAlignVertical="top"
           className="bg-background-secondary rounded-xl px-4 py-3 text-text mb-4 h-32 border border-border"
         />

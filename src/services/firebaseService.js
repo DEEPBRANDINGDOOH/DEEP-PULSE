@@ -437,6 +437,10 @@ export async function unsubscribeFromHubBackend(hubId, walletAddress) {
 
   try {
     await db.collection('subscriptions').doc(`${walletAddress}_${hubId}`).delete();
+    // NOTE: increment(-1) can push subscribers below 0 if the subscription
+    // doc was already missing (e.g. double-tap). Firestore has no atomic
+    // "decrement only if > 0" — a Cloud Function or security rule
+    // `max(resource.data.subscribers - 1, 0)` would be needed to fully fix.
     await db.collection('hubs').doc(hubId).update({
       subscribers: firestore.FieldValue.increment(-1),
     });
@@ -609,10 +613,19 @@ export async function saveTalentSubmission(submission) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('talentSubmissions').doc(submission.id).set({
-      ...submission,
+    // [B45] Explicit fields — no blind spread (prevents Firestore undefined crash)
+    const docData = {
+      id: String(submission.id),
+      name: String(submission.name || ''),
+      category: String(submission.category || ''),
+      description: String(submission.description || ''),
+      portfolio: String(submission.portfolio || ''),
+      walletAddress: String(submission.walletAddress || submission.creator || ''),
+      status: String(submission.status || 'pending'),
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (submission.depositTx) docData.depositTx = String(submission.depositTx);
+    await db.collection('talentSubmissions').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveTalentSubmission failed:', error.message);
@@ -641,10 +654,20 @@ export async function saveDaoProposal(proposal) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('daoProposals').doc(proposal.id).set({
-      ...proposal,
+    // [B45] Explicit fields
+    const docData = {
+      id: String(proposal.id),
+      title: String(proposal.title || ''),
+      description: String(proposal.description || ''),
+      category: String(proposal.category || ''),
+      targetAmount: Number(proposal.targetAmount || 0),
+      walletAddress: String(proposal.walletAddress || proposal.creator || ''),
+      status: String(proposal.status || 'pending'),
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (proposal.depositTx) docData.depositTx = String(proposal.depositTx);
+    if (proposal.hubName) docData.hubName = String(proposal.hubName);
+    await db.collection('daoProposals').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveDaoProposal failed:', error.message);
@@ -728,11 +751,28 @@ export async function saveAdCreative(ad) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('adCreatives').doc(ad.id).set({
-      ...ad,
+    // [B45] Explicit fields — adCreatives has write:false in rules
+    // This write goes to offline cache and syncs when rules allow it
+    const docData = {
+      id: String(ad.id),
+      brandName: String(ad.brandName || ''),
+      slotType: String(ad.slotType || ''),
+      walletAddress: String(ad.walletAddress || ad.advertiser || ''),
       status: 'pending_review',
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (ad.imageUrl) docData.imageUrl = String(ad.imageUrl);
+    if (ad.landingUrl) docData.landingUrl = String(ad.landingUrl);
+    if (ad.title) docData.title = String(ad.title);
+    if (ad.richTitle) docData.richTitle = String(ad.richTitle);
+    if (ad.richBody) docData.richBody = String(ad.richBody);
+    if (ad.richCtaLabel) docData.richCtaLabel = String(ad.richCtaLabel);
+    if (ad.richCtaUrl) docData.richCtaUrl = String(ad.richCtaUrl);
+    if (ad.hubName) docData.hubName = String(ad.hubName);
+    if (ad.duration != null) docData.duration = Number(ad.duration);
+    if (ad.totalCost != null) docData.totalCost = Number(ad.totalCost);
+    if (ad.submittedDate) docData.submittedDate = String(ad.submittedDate);
+    await db.collection('adCreatives').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveAdCreative failed:', error.message);
@@ -761,10 +801,20 @@ export async function saveCustomDeal(deal) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('customDeals').doc(deal.id).set({
-      ...deal,
+    // [B45] Explicit fields
+    const docData = {
+      id: String(deal.id),
+      brandName: String(deal.brandName || ''),
+      hubName: String(deal.hubName || ''),
+      dealPrice: Number(deal.dealPrice || 0),
+      originalPrice: Number(deal.originalPrice || 0),
+      slotType: String(deal.slotType || ''),
+      status: String(deal.status || 'active'),
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (deal.walletAddress) docData.walletAddress = String(deal.walletAddress);
+    if (deal.description) docData.description = String(deal.description);
+    await db.collection('customDeals').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveCustomDeal failed:', error.message);
@@ -808,10 +858,17 @@ export async function saveAdminConversation(conversation) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('adminConversations').doc(conversation.id).set({
-      ...conversation,
+    // [B45] Explicit fields
+    const docData = {
+      id: String(conversation.id),
+      brandName: String(conversation.brandName || ''),
+      hubName: String(conversation.hubName || ''),
+      messages: Array.isArray(conversation.messages) ? conversation.messages : [],
+      status: String(conversation.status || 'open'),
       updatedAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (conversation.walletAddress) docData.walletAddress = String(conversation.walletAddress);
+    await db.collection('adminConversations').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveAdminConversation failed:', error.message);
@@ -840,10 +897,22 @@ export async function saveDoohCampaign(campaign) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('doohCampaigns').doc(campaign.id).set({
-      ...campaign,
+    // [B45] Explicit fields
+    const docData = {
+      id: String(campaign.id),
+      campaignTitle: String(campaign.campaignTitle || ''),
+      hubName: String(campaign.hubName || ''),
+      description: String(campaign.description || ''),
+      contactEmail: String(campaign.contactEmail || ''),
+      status: String(campaign.status || 'pending'),
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    if (campaign.targetLocations) docData.targetLocations = String(campaign.targetLocations);
+    if (campaign.preferredDates) docData.preferredDates = String(campaign.preferredDates);
+    if (campaign.selectedInventory) docData.selectedInventory = campaign.selectedInventory;
+    if (campaign.budget) docData.budget = String(campaign.budget);
+    if (campaign.walletAddress) docData.walletAddress = String(campaign.walletAddress);
+    await db.collection('doohCampaigns').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
     logger.error('[FirebaseService] saveDoohCampaign failed:', error.message);
