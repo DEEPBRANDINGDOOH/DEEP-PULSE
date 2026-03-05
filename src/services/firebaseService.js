@@ -409,7 +409,7 @@ export async function subscribeToHubBackend(hubId, walletAddress) {
     logger.log('[FirebaseService] Subscription recorded in Firestore');
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] subscribe Firestore failed:', error.message);
+    logger.warn('[FirebaseService] subscribe Firestore failed:', error.message);
     return { success: true }; // FCM subscription still works
   }
 }
@@ -448,7 +448,7 @@ export async function unsubscribeFromHubBackend(hubId, walletAddress) {
     logger.log('[FirebaseService] Unsubscription recorded in Firestore');
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] unsubscribe Firestore failed:', error.message);
+    logger.warn('[FirebaseService] unsubscribe Firestore failed:', error.message);
     return { success: true };
   }
 }
@@ -612,6 +612,7 @@ export async function sendGlobalNotification(title, body, walletAddress) {
 // =====================================================
 
 export async function saveTalentSubmission(submission) {
+  if (!submission?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveTalentSubmission: ${submission.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -631,7 +632,7 @@ export async function saveTalentSubmission(submission) {
     await db.collection('talentSubmissions').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveTalentSubmission failed:', error.message);
+    logger.warn('[FirebaseService] saveTalentSubmission failed:', error.message);
     return { success: false };
   }
 }
@@ -653,6 +654,7 @@ export async function fetchTalentSubmissions() {
 // =====================================================
 
 export async function saveDaoProposal(proposal) {
+  if (!proposal?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveDaoProposal: ${proposal.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -673,22 +675,26 @@ export async function saveDaoProposal(proposal) {
     await db.collection('daoProposals').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveDaoProposal failed:', error.message);
+    logger.warn('[FirebaseService] saveDaoProposal failed:', error.message);
     return { success: false };
   }
 }
 
 export async function updateDaoProposalInFirestore(proposalId, updates) {
+  if (!proposalId) return { success: false }; // [B48] Null guard
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('daoProposals').doc(proposalId).update({
-      ...updates,
-      updatedAt: firestore.FieldValue.serverTimestamp(),
+    // [B48] Sanitize updates — strip undefined values to prevent Firestore crash
+    const cleanUpdates = {};
+    Object.entries(updates || {}).forEach(([key, val]) => {
+      if (val !== undefined) cleanUpdates[key] = val;
     });
+    cleanUpdates.updatedAt = firestore.FieldValue.serverTimestamp();
+    await db.collection('daoProposals').doc(proposalId).update(cleanUpdates);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] updateDaoProposal failed:', error.message);
+    logger.warn('[FirebaseService] updateDaoProposal failed:', error.message);
     return { success: false };
   }
 }
@@ -710,18 +716,29 @@ export async function fetchDaoProposals() {
 // =====================================================
 
 export async function saveHubFeedback(hubName, feedback) {
+  if (!feedback?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveHubFeedback: ${feedback.id} for ${hubName}`);
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('hubFeedbacks').doc(feedback.id).set({
-      ...feedback,
-      hubName,
+    // [B48] Explicit fields — same pattern as other save functions (prevents Firestore undefined crash)
+    const docData = {
+      id: String(feedback.id),
+      wallet: String(feedback.wallet || ''),
+      title: String(feedback.title || ''),
+      message: String(feedback.message || ''),
+      deposit: Number(feedback.deposit) || 0,
+      timestamp: String(feedback.timestamp || ''),
+      hubName: String(hubName || ''),
+      notificationId: String(feedback.notificationId || ''),
+      status: String(feedback.status || 'pending'),
       createdAt: firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    await db.collection('hubFeedbacks').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveHubFeedback failed:', error.message);
+    // [B47] Downgrade — non-critical background sync
+    logger.warn('[FirebaseService] saveHubFeedback failed:', error.message);
     return { success: false };
   }
 }
@@ -750,6 +767,7 @@ export async function fetchHubFeedbacks() {
 // =====================================================
 
 export async function saveAdCreative(ad) {
+  if (!ad?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveAdCreative: ${ad.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -778,7 +796,7 @@ export async function saveAdCreative(ad) {
     await db.collection('adCreatives').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveAdCreative failed:', error.message);
+    logger.warn('[FirebaseService] saveAdCreative failed:', error.message);
     return { success: false };
   }
 }
@@ -800,6 +818,7 @@ export async function fetchPendingAdCreatives() {
 // =====================================================
 
 export async function saveCustomDeal(deal) {
+  if (!deal?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveCustomDeal: ${deal.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -820,7 +839,7 @@ export async function saveCustomDeal(deal) {
     await db.collection('customDeals').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveCustomDeal failed:', error.message);
+    logger.warn('[FirebaseService] saveCustomDeal failed:', error.message);
     return { success: false };
   }
 }
@@ -835,7 +854,7 @@ export async function removeCustomDealFromFirestore(dealId) {
     });
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] removeCustomDeal failed:', error.message);
+    logger.warn('[FirebaseService] removeCustomDeal failed:', error.message);
     return { success: false };
   }
 }
@@ -857,6 +876,7 @@ export async function fetchCustomDeals() {
 // =====================================================
 
 export async function saveAdminConversation(conversation) {
+  if (!conversation?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveAdminConversation: ${conversation.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -874,7 +894,7 @@ export async function saveAdminConversation(conversation) {
     await db.collection('adminConversations').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveAdminConversation failed:', error.message);
+    logger.warn('[FirebaseService] saveAdminConversation failed:', error.message);
     return { success: false };
   }
 }
@@ -896,6 +916,7 @@ export async function fetchAdminConversations() {
 // =====================================================
 
 export async function saveDoohCampaign(campaign) {
+  if (!campaign?.id) return { success: false }; // [B48] Null guard
   logger.log(`[FirebaseService] saveDoohCampaign: ${campaign.id}`);
   const db = getDb();
   if (!db) return { success: false };
@@ -918,7 +939,7 @@ export async function saveDoohCampaign(campaign) {
     await db.collection('doohCampaigns').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveDoohCampaign failed:', error.message);
+    logger.warn('[FirebaseService] saveDoohCampaign failed:', error.message);
     return { success: false };
   }
 }
@@ -1116,7 +1137,7 @@ export async function registerFcmToken(token, walletAddress) {
     }, { merge: true });
     logger.log('[FirebaseService] FCM token registered for:', walletAddress);
   } catch (error) {
-    logger.error('[FirebaseService] registerFcmToken failed:', error.message);
+    logger.warn('[FirebaseService] registerFcmToken failed:', error.message);
   }
 }
 

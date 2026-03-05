@@ -25,7 +25,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { USE_DEVNET, ADMIN_WALLET } from '../config/constants';
 import { createHub } from '../services/transactionHelper';
-import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadHubLogo, validateHubLogo } from '../services/storageService';
 import { createHubInFirestore } from '../services/firebaseService';
@@ -143,7 +143,8 @@ export default function BrandBoostScreen({ navigation }) {
                   // [B44] Await Firebase write directly (imported at top level)
                   const fbResult = await createHubInFirestore(newHub);
                   if (!fbResult.success) {
-                    console.error('[BrandBoost] Firebase hub sync failed:', fbResult.error || 'unknown');
+                    // [B48] Use logger.warn instead of console.error to avoid red LogBox banners
+                    logger.warn('[BrandBoost] Firebase hub sync failed:', fbResult.error || 'unknown');
                   }
 
                   // Reset form
@@ -182,7 +183,8 @@ export default function BrandBoostScreen({ navigation }) {
         ]
       );
     } catch (error) {
-      console.error('Hub creation error:', error);
+      // [B48] Use logger.warn instead of console.error to avoid red LogBox banners
+      logger.warn('[BrandBoost] Hub creation error:', error?.message || error);
       Alert.alert('Error', 'Failed to create hub');
       setIsCreating(false);
     }

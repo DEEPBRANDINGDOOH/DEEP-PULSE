@@ -106,7 +106,8 @@ export const executeTransaction = async (actionName, txFn, options = {}) => {
 
     return { success: true, result };
   } catch (error) {
-    console.error(`[Transaction] ${actionName} failed:`, error);
+    // [B48] Use logger.warn to avoid red LogBox banners in dev mode
+    logger.warn(`[Transaction] ${actionName} failed:`, error?.message || error);
 
     const errorMessage = _parseError(error);
 

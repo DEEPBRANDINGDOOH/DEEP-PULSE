@@ -285,6 +285,10 @@ class ProgramService {
   // ============================================
 
   async _executeMwaTransaction(buildTxFn) {
+    // [B48] Guard: MWA module may not be available (e.g. on emulators or missing wallet app)
+    if (!transact) {
+      throw new Error('Mobile Wallet Adapter not available. Please install a Solana wallet app.');
+    }
     return transact(async (wallet) => {
       const authResult = await wallet.authorize({
         chain: getCluster(),
@@ -341,58 +345,86 @@ class ProgramService {
   // READ OPERATIONS (No wallet needed)
   // ============================================
 
+  // [B48] All read operations wrapped in try/catch for resilience
+  // Network failures, missing accounts, or RPC errors must not crash the app
+
   async fetchPlatformConfig() {
-    const [pda] = getPlatformConfigPda();
-    const idl = this.getIdl();
-    if (!idl) return null;
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.platformConfig.fetch(pda);
+    try {
+      const [pda] = getPlatformConfigPda();
+      const idl = this.getIdl();
+      if (!idl) return null;
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.platformConfig.fetch(pda);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchPlatformConfig failed:', e?.message);
+      return null;
+    }
   }
 
   async fetchHub(hubPda) {
-    const idl = this.getIdl();
-    if (!idl) return null;
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.hub.fetch(hubPda);
+    try {
+      const idl = this.getIdl();
+      if (!idl) return null;
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.hub.fetch(hubPda);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchHub failed:', e?.message);
+      return null;
+    }
   }
 
   async fetchAllHubs() {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.hub.all();
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.hub.all();
+    } catch (e) {
+      logger.warn('[ProgramService] fetchAllHubs failed:', e?.message);
+      return [];
+    }
   }
 
   async fetchActiveHubs() {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    // [H-04 FIX] Fetch all hubs and filter client-side for is_active
-    // memcmp offset is fragile across Anchor versions; client-side filter is safer
-    const allHubs = await program.account.hub.all();
-    return allHubs.filter(h => h.account.isActive === true);
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      // [H-04 FIX] Fetch all hubs and filter client-side for is_active
+      // memcmp offset is fragile across Anchor versions; client-side filter is safer
+      const allHubs = await program.account.hub.all();
+      return allHubs.filter(h => h.account.isActive === true);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchActiveHubs failed:', e?.message);
+      return [];
+    }
   }
 
   async fetchUserSubscriptions(userPubkey) {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.hubSubscription.all([
-      {
-        memcmp: {
-          offset: 8, // after discriminator
-          bytes: userPubkey.toBase58(),
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.hubSubscription.all([
+        {
+          memcmp: {
+            offset: 8, // after discriminator
+            bytes: userPubkey.toBase58(),
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchUserSubscriptions failed:', e?.message);
+      return [];
+    }
   }
 
   async fetchUserScore(userPubkey) {
-    const [pda] = getUserScorePda(userPubkey);
-    const idl = this.getIdl();
-    if (!idl) return null;
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
     try {
+      const [pda] = getUserScorePda(userPubkey);
+      const idl = this.getIdl();
+      if (!idl) return null;
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
       return await program.account.userScore.fetch(pda);
     } catch {
       return null; // Score not initialized yet
@@ -400,52 +432,72 @@ class ProgramService {
   }
 
   async fetchDaoVault(vaultPda) {
-    const idl = this.getIdl();
-    if (!idl) return null;
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.daoVault.fetch(vaultPda);
+    try {
+      const idl = this.getIdl();
+      if (!idl) return null;
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.daoVault.fetch(vaultPda);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchDaoVault failed:', e?.message);
+      return null;
+    }
   }
 
   async fetchOpenVaultsForHub(hubPda) {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.daoVault.all([
-      {
-        memcmp: {
-          offset: 8 + 32, // after discriminator + proposal_deposit
-          bytes: hubPda.toBase58(),
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.daoVault.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // after discriminator + proposal_deposit
+            bytes: hubPda.toBase58(),
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchOpenVaultsForHub failed:', e?.message);
+      return [];
+    }
   }
 
   async fetchActiveAdsForHub(hubPda) {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.adSlot.all([
-      {
-        memcmp: {
-          offset: 8 + 32, // after discriminator + advertiser
-          bytes: hubPda.toBase58(),
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.adSlot.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // after discriminator + advertiser
+            bytes: hubPda.toBase58(),
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchActiveAdsForHub failed:', e?.message);
+      return [];
+    }
   }
 
   async fetchPendingDepositsForHub(hubPda) {
-    const idl = this.getIdl();
-    if (!idl) return [];
-    const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
-    return program.account.deposit.all([
-      {
-        memcmp: {
-          offset: 8 + 32, // after discriminator + depositor = hub field
-          bytes: hubPda.toBase58(),
+    try {
+      const idl = this.getIdl();
+      if (!idl) return [];
+      const program = new Program(idl, PROGRAM_ID, { connection: this.connection });
+      return await program.account.deposit.all([
+        {
+          memcmp: {
+            offset: 8 + 32, // after discriminator + depositor = hub field
+            bytes: hubPda.toBase58(),
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (e) {
+      logger.warn('[ProgramService] fetchPendingDepositsForHub failed:', e?.message);
+      return [];
+    }
   }
 
   // ============================================
