@@ -56,7 +56,7 @@ function getMockSubmissions(hubName) {
         wallet: '5tY...2Lm',
         role: 'Community Manager',
         experience: `3+ years managing communities similar to ${hubName}`,
-        portfolio: 'https://portfolio.example.com',
+        portfolio: 'https://portfolio.deeppulse.app',
         deposit: 50,
         isMock: true,
       },

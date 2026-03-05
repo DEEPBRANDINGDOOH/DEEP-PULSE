@@ -143,7 +143,7 @@ const MOCK_MY_ADS = [
   {
     id: 'my_ad_1',
     slotType: 'top',
-    imageUrl: 'https://cdn.example.com/ads/jupiter-swap-390x120.png',
+    imageUrl: 'https://cdn.deeppulse.app/ads/jupiter-swap-390x120.png',
     landingUrl: 'https://jup.ag',
     status: 'APPROVED', // APPROVED, PENDING_REVIEW, REJECTED
     remainingDays: 18,
@@ -154,7 +154,7 @@ const MOCK_MY_ADS = [
   {
     id: 'my_ad_2',
     slotType: 'bottom',
-    imageUrl: 'https://cdn.example.com/ads/nft-drop-390x100.gif',
+    imageUrl: 'https://cdn.deeppulse.app/ads/nft-drop-390x100.gif',
     landingUrl: 'https://magiceden.io/drops',
     status: 'PENDING_REVIEW',
     remainingDays: 7,
@@ -1260,7 +1260,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                       <TextInput
                         value={imageUrl}
                         onChangeText={(text) => { setImageUrl(text); setValidationErrors([]); }}
-                        placeholder={`https://cdn.example.com/ad-${selectedSlot === 'lockscreen' ? '1080x1920' : selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
+                        placeholder={`https://cdn.deeppulse.app/ad-${selectedSlot === 'lockscreen' ? '1080x1920' : selectedSlot === 'top' ? '390x120' : '390x100'}.png`}
                         placeholderTextColor="#666"
                         maxLength={MAX_LENGTHS.URL}
                         className="bg-background-secondary text-text rounded-xl p-4 border border-border"
@@ -1505,7 +1505,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                   <TextInput
                     value={richImageUrl}
                     onChangeText={setRichImageUrl}
-                    placeholder="https://cdn.example.com/banner.png"
+                    placeholder="https://cdn.deeppulse.app/banner.png"
                     placeholderTextColor="#666"
                     className="bg-background-secondary text-text rounded-xl p-4 border border-border"
                     autoCapitalize="none"
@@ -1824,7 +1824,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                     <TextInput
                       value={editImageUrl}
                       onChangeText={(text) => { setEditImageUrl(text); setEditValidationErrors([]); }}
-                      placeholder={`https://cdn.example.com/ad.png`}
+                      placeholder={`https://cdn.deeppulse.app/ad.png`}
                       placeholderTextColor="#666"
                       maxLength={MAX_LENGTHS.URL}
                       className="bg-background-secondary text-text rounded-xl p-4 border border-border"

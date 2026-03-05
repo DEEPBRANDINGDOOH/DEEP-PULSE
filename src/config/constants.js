@@ -329,9 +329,8 @@ export const DAO_SPLIT = {
 // API ENDPOINTS
 // ========================================
 
-export const API_BASE_URL = USE_DEVNET
-  ? 'http://localhost:3000/api'
-  : 'https://us-central1-deep-pulse.cloudfunctions.net';
+// [B50] Both environments use Cloud Functions URL (localhost unreachable on mobile)
+export const API_BASE_URL = 'https://us-central1-deep-pulse.cloudfunctions.net';
 
 export const API_ENDPOINTS = {
   // Users
