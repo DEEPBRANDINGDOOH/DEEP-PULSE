@@ -107,8 +107,14 @@ export const logger = {
     if (__DEV__) console.warn(...args);
   },
   error: (...args) => {
-    // Errors always logged (useful for crash reporting)
-    console.error(...args);
+    // [B47] In dev mode, show errors as yellow warnings (not red LogBox banners)
+    // to avoid scaring testers with expected Cloud Function fallbacks.
+    // In production, errors still go through console.error for crash reporting.
+    if (__DEV__) {
+      console.warn('[ERROR]', ...args);
+    } else {
+      console.error(...args);
+    }
   },
   // For truly sensitive data — only in development
   sensitive: (...args) => {

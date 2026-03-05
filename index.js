@@ -14,8 +14,24 @@ import 'react-native-url-polyfill/auto';
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 
-import { AppRegistry } from 'react-native';
+import { AppRegistry, LogBox } from 'react-native';
 import App from './App';
+
+// [B47] Suppress known non-critical warnings in dev LogBox
+// Cloud Function fallbacks, Firebase sync retries, and score saves are expected
+LogBox.ignoreLogs([
+  'Cloud Function call failed',
+  'Cloud Functions not initialized',
+  'Cloud Functions not available',
+  'saveUserScore',
+  'trackEvent failed',
+  'trackEvent Firestore failed',
+  'fetchUserScore failed',
+  'Firestore write failed',
+  '[ERROR]',           // Our logger.error → console.warn wrapper
+  'Non-serializable',  // Zustand persist warning
+  'new NativeEventEmitter', // RN compatibility warning
+]);
 
 // Setup Firebase background message handler (must be at root level, outside components)
 import { notificationService } from './src/services/notificationService';

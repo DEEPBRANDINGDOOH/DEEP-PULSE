@@ -125,7 +125,8 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
       logger.log('[FirebaseService] Cloud Function response:', result.data);
       return { success: true, notificationId: result.data?.notificationId };
     } catch (error) {
-      logger.error('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
+      // [B47] Downgrade to warn — Cloud Function fallback to Firestore is expected behavior (not a red-banner error)
+      logger.warn('[FirebaseService] Cloud Function call failed, trying Firestore fallback:', error.message);
     }
   }
 
@@ -553,7 +554,8 @@ export async function trackEvent(walletAddress, eventType, hubId = null) {
       await track({ walletAddress, eventType, hubId });
       return { success: true };
     } catch (error) {
-      logger.error('[FirebaseService] trackEvent failed:', error.message);
+      // [B47] Downgrade — Cloud Function may not be deployed, Firestore fallback handles it
+      logger.log('[FirebaseService] trackEvent Cloud Function unavailable, using Firestore fallback');
     }
   }
 
@@ -568,7 +570,8 @@ export async function trackEvent(walletAddress, eventType, hubId = null) {
       });
       return { success: true };
     } catch (error) {
-      logger.error('[FirebaseService] trackEvent Firestore failed:', error.message);
+      // [B47] Downgrade — analytics tracking is non-critical
+      logger.warn('[FirebaseService] trackEvent Firestore failed:', error.message);
     }
   }
 
@@ -948,7 +951,8 @@ export async function saveUserScore(walletAddress, score, streak) {
     }, { merge: true });
     return { success: true };
   } catch (error) {
-    logger.error('[FirebaseService] saveUserScore failed:', error.message);
+    // [B47] Downgrade to warn — background sync failure is non-critical
+    logger.warn('[FirebaseService] saveUserScore failed:', error.message);
     return { success: false };
   }
 }
@@ -963,6 +967,35 @@ export async function fetchUserScore(walletAddress) {
   } catch (error) {
     logger.warn('[FirebaseService] fetchUserScore failed:', error.message);
     return null;
+  }
+}
+
+/**
+ * Fetch leaderboard from userScores collection
+ * Returns top 100 users sorted by score descending
+ * [B47] New — wires ProfileScreen leaderboard to real Firestore data
+ */
+export async function fetchLeaderboard(limit = 100) {
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const snapshot = await db.collection('userScores')
+      .orderBy('score', 'desc')
+      .limit(limit)
+      .get();
+    return snapshot.docs.map((doc, index) => ({
+      rank: index + 1,
+      wallet: doc.id.slice(0, 4) + '...' + doc.id.slice(-3),
+      fullWallet: doc.id,
+      score: doc.data().score || 0,
+      streak: doc.data().streak || 0,
+      boost: doc.data().boost || 0,
+      talent: doc.data().talent || 0,
+      feedback: doc.data().feedback || 0,
+    }));
+  } catch (error) {
+    logger.warn('[FirebaseService] fetchLeaderboard failed:', error.message);
+    return [];
   }
 }
 

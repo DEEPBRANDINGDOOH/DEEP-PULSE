@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Switch, Linking } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Switch, Linking, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
@@ -8,9 +8,7 @@ import { useAppStore } from '../store/appStore';
 import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState, getWalletPublicKey, initUserScore } from '../services/transactionHelper';
 import { programService } from '../services/programService';
-
-// Leaderboard data — fetched from Firebase in production (empty by default)
-const MOCK_LEADERBOARD = [];
+import { fetchLeaderboard } from '../services/firebaseService';
 
 /**
  * Format a public key for display: "7xKL...9Qz"
@@ -32,8 +30,29 @@ export default function ProfileScreen({ navigation }) {
   const getUnreadHubNotifCount = useAppStore((state) => state.getUnreadHubNotifCount); // [B42] Use hub notif count, consistent with HomeScreen
   const unreadCount = getUnreadHubNotifCount ? getUnreadHubNotifCount() : 0;
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [notifMuted, setNotifMuted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  // [B47] Fetch leaderboard from Firestore when user opens the leaderboard view
+  const loadLeaderboard = useCallback(async () => {
+    setLeaderboardLoading(true);
+    try {
+      const data = await fetchLeaderboard(100);
+      setLeaderboardData(data);
+    } catch (_) {
+      // Silently fail — empty state will show
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLeaderboard) {
+      loadLeaderboard();
+    }
+  }, [showLeaderboard, loadLeaderboard]);
 
   // Use Zustand wallet state for reactive UI (getWalletPublicKey is non-reactive module variable)
   const connectedPubkey = storeWallet?.connected ? storeWallet.publicKey : null;
@@ -390,7 +409,16 @@ export default function ProfileScreen({ navigation }) {
         </Text>
       </View>
 
-      {MOCK_LEADERBOARD.length === 0 && (
+      {/* [B47] Loading state */}
+      {leaderboardLoading && (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border mb-3">
+          <ActivityIndicator size="large" color="#FF9F66" />
+          <Text className="text-text-secondary text-sm mt-3">Loading rankings...</Text>
+        </View>
+      )}
+
+      {/* [B47] Empty state (only when not loading) */}
+      {!leaderboardLoading && leaderboardData.length === 0 && (
         <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
           <Ionicons name="trophy-outline" size={48} color="#666" />
           <Text className="text-text-secondary text-base mt-4 text-center">
@@ -402,7 +430,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       )}
 
-      {MOCK_LEADERBOARD.map((entry) => {
+      {leaderboardData.map((entry) => {
         const entryTier = getTierFromScore(entry.score);
         return (
           <View

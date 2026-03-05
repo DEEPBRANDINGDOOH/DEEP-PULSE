@@ -41,7 +41,7 @@ import { useAppStore } from '../store/appStore';
 import { PRICING, USE_DEVNET } from '../config/constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
-import { safeOpenURL, MAX_LENGTHS } from '../utils/security';
+import { safeOpenURL, MAX_LENGTHS, checkRateLimit } from '../utils/security';
 
 // Ad Slot Configuration — base specs (prices are overridden dynamically inside component)
 const AD_CONFIG_BASE = {
