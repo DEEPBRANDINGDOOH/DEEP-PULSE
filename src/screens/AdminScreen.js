@@ -1453,7 +1453,7 @@ export default function AdminScreen({ navigation }) {
                 </View>
               </View>
               <View className="bg-success/20 rounded-full px-3 py-1">
-                <Text className="text-success text-xs font-bold">{deal.status.toUpperCase()}</Text>
+                <Text className="text-success text-xs font-bold">{(deal.status || 'active').toUpperCase()}</Text>
               </View>
             </View>
 
@@ -1464,11 +1464,11 @@ export default function AdminScreen({ navigation }) {
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Standard Price</Text>
-                <Text className="text-text-secondary text-xs line-through">{deal.originalPrice.toLocaleString()} $SKR</Text>
+                <Text className="text-text-secondary text-xs line-through">{(deal.originalPrice || 0).toLocaleString()} $SKR</Text>
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Deal Price</Text>
-                <Text className="text-success font-bold text-xs">{deal.dealPrice.toLocaleString()} $SKR</Text>
+                <Text className="text-success font-bold text-xs">{(deal.dealPrice || 0).toLocaleString()} $SKR</Text>
               </View>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-text-secondary text-xs">Duration</Text>
@@ -1477,7 +1477,7 @@ export default function AdminScreen({ navigation }) {
               <View className="flex-row justify-between">
                 <Text className="text-text-secondary text-xs">Discount</Text>
                 <Text className="text-success font-bold text-xs">
-                  -{Math.round((1 - deal.dealPrice / deal.originalPrice) * 100)}%
+                  -{deal.originalPrice > 0 ? Math.round((1 - (deal.dealPrice || 0) / deal.originalPrice) * 100) : 0}%
                 </Text>
               </View>
             </View>
