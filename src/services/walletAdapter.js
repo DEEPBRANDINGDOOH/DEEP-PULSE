@@ -44,7 +44,7 @@ if (MWA_ENABLED) {
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { APP_IDENTITY, getRpcEndpoint, getCluster, STORAGE_KEYS } from '../config/constants';
+import { APP_IDENTITY, getRpcEndpoint, getCluster, STORAGE_KEYS, USE_DEVNET } from '../config/constants';
 import { logger } from '../utils/security';
 
 /**
@@ -143,21 +143,27 @@ class MobileWalletAdapterService {
 
       logger.log('Wallet connected:', result.publicKey.toString());
 
-      // [B46] Always attempt Firebase Auth (non-blocking — Firestore rules still open as fallback)
-      // Prepares for future strict rules migration. If auth fails, user can still use the app.
-      import('./firebaseService').then(fb => {
-        fb.authenticateWithFirebase(
-          result.publicKey.toString(),
-          (msg, token) => this.signMessage(msg, token),
-          result.authToken,
-        ).then(authResult => {
-          if (authResult.success) {
-            logger.log('[WalletAdapter] Firebase Auth successful');
-          } else {
-            logger.warn('[WalletAdapter] Firebase Auth skipped:', authResult.error || 'unavailable');
-          }
-        }).catch(e => logger.warn('[WalletAdapter] Firebase Auth error (non-blocking):', e?.message));
-      }).catch(() => {});
+      // [B50] Firebase Auth only on mainnet (release APK).
+      // On devnet, signMessage() opens a 2nd wallet dialog that blocks the connection flow.
+      // Firestore rules are open — no auth needed on devnet for hackathon demo.
+      if (!USE_DEVNET) {
+        // Delay Firebase Auth to avoid interfering with the connection Alert/navigation
+        setTimeout(() => {
+          import('./firebaseService').then(fb => {
+            fb.authenticateWithFirebase(
+              result.publicKey.toString(),
+              (msg, token) => this.signMessage(msg, token),
+              result.authToken,
+            ).then(authResult => {
+              if (authResult.success) {
+                logger.log('[WalletAdapter] Firebase Auth successful');
+              } else {
+                logger.warn('[WalletAdapter] Firebase Auth skipped:', authResult.error || 'unavailable');
+              }
+            }).catch(e => logger.warn('[WalletAdapter] Firebase Auth error (non-blocking):', e?.message));
+          }).catch(() => {});
+        }, 3000); // 3s delay so wallet connection completes first
+      }
 
       return result;
     } catch (error) {

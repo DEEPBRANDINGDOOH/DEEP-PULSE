@@ -18,7 +18,17 @@ export const AlertCard = ({ alert, onPress, onMarkAsRead }) => {
     }
   };
 
-  const timeAgo = formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true });
+  // [B50] Safe timestamp formatting — timestamps can be pre-formatted strings
+  // like "Just now", "2h ago", "Unknown" which are not valid Date inputs.
+  const timeAgo = (() => {
+    try {
+      const d = new Date(alert.timestamp);
+      if (isNaN(d.getTime())) return String(alert.timestamp || 'Recently');
+      return formatDistanceToNow(d, { addSuffix: true });
+    } catch {
+      return String(alert.timestamp || 'Recently');
+    }
+  })();
 
   return (
     <TouchableOpacity
