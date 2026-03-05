@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
 import { sendHubNotification } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
-import { safeOpenURL, isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
+import { isValidDiscordWebhook, checkRateLimit, MAX_LENGTHS, logger } from '../utils/security';
 import { USE_DEVNET, ADMIN_WALLET } from '../config/constants';
 
 export default function HubDashboardScreen({ navigation, route }) {

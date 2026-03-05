@@ -15,8 +15,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MOCK_ALERTS, MOCK_PROJECTS } from '../data/mockData';
-import { PRICING, MOCK_HUBS, GRACE_PERIOD_DAYS, isAdmin, USE_DEVNET } from '../config/constants';
+import { MOCK_PROJECTS } from '../data/mockData';
+import { PRICING, isAdmin, USE_DEVNET } from '../config/constants';
 import {
   subscribeToHubBackend,
   unsubscribeFromHubBackend,

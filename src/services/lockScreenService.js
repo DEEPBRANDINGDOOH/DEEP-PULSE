@@ -87,7 +87,7 @@ const lockScreenService = {
       await LockScreenModule.setEnabled(true);
       return true;
     } catch (e) {
-      console.error('[LockScreen] Start failed:', e);
+      logger.error('[LockScreen] Start failed:', e);
       throw e;
     }
   },
@@ -103,7 +103,7 @@ const lockScreenService = {
       await LockScreenModule.stopService();
       return true;
     } catch (e) {
-      console.error('[LockScreen] Stop failed:', e);
+      logger.error('[LockScreen] Stop failed:', e);
       return false;
     }
   },
@@ -169,7 +169,7 @@ const lockScreenService = {
     try {
       return await LockScreenModule.setAdQueue(ads);
     } catch (e) {
-      console.error('[LockScreen] Failed to push ad queue:', e);
+      logger.error('[LockScreen] Failed to push ad queue:', e);
       return 0;
     }
   },
@@ -185,7 +185,7 @@ const lockScreenService = {
     try {
       return await LockScreenModule.getStats();
     } catch (e) {
-      console.error('[LockScreen] Stats fetch failed:', e);
+      logger.error('[LockScreen] Stats fetch failed:', e);
       return { adsToday: 0, adsThisHour: 0, totalPoints: 0, maxAdsPerDay: 15, maxAdsPerHour: 3, enabled: false };
     }
   },

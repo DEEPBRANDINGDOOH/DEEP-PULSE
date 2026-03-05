@@ -31,8 +31,6 @@ import {
   Modal,
   Image,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,7 +39,7 @@ import { useAppStore } from '../store/appStore';
 import { PRICING, USE_DEVNET } from '../config/constants';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { uploadAdCreative, validateImageFile } from '../services/storageService';
-import { safeOpenURL, MAX_LENGTHS, checkRateLimit } from '../utils/security';
+import { MAX_LENGTHS, checkRateLimit } from '../utils/security';
 
 // Ad Slot Configuration — base specs (prices are overridden dynamically inside component)
 const AD_CONFIG_BASE = {

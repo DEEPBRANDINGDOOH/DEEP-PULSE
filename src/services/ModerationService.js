@@ -12,7 +12,7 @@
  */
 
 import { programService } from './programService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '../utils/security';
 
 class ModerationService {
 
@@ -54,7 +54,7 @@ class ModerationService {
         };
       }
     } catch (error) {
-      console.error('Error processing feedback:', error);
+      logger.error('Error processing feedback:', error);
       throw error;
     }
   }
@@ -108,7 +108,7 @@ class ModerationService {
         };
       }
     } catch (error) {
-      console.error('Error processing proposal:', error);
+      logger.error('Error processing proposal:', error);
       throw error;
     }
   }
@@ -151,7 +151,7 @@ class ModerationService {
         };
       }
     } catch (error) {
-      console.error('Error processing talent:', error);
+      logger.error('Error processing talent:', error);
       throw error;
     }
   }
@@ -165,7 +165,7 @@ class ModerationService {
       const deposits = await programService.fetchPendingDepositsForHub(hubPda);
       return deposits.filter(d => d.account.status.pending !== undefined);
     } catch (error) {
-      console.error('Error fetching pending deposits:', error);
+      logger.error('Error fetching pending deposits:', error);
       return [];
     }
   }
@@ -179,7 +179,7 @@ class ModerationService {
       const vaults = await programService.fetchOpenVaultsForHub(hubPda);
       return vaults.filter(v => v.account.status.open !== undefined);
     } catch (error) {
-      console.error('Error fetching vaults:', error);
+      logger.error('Error fetching vaults:', error);
       return [];
     }
   }
@@ -197,7 +197,7 @@ class ModerationService {
       // This would need a proper implementation using the program's account methods
       return [];
     } catch (error) {
-      console.error('Error fetching user deposits:', error);
+      logger.error('Error fetching user deposits:', error);
       return [];
     }
   }

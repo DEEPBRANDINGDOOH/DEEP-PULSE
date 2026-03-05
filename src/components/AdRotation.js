@@ -21,8 +21,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Linking,
-  Alert,
   Animated,
   ActivityIndicator,
 } from 'react-native';

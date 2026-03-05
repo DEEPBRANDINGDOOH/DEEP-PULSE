@@ -9,8 +9,7 @@
  * then the backend sync happens in the background.
  */
 
-import { Alert } from 'react-native';
-import { API_BASE_URL, USE_DEVNET } from '../config/constants';
+import { USE_DEVNET } from '../config/constants';
 import { logger } from '../utils/security';
 
 // Safe imports for Firebase

@@ -8,7 +8,6 @@
 
 import { Alert } from 'react-native';
 import { programService } from './programService';
-import { walletAdapter } from './walletAdapter';
 import { notificationService } from './notificationService';
 import { PRICING, DEPOSITS, MOCK_TRANSACTIONS } from '../config/constants';
 import { logger } from '../utils/security';

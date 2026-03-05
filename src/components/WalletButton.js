@@ -13,6 +13,7 @@ import { useAppStore } from '../store/appStore';
 import { walletAdapter, formatPublicKey } from '../services/walletAdapter';
 import { setWalletState } from '../services/transactionHelper';
 import { programService } from '../services/programService';
+import { logger } from '../utils/security';
 
 export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
   const { wallet, setWallet, clearWallet } = useAppStore();
@@ -96,7 +97,7 @@ export const WalletButton = ({ variant = 'default', useSignIn = false }) => {
                 { text: 'OK' }
               ]);
             } catch (error) {
-              console.error('Disconnect error:', error);
+              logger.error('Disconnect error:', error);
               // Still clear local state even if deauth fails
               clearWallet();
             }

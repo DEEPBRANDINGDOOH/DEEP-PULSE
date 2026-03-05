@@ -149,7 +149,7 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
       path: storagePath,
     };
   } catch (error) {
-    console.error('[StorageService] Upload failed:', error);
+    logger.error('[StorageService] Upload failed:', error);
 
     let userMessage = 'Failed to upload image. Please try again.';
 
@@ -180,7 +180,7 @@ export async function deleteAdCreative(storagePath) {
     logger.log(`[StorageService] Deleted: ${storagePath}`);
     return true;
   } catch (error) {
-    console.error('[StorageService] Delete failed:', error);
+    logger.error('[StorageService] Delete failed:', error);
     return false;
   }
 }
@@ -303,7 +303,7 @@ export async function uploadHubLogo(imageAsset, hubId, onProgress = null) {
       path: storagePath,
     };
   } catch (error) {
-    console.error('[StorageService] Hub logo upload failed:', error);
+    logger.error('[StorageService] Hub logo upload failed:', error);
 
     let userMessage = 'Failed to upload logo. Please try again.';
     if (error.code === 'storage/unauthorized') {

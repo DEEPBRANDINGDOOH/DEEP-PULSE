@@ -6,6 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from './security';
 
 const STORAGE_KEY = '@deep_pulse/language';
 
@@ -398,13 +399,13 @@ class LanguageManager {
         this.currentLanguage = saved;
       }
     } catch (error) {
-      console.error('Error loading language:', error);
+      logger.error('Error loading language:', error);
     }
   }
 
   async setLanguage(code) {
     if (!translations[code]) {
-      console.error('Language not supported:', code);
+      logger.error('Language not supported:', code);
       return;
     }
 
@@ -413,7 +414,7 @@ class LanguageManager {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, code);
     } catch (error) {
-      console.error('Error saving language:', error);
+      logger.error('Error saving language:', error);
     }
 
     // Notify listeners

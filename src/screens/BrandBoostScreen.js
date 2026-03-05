@@ -17,7 +17,6 @@ import {
   TextInput,
   Alert,
   Modal,
-  ActivityIndicator,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING, isAdmin, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 // Rich notif ad needs to store the notification in Zustand for in-app display
 import { programService } from '../services/programService';
-import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification } from '../services/firebaseService';
+import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification, fetchLeaderboard } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
 import { checkRateLimit, logger, safeOpenURL } from '../utils/security';
 
@@ -14,8 +14,7 @@ import { checkRateLimit, logger, safeOpenURL } from '../utils/security';
 // MOCK DATA
 // ============================================
 
-// Top 100 leaderboard — fetched from Firebase in production (empty by default)
-const MOCK_TOP_100 = [];
+// Top 100 leaderboard — fetched from Firebase via fetchLeaderboard() (B49)
 
 // Initial pending hubs are now pre-seeded in appStore (no more runtime seeding).
 
@@ -74,12 +73,35 @@ export default function AdminScreen({ navigation }) {
   const daoProposals = useAppStore((state) => state.daoProposals);
   const [showDealModal, setShowDealModal] = useState(false);
   const [newDeal, setNewDeal] = useState({ brandName: '', brandWallet: '', type: 'Ad Slot', dealPrice: '', duration: '', notes: '' });
+  // [B49] Leaderboard state — fetched from Firebase (same pattern as ProfileScreen)
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+
+  // [B49] Fetch leaderboard from Firestore when user opens the Top 100 section
+  const loadLeaderboard = useCallback(async () => {
+    setLeaderboardLoading(true);
+    try {
+      const data = await fetchLeaderboard(100);
+      setLeaderboardData(data);
+    } catch (_) {
+      // Silently fail — empty state will show
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, []);
 
   // Fetch on-chain prices + check hub subscriptions on mount — MUST be before guard
   useEffect(() => {
     loadPlatformPricingFromChain();
     checkHubSubscriptions();
   }, []);
+
+  // [B49] Load leaderboard when Top 100 section is opened
+  useEffect(() => {
+    if (activeSection === 'top100' && leaderboardData.length === 0) {
+      loadLeaderboard();
+    }
+  }, [activeSection]);
 
   // ── NAVIGATION GUARD: Block non-admin access (after ALL hooks) ──
   if (!isAdmin(wallet?.publicKey)) {
@@ -684,14 +706,22 @@ export default function AdminScreen({ navigation }) {
         <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
       </TouchableOpacity>
       <Text className="text-text font-black text-2xl mb-4">Top 100</Text>
-      {MOCK_TOP_100.length === 0 && (
+      {/* [B49] Loading state */}
+      {leaderboardLoading && (
+        <View className="bg-background-card rounded-2xl p-8 items-center border border-border mb-4">
+          <ActivityIndicator size="large" color="#FF9F66" />
+          <Text className="text-text-secondary text-sm mt-3">Loading rankings...</Text>
+        </View>
+      )}
+      {/* [B49] Empty state (only when not loading) */}
+      {!leaderboardLoading && leaderboardData.length === 0 && (
         <View className="bg-background-card rounded-2xl p-8 items-center border border-border mb-4">
           <Ionicons name="trophy-outline" size={48} color="#666" />
           <Text className="text-text-secondary text-base mt-4 text-center">No leaderboard data yet</Text>
-          <Text className="text-text-muted text-xs text-center mt-1">Rankings will populate from Firebase analytics</Text>
+          <Text className="text-text-muted text-xs text-center mt-1">Rankings will appear here as users earn DEEP Score</Text>
         </View>
       )}
-      {MOCK_TOP_100.map((entry) => {
+      {leaderboardData.map((entry) => {
         const tier = getTierFromScore(entry.score);
         return (
           <View key={entry.rank} className="bg-background-card rounded-xl p-4 mb-3 border border-border">

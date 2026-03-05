@@ -3,7 +3,7 @@
  * Creates that modern "living" feel behind content
  */
 import React, { useRef, useEffect } from 'react';
-import { Animated, View } from 'react-native';
+import { Animated } from 'react-native';
 
 export default function PulseOrb({
   color = '#FF9F66',

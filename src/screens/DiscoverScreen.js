@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
 import HubIcon from '../components/HubIcon';
 import { MOCK_ADS, USE_DEVNET } from '../config/constants';
-import { subscribeToHub, unsubscribeFromHub, fetchAllHubs } from '../services/transactionHelper';
+import { subscribeToHub, unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 
 export default function DiscoverScreen({ navigation }) {

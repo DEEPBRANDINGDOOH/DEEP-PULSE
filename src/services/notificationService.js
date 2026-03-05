@@ -61,7 +61,7 @@ class NotificationService {
       }
       return enabled;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      logger.error('Error requesting notification permission:', error);
       return false;
     }
   }
@@ -81,7 +81,7 @@ class NotificationService {
       logger.sensitive('FCM Token:', token);
       return token;
     } catch (error) {
-      console.error('Error getting FCM token:', error);
+      logger.error('Error getting FCM token:', error);
       return null;
     }
   }
@@ -115,7 +115,7 @@ class NotificationService {
       await messaging().subscribeToTopic(`hub_${hubId}`);
       logger.log(`Subscribed to hub: ${hubId}`);
     } catch (error) {
-      console.error(`Error subscribing to hub ${hubId}:`, error);
+      logger.error(`Error subscribing to hub ${hubId}:`, error);
     }
   }
 
@@ -130,7 +130,7 @@ class NotificationService {
       await messaging().unsubscribeFromTopic(`hub_${hubId}`);
       logger.log(`Unsubscribed from hub: ${hubId}`);
     } catch (error) {
-      console.error(`Error unsubscribing from hub ${hubId}:`, error);
+      logger.error(`Error unsubscribing from hub ${hubId}:`, error);
     }
   }
 
