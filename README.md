@@ -85,7 +85,7 @@
 |  React Native App |  Firebase Backend   |  Anchor Program         |
 |  (Solana Mobile)  |  (Cloud Functions)  |  (Solana Blockchain)    |
 |                   |                     |                         |
-|  20 screens       |  11 serverless      |  23 instructions        |
+|  19 screens       |  11 serverless      |  23 instructions        |
 |  MWA 2.0          |  functions          |  8 account types        |
 |  NativeWind UI    |  FCM push delivery  |  19 events              |
 |  Zustand store    |  Analytics engine   |  33 error codes         |
@@ -229,7 +229,7 @@ deep-pulse-complete/
 |   +-- deep-pulse.ts                 # === TEST SUITE (TypeScript / Mocha) ===
 |
 |-- src/                               # === REACT NATIVE APP ===
-|   |-- screens/                       # 20 screens
+|   |-- screens/                       # 19 screens
 |   |   |-- OnboardingScreen.js        # Wallet connect + onboarding slides
 |   |   |-- HomeScreen.js              # Feed + rotating ad banners
 |   |   |-- DiscoverScreen.js          # Browse and search hubs
@@ -933,7 +933,7 @@ After repeated actions of the same type, each additional action earns less:
 | Component | Status |
 |-----------|--------|
 | Smart contracts (23 instructions, 5 audits, 155+ fixes) | ✅ Ready |
-| React Native app (20 screens, NativeWind UI) | ✅ Ready |
+| React Native app (19 screens, NativeWind UI) | ✅ Ready |
 | Mobile Wallet Adapter 2.0 (SeedVault + Phantom + Solflare) | ✅ Ready |
 | Firebase Cloud Functions (11 functions deployed) | ✅ Ready |
 | FCM push notifications (topic-based) | ✅ Ready |
