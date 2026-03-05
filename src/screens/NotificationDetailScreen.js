@@ -94,7 +94,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
             </View>
             <View className="flex-1">
               <Text className="text-text font-bold">{notification.hubName || 'Hub'}</Text>
-              <Text className="text-text-secondary text-xs">{notification.timestamp || ''}</Text>
+              <Text className="text-text-secondary text-xs">{typeof notification.timestamp === 'object' ? String(notification.timestamp) : (notification.timestamp || '')}</Text>
             </View>
             {notification.isSponsored && (
               <View className="rounded-md px-2 py-1" style={{ backgroundColor: 'rgba(234,179,8,0.2)' }}>

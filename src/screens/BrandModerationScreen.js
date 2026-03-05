@@ -273,7 +273,7 @@ export default function BrandModerationScreen({ navigation, route }) {
 
             <Text className="text-text font-bold text-base mb-2">{item.title}</Text>
             <Text className="text-text-secondary text-sm mb-3 leading-5">{item.message}</Text>
-            <Text className="text-text-secondary text-xs mb-4">{item.timestamp}</Text>
+            <Text className="text-text-secondary text-xs mb-4">{typeof item.timestamp === 'object' ? String(item.timestamp) : item.timestamp}</Text>
 
             <View className="flex-row">
               <TouchableOpacity

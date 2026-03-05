@@ -73,7 +73,7 @@ export default function HubNotificationsScreen({ navigation, route }) {
             >
               {/* Header */}
               <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-text-secondary text-xs">{notif.timestamp}</Text>
+                <Text className="text-text-secondary text-xs">{typeof notif.timestamp === 'object' ? String(notif.timestamp) : notif.timestamp}</Text>
                 {notif.isNew && (
                   <View className="rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(255,159,102,0.2)' }}>
                     <Text className="text-primary font-black" style={{ fontSize: 9, letterSpacing: 1 }}>NEW</Text>

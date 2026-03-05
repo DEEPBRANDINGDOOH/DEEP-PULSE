@@ -735,7 +735,7 @@ export default function AdminScreen({ navigation }) {
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-text-secondary text-xs">Submitted</Text>
-                <Text className="text-text font-semibold text-xs">{ad.submittedDate}</Text>
+                <Text className="text-text font-semibold text-xs">{typeof ad.submittedDate === 'object' ? String(ad.submittedDate) : ad.submittedDate}</Text>
               </View>
             </View>
 
@@ -1059,7 +1059,7 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
             <Text className="text-text-secondary text-sm mb-1">Creator: {hub.creator}</Text>
-            <Text className="text-text-secondary text-sm mb-3">Created: {hub.createdDate}</Text>
+            <Text className="text-text-secondary text-sm mb-3">Created: {typeof hub.createdDate === 'object' ? String(hub.createdDate) : hub.createdDate}</Text>
             <View className="flex-row">
               <TouchableOpacity
                 onPress={() => handleApproveHub(hub.id, hub.name)}
@@ -1151,7 +1151,7 @@ export default function AdminScreen({ navigation }) {
               <Text className="text-text-secondary text-sm ml-1">{(hub.subscribers || 0).toLocaleString()} subscribers</Text>
             </View>
             {hub.suspendedAt && (
-              <Text className="text-text-secondary text-sm mb-3">Suspended: {new Date(hub.suspendedAt).toLocaleDateString()}</Text>
+              <Text className="text-text-secondary text-sm mb-3">Suspended: {(() => { try { const d = new Date(hub.suspendedAt); return !isNaN(d.getTime()) ? d.toLocaleDateString() : 'Unknown'; } catch { return 'Unknown'; } })()}</Text>
             )}
             <View className="flex-row">
               <TouchableOpacity

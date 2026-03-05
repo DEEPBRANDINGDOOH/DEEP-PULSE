@@ -206,7 +206,7 @@ export default function TalentScreen({ navigation }) {
             <View className="flex-row items-center mb-2">
               <Ionicons name="calendar" size={16} color="#666" />
               <Text className="text-text-secondary text-sm ml-2">
-                Submitted: {sub.submittedDate}
+                Submitted: {typeof sub.submittedDate === 'object' ? String(sub.submittedDate) : sub.submittedDate}
               </Text>
             </View>
             <View className="flex-row items-center">
