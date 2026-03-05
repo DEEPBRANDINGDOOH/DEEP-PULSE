@@ -364,7 +364,7 @@ export const useAppStore = create(
               ctaUrl: ad.richCtaUrl || ad.landingUrl || null,
               link: ad.richCtaUrl || ad.landingUrl || null,
               isSponsored: true,
-              timestamp: new Date(),
+              timestamp: new Date().toLocaleString(),
               read: false,
             };
             // Add to "Sponsored" group in hubNotifications (visible to ALL users)
@@ -410,6 +410,31 @@ export const useAppStore = create(
           import('../services/firebaseService').then(fb => fb.saveAdCreative(updatedAd))
             .catch(e => logger.warn('[Store] resubmitAdForReview sync failed:', e));
         }
+      },
+
+      // [B50] Pause an approved ad (status → 'paused', reversible)
+      pauseAdInStore: (adId) => {
+        set((state) => ({
+          approvedAds: state.approvedAds.map(a =>
+            a.id === adId ? { ...a, status: 'paused', pausedAt: new Date().toISOString() } : a
+          ),
+        }));
+      },
+
+      // [B50] Resume a paused ad (status → 'approved', back to running)
+      resumeAdInStore: (adId) => {
+        set((state) => ({
+          approvedAds: state.approvedAds.map(a =>
+            a.id === adId ? { ...a, status: 'approved', resumedAt: new Date().toISOString() } : a
+          ),
+        }));
+      },
+
+      // [B50] Stop an ad permanently (remove from approvedAds)
+      stopAdInStore: (adId) => {
+        set((state) => ({
+          approvedAds: state.approvedAds.filter(a => a.id !== adId),
+        }));
       },
 
       // ============================================
@@ -639,7 +664,24 @@ export const useAppStore = create(
             hubName,
             hubIcon: n.hubIcon || 'apps',
             hubLogoUrl: n.hubLogoUrl || null,
-            timestamp: n.createdAt?.toDate?.() || new Date(n.createdAt),
+            timestamp: (() => {
+              try {
+                const d = n.createdAt?.toDate?.() || (n.createdAt ? new Date(n.createdAt) : null);
+                if (d instanceof Date && !isNaN(d)) {
+                  const now = new Date();
+                  const diffMs = now - d;
+                  const diffMin = Math.floor(diffMs / 60000);
+                  if (diffMin < 1) return 'Just now';
+                  if (diffMin < 60) return `${diffMin}m ago`;
+                  const diffHr = Math.floor(diffMin / 60);
+                  if (diffHr < 24) return `${diffHr}h ago`;
+                  const diffDays = Math.floor(diffHr / 24);
+                  if (diffDays < 7) return `${diffDays}d ago`;
+                  return d.toLocaleDateString();
+                }
+                return String(n.createdAt || 'Unknown');
+              } catch { return 'Unknown'; }
+            })(),
             read: false,
             link: n.link || null,
           });

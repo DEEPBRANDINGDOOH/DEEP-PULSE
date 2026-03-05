@@ -52,7 +52,7 @@ export default function HomeScreen({ navigation }) {
       isNew: false,
       reactions: 0,
       comments: 0,
-      timestamp: ad.submittedDate || 'Sponsored',
+      timestamp: (ad.submittedDate instanceof Date ? ad.submittedDate.toLocaleDateString() : ad.submittedDate) || 'Sponsored',
     }));
 
   const [notifications, setNotifications] = useState([...sponsoredNotifs, ...storeNotifs]);
@@ -90,7 +90,7 @@ export default function HomeScreen({ navigation }) {
         isNew: false,
         reactions: 0,
         comments: 0,
-        timestamp: ad.submittedDate || 'Sponsored',
+        timestamp: (ad.submittedDate instanceof Date ? ad.submittedDate.toLocaleDateString() : ad.submittedDate) || 'Sponsored',
       }));
     // Sponsored ads appear at top of feed, then regular notifications
     setNotifications([...freshSponsored, ...freshStoreNotifs]);
@@ -297,7 +297,7 @@ export default function HomeScreen({ navigation }) {
                           </View>
                         )}
                       </View>
-                      <Text className="text-text-muted text-xs mt-0.5">{notif.timestamp}</Text>
+                      <Text className="text-text-muted text-xs mt-0.5">{typeof notif.timestamp === 'object' ? String(notif.timestamp) : notif.timestamp}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#555" />
                   </View>

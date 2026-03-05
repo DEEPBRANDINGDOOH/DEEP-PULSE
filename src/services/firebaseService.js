@@ -534,6 +534,75 @@ export async function rejectAdCreative(creativeId, walletAddress, reason) {
   return { success: false };
 }
 
+/**
+ * [B50] Pause an approved ad creative (stops display, reversible)
+ * @param {string} creativeId - Firestore doc ID
+ * @param {string} walletAddress - Admin wallet
+ */
+export async function pauseAdCreative(creativeId, walletAddress) {
+  logger.log(`[FirebaseService] pauseAd: ${creativeId}`);
+  const db = getDb();
+  if (db) {
+    try {
+      await db.collection('adCreatives').doc(creativeId).update({
+        status: 'paused',
+        pausedAt: firestore.FieldValue.serverTimestamp(),
+        pausedBy: walletAddress,
+      });
+      return { success: true };
+    } catch (error) {
+      logger.error('[FirebaseService] pauseAd Firestore failed:', error.message);
+    }
+  }
+  return { success: false };
+}
+
+/**
+ * [B50] Resume a paused ad creative (back to approved/running)
+ * @param {string} creativeId - Firestore doc ID
+ * @param {string} walletAddress - Admin wallet
+ */
+export async function resumeAdCreative(creativeId, walletAddress) {
+  logger.log(`[FirebaseService] resumeAd: ${creativeId}`);
+  const db = getDb();
+  if (db) {
+    try {
+      await db.collection('adCreatives').doc(creativeId).update({
+        status: 'approved',
+        resumedAt: firestore.FieldValue.serverTimestamp(),
+        resumedBy: walletAddress,
+      });
+      return { success: true };
+    } catch (error) {
+      logger.error('[FirebaseService] resumeAd Firestore failed:', error.message);
+    }
+  }
+  return { success: false };
+}
+
+/**
+ * [B50] Stop an ad creative permanently (irreversible)
+ * @param {string} creativeId - Firestore doc ID
+ * @param {string} walletAddress - Admin wallet
+ */
+export async function stopAdCreative(creativeId, walletAddress) {
+  logger.log(`[FirebaseService] stopAd: ${creativeId}`);
+  const db = getDb();
+  if (db) {
+    try {
+      await db.collection('adCreatives').doc(creativeId).update({
+        status: 'stopped',
+        stoppedAt: firestore.FieldValue.serverTimestamp(),
+        stoppedBy: walletAddress,
+      });
+      return { success: true };
+    } catch (error) {
+      logger.error('[FirebaseService] stopAd Firestore failed:', error.message);
+    }
+  }
+  return { success: false };
+}
+
 // =====================================================
 //  5. ANALYTICS — Track Events
 // =====================================================

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -64,6 +64,39 @@ ErrorUtils.setGlobalHandler((error, isFatal) => {
   logCrashlyticsError(error, isFatal ? 'FATAL_JS_ERROR' : 'JS_ERROR');
   if (defaultHandler) defaultHandler(error, isFatal);
 });
+
+// [DEBUG] Error Boundary — catches render crashes and shows them on screen
+// (standalone APKs don't show Metro red screens)
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    logCrashlyticsError(error, 'RENDER_CRASH');
+    logger.error('[ErrorBoundary]', error?.message, info?.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, backgroundColor: '#1a0000', padding: 40, justifyContent: 'center' }}>
+          <Text style={{ color: '#ff4444', fontSize: 24, fontWeight: '900', marginBottom: 16 }}>
+            💥 CRASH CAUGHT
+          </Text>
+          <ScrollView style={{ maxHeight: 400 }}>
+            <Text style={{ color: '#ff8888', fontSize: 14, fontFamily: 'monospace' }}>
+              {this.state.error?.toString?.() || 'Unknown error'}
+            </Text>
+            <Text style={{ color: '#888', fontSize: 11, marginTop: 16, fontFamily: 'monospace' }}>
+              {this.state.error?.stack?.slice(0, 1500) || 'No stack trace'}
+            </Text>
+          </ScrollView>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /**
  * Navigate to the relevant screen when a notification is tapped.
@@ -350,6 +383,7 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#0c0c0e" />
+      <ErrorBoundary>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           initialRouteName="Onboarding"
@@ -440,6 +474,7 @@ const App = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 };

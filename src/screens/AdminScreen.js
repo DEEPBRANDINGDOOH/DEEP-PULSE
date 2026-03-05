@@ -6,7 +6,7 @@ import { getTierFromScore, PRICING, isAdmin, USE_DEVNET } from '../config/consta
 import { useAppStore } from '../store/appStore';
 // Rich notif ad needs to store the notification in Zustand for in-app display
 import { programService } from '../services/programService';
-import { approveAdCreative, rejectAdCreative, sendGlobalNotification, sendHubNotification, fetchLeaderboard } from '../services/firebaseService';
+import { approveAdCreative, rejectAdCreative, pauseAdCreative, resumeAdCreative, stopAdCreative, sendGlobalNotification, sendHubNotification, fetchLeaderboard } from '../services/firebaseService';
 import { showLocalNotification } from '../services/localNotificationService';
 import { checkRateLimit, logger, safeOpenURL } from '../utils/security';
 
@@ -59,6 +59,9 @@ export default function AdminScreen({ navigation }) {
   const storeApprovedAds = useAppStore((state) => state.approvedAds);
   const storeApproveAd = useAppStore((state) => state.approveAdCreativeInStore);
   const storeRejectAd = useAppStore((state) => state.rejectAdCreativeInStore);
+  const storePauseAd = useAppStore((state) => state.pauseAdInStore);
+  const storeResumeAd = useAppStore((state) => state.resumeAdInStore);
+  const storeStopAd = useAppStore((state) => state.stopAdInStore);
   const addHubNotification = useAppStore((state) => state.addHubNotification);
   const [savingPrice, setSavingPrice] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState('30d');
@@ -262,6 +265,75 @@ export default function AdminScreen({ navigation }) {
             } catch (error) {
               logger.warn('[Admin] handleFlagSpam error:', error?.message);
               Alert.alert('Error', 'Flag spam failed. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // [B50] Active Ads handlers — Pause / Resume / Stop
+  const handlePauseAd = (ad) => {
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
+    Alert.alert(
+      'Pause Ad',
+      `Pause "${ad.brandName || 'Unknown'}" ad?\n\nIt will stop being shown until resumed.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Pause',
+          onPress: async () => {
+            try {
+              storePauseAd(ad.id);
+              pauseAdCreative(ad.id, walletStr)
+                .catch(e => logger.warn('[Admin] pauseAd backend failed:', e));
+              Alert.alert('Ad Paused', `"${ad.brandName || 'Ad'}" has been paused. You can resume it anytime.`);
+            } catch (error) {
+              logger.warn('[Admin] handlePauseAd error:', error?.message);
+              Alert.alert('Error', 'Pause failed. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleResumeAd = (ad) => {
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
+    try {
+      storeResumeAd(ad.id);
+      resumeAdCreative(ad.id, walletStr)
+        .catch(e => logger.warn('[Admin] resumeAd backend failed:', e));
+      Alert.alert('Ad Resumed', `"${ad.brandName || 'Ad'}" is now running again.`);
+    } catch (error) {
+      logger.warn('[Admin] handleResumeAd error:', error?.message);
+      Alert.alert('Error', 'Resume failed. Please try again.');
+    }
+  };
+
+  const handleStopAd = (ad) => {
+    const costLabel = ad.totalCost ? ad.totalCost.toLocaleString() : '0';
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toBase58?.() || wallet?.publicKey?.toString?.() || 'admin');
+    Alert.alert(
+      'Stop Ad Permanently',
+      `⚠️ Stop "${ad.brandName || 'Unknown'}" ad permanently?\n\nThis cannot be undone.\nConsider a refund for remaining duration.\n\nBrand wallet: ${ad.brandWallet || 'N/A'}\nCost: ${costLabel} $SKR`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Stop Permanently',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              storeStopAd(ad.id);
+              stopAdCreative(ad.id, walletStr)
+                .catch(e => logger.warn('[Admin] stopAd backend failed:', e));
+              Alert.alert(
+                'Ad Stopped',
+                `"${ad.brandName || 'Ad'}" has been permanently stopped.\n\nRemember to process refund if applicable.\nBrand wallet: ${ad.brandWallet || 'N/A'}`
+              );
+            } catch (error) {
+              logger.warn('[Admin] handleStopAd error:', error?.message);
+              Alert.alert('Error', 'Stop failed. Please try again.');
             }
           },
         },
@@ -499,6 +571,23 @@ export default function AdminScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
+        {/* [B50] Active Ads Management */}
+        <TouchableOpacity
+          onPress={() => setActiveSection('activeAds')}
+          className="bg-background-card rounded-xl p-4 mb-3 flex-row items-center justify-between border border-border"
+        >
+          <View className="flex-row items-center">
+            <Ionicons name="play-circle" size={24} color="#FF9F66" />
+            <Text className="text-text font-semibold ml-3">Active Ads</Text>
+          </View>
+          <View className="flex-row items-center">
+            <Text className="text-primary font-bold mr-2">
+              {storeApprovedAds.filter(a => a.status !== 'stopped').length}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color="#666" />
+          </View>
+        </TouchableOpacity>
+
         {/* Messages */}
         <TouchableOpacity
           onPress={() => navigation.navigate('AdminMessages')}
@@ -695,6 +784,187 @@ export default function AdminScreen({ navigation }) {
       )}
     </ScrollView>
   );
+
+  // ============================================
+  // [B50] RENDER: Active Ads Management
+  // ============================================
+  const renderActiveAds = () => {
+    const runningAds = storeApprovedAds.filter(a => a.status === 'approved');
+    const pausedAds = storeApprovedAds.filter(a => a.status === 'paused');
+    const totalActive = runningAds.length + pausedAds.length;
+
+    return (
+      <ScrollView className="px-6 py-4">
+        <TouchableOpacity onPress={() => setActiveSection('overview')} className="flex-row items-center mb-4">
+          <Ionicons name="arrow-back" size={24} color="#FF9F66" />
+          <Text className="text-primary font-semibold ml-2">Back to Overview</Text>
+        </TouchableOpacity>
+
+        <Text className="text-text font-black text-2xl mb-2">Active Ads</Text>
+        <Text className="text-text-secondary text-sm mb-4">
+          Manage running and paused ad campaigns ({totalActive} total)
+        </Text>
+
+        {totalActive === 0 ? (
+          <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
+            <Ionicons name="megaphone-outline" size={48} color="#6b6b73" />
+            <Text className="text-text-secondary text-base mt-4 text-center">
+              No active ads running.
+            </Text>
+            <Text className="text-text-muted text-sm mt-2 text-center">
+              Approved ads will appear here.
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* Running Ads */}
+            {runningAds.length > 0 && (
+              <>
+                <View className="flex-row items-center mb-3">
+                  <View className="w-2.5 h-2.5 rounded-full bg-success mr-2" />
+                  <Text className="text-success font-bold text-sm">Running ({runningAds.length})</Text>
+                </View>
+                {runningAds.map((ad) => (
+                  <View key={ad.id} className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
+                    {/* Brand header */}
+                    <View className="flex-row items-center justify-between mb-3">
+                      <View className="flex-row items-center flex-1">
+                        <View className="w-10 h-10 rounded-full bg-success/20 items-center justify-center mr-3">
+                          <Ionicons name="business" size={20} color="#4CAF50" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-text font-bold">{ad.brandName || 'Unknown Brand'}</Text>
+                          <Text className="text-text-secondary text-xs" numberOfLines={1}>{ad.brandWallet || ad.walletAddress || 'N/A'}</Text>
+                        </View>
+                      </View>
+                      <View className="bg-success/20 rounded-full px-3 py-1">
+                        <Text className="text-success text-xs font-bold">Running</Text>
+                      </View>
+                    </View>
+
+                    {/* Ad details */}
+                    <View className="bg-background-secondary rounded-xl p-3 mb-3">
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Hub</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.hubName || 'N/A'}</Text>
+                      </View>
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Slot</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : ad.slotType === 'lockscreen' ? 'Lockscreen (1080x1920)' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom (390x100)'}</Text>
+                      </View>
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Duration</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.duration || '—'} week(s)</Text>
+                      </View>
+                      <View className="flex-row justify-between">
+                        <Text className="text-text-secondary text-xs">Cost</Text>
+                        <Text className="text-primary font-semibold text-xs">{(ad.totalCost || 0).toLocaleString()} $SKR</Text>
+                      </View>
+                    </View>
+
+                    {/* Action Buttons: Pause + Stop */}
+                    <View className="flex-row">
+                      <TouchableOpacity
+                        onPress={() => handlePauseAd(ad)}
+                        className="flex-1 rounded-xl py-3 mr-2 border"
+                        style={{ backgroundColor: 'rgba(255, 152, 0, 0.15)', borderColor: '#FF9800' }}
+                      >
+                        <View className="flex-row items-center justify-center">
+                          <Ionicons name="pause-circle" size={16} color="#FF9800" />
+                          <Text style={{ color: '#FF9800' }} className="font-bold text-sm ml-1">Pause</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleStopAd(ad)}
+                        className="flex-1 bg-error/20 rounded-xl py-3 ml-2 border border-error"
+                      >
+                        <View className="flex-row items-center justify-center">
+                          <Ionicons name="stop-circle" size={16} color="#f44336" />
+                          <Text className="text-error font-bold text-sm ml-1">Stop</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Paused Ads */}
+            {pausedAds.length > 0 && (
+              <>
+                <View className="flex-row items-center mb-3 mt-2">
+                  <View className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: '#FF9800' }} />
+                  <Text style={{ color: '#FF9800' }} className="font-bold text-sm">Paused ({pausedAds.length})</Text>
+                </View>
+                {pausedAds.map((ad) => (
+                  <View key={ad.id} className="bg-background-card rounded-2xl p-5 mb-4 border border-border" style={{ opacity: 0.85 }}>
+                    {/* Brand header */}
+                    <View className="flex-row items-center justify-between mb-3">
+                      <View className="flex-row items-center flex-1">
+                        <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: 'rgba(255, 152, 0, 0.2)' }}>
+                          <Ionicons name="business" size={20} color="#FF9800" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-text font-bold">{ad.brandName || 'Unknown Brand'}</Text>
+                          <Text className="text-text-secondary text-xs" numberOfLines={1}>{ad.brandWallet || ad.walletAddress || 'N/A'}</Text>
+                        </View>
+                      </View>
+                      <View className="rounded-full px-3 py-1" style={{ backgroundColor: 'rgba(255, 152, 0, 0.2)' }}>
+                        <Text style={{ color: '#FF9800' }} className="text-xs font-bold">Paused</Text>
+                      </View>
+                    </View>
+
+                    {/* Ad details */}
+                    <View className="bg-background-secondary rounded-xl p-3 mb-3">
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Hub</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.hubName || 'N/A'}</Text>
+                      </View>
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Slot</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.slotType === 'top' ? 'Top (390x120)' : ad.slotType === 'lockscreen' ? 'Lockscreen (1080x1920)' : ad.slotType === 'rich_notif' ? 'Rich Notification' : 'Bottom (390x100)'}</Text>
+                      </View>
+                      <View className="flex-row justify-between mb-1">
+                        <Text className="text-text-secondary text-xs">Duration</Text>
+                        <Text className="text-text font-semibold text-xs">{ad.duration || '—'} week(s)</Text>
+                      </View>
+                      <View className="flex-row justify-between">
+                        <Text className="text-text-secondary text-xs">Cost</Text>
+                        <Text className="text-primary font-semibold text-xs">{(ad.totalCost || 0).toLocaleString()} $SKR</Text>
+                      </View>
+                    </View>
+
+                    {/* Action Buttons: Resume + Stop */}
+                    <View className="flex-row">
+                      <TouchableOpacity
+                        onPress={() => handleResumeAd(ad)}
+                        className="flex-1 bg-success/20 rounded-xl py-3 mr-2 border border-success"
+                      >
+                        <View className="flex-row items-center justify-center">
+                          <Ionicons name="play-circle" size={16} color="#4CAF50" />
+                          <Text className="text-success font-bold text-sm ml-1">Resume</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleStopAd(ad)}
+                        className="flex-1 bg-error/20 rounded-xl py-3 ml-2 border border-error"
+                      >
+                        <View className="flex-row items-center justify-center">
+                          <Ionicons name="stop-circle" size={16} color="#f44336" />
+                          <Text className="text-error font-bold text-sm ml-1">Stop</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+          </>
+        )}
+        <View className="h-6" />
+      </ScrollView>
+    );
+  };
 
   // ============================================
   // RENDER: Top 100
@@ -1256,6 +1526,7 @@ export default function AdminScreen({ navigation }) {
       {activeSection === 'globalNotif' && renderGlobalNotification()}
       {activeSection === 'pricing' && renderPricingManagement()}
       {activeSection === 'deals' && renderCustomDeals()}
+      {activeSection === 'activeAds' && renderActiveAds()}
 
       {/* Create Deal Modal */}
       <Modal
