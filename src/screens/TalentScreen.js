@@ -168,15 +168,37 @@ export default function TalentScreen({ navigation }) {
     </ScrollView>
   );
 
-  const renderBrowseTab = () => (
+  const renderBrowseTab = () => {
+    const hiredTalent = mySubmissions.filter(t => t.status === 'HIRED');
+    return (
     <ScrollView className="px-6 py-4">
+      {hiredTalent.length === 0 ? (
       <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
         <Ionicons name="people-outline" size={48} color="#666" />
         <Text className="text-text-secondary text-base mt-4 text-center">No talent profiles yet</Text>
         <Text className="text-text-muted text-sm mt-2 text-center">Submit your profile in the Submit tab!</Text>
       </View>
+      ) : hiredTalent.map((talent) => (
+        <View key={talent.id} className="bg-background-card rounded-2xl p-5 mb-4 border border-border">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-text font-bold text-lg">{talent.role}</Text>
+            <View className="rounded-full px-3 py-1 bg-green-500/20">
+              <Text className="text-xs font-bold text-green-400">✓ HIRED</Text>
+            </View>
+          </View>
+          <Text className="text-text-secondary text-sm mb-2">{talent.hub}</Text>
+          {talent.experience ? (
+            <Text className="text-text-secondary text-sm mb-3 leading-5">{talent.experience}</Text>
+          ) : null}
+          {talent.portfolio ? (
+            <Text className="text-primary text-sm mb-2">Portfolio: {talent.portfolio}</Text>
+          ) : null}
+          <Text className="text-text-muted text-xs">Contact: {talent.email || 'N/A'}</Text>
+        </View>
+      ))}
     </ScrollView>
-  );
+    );
+  };
 
   const renderMineTab = () => (
     <ScrollView className="px-6 py-4">
@@ -201,6 +223,16 @@ export default function TalentScreen({ navigation }) {
           </View>
 
           <Text className="text-text-secondary text-sm mb-2">{sub.hub}</Text>
+
+          {sub.experience ? (
+            <Text className="text-text-secondary text-sm mb-3 leading-5">{sub.experience}</Text>
+          ) : null}
+          {sub.portfolio ? (
+            <Text className="text-primary text-sm mb-2">Portfolio: {sub.portfolio}</Text>
+          ) : null}
+          {sub.email ? (
+            <Text className="text-text-muted text-xs mb-3">Contact: {sub.email}</Text>
+          ) : null}
 
           <View className="bg-background-secondary rounded-xl p-4 mb-3">
             <View className="flex-row items-center mb-2">

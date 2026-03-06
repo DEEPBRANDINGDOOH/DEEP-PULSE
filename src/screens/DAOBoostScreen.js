@@ -131,7 +131,7 @@ export default function DAOBoostScreen({ navigation }) {
               backers: 0,
               hub: selectedHub?.name || 'Unknown',
               hubId: selectedHub?.id || null,
-              status: 'ACTIVE',
+              status: 'PENDING',
               daysLeft: 30,
               deposit: 100,
               submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
@@ -198,7 +198,7 @@ export default function DAOBoostScreen({ navigation }) {
   };
 
   const renderVotesTab = () => {
-    const hubProposals = proposals.filter(p => p.hub === selectedHub?.name);
+    const hubProposals = proposals.filter(p => p.hub === selectedHub?.name && p.status === 'APPROVED');
     return (
     <ScrollView className="px-6 py-4">
       {hubProposals.length === 0 ? (
@@ -422,7 +422,7 @@ export default function DAOBoostScreen({ navigation }) {
               activeTab === 'votes' ? 'text-primary' : 'text-text-secondary'
             }`}
           >
-            Votes ({proposals.length})
+            Votes ({proposals.filter(p => p.status === 'APPROVED').length})
           </Text>
         </TouchableOpacity>
         
