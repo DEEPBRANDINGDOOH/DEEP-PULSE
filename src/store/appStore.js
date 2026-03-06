@@ -493,6 +493,21 @@ export const useAppStore = create(
         set({ readHubNotificationIds: allIds });
       },
 
+      // [B51] Remove a specific notification by ID from hubNotifications
+      removeHubNotification: (notifId) => {
+        set((state) => {
+          const updated = {};
+          for (const [hubName, notifs] of Object.entries(state.hubNotifications || {})) {
+            const filtered = notifs.filter(n => n.id !== notifId);
+            if (filtered.length > 0) updated[hubName] = filtered;
+          }
+          return { hubNotifications: updated };
+        });
+        // Also delete from Firestore
+        import('../services/firebaseService').then(fb => fb.deleteNotification(notifId))
+          .catch(e => logger.warn('[Store] deleteNotification sync failed:', e));
+      },
+
       getUnreadHubNotifCount: () => {
         const { hubNotifications, readHubNotificationIds } = get();
         // [B41] Exclude 'Sponsored' pseudo-hub — those are injected ads, not real notifications

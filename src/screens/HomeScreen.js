@@ -15,7 +15,7 @@ import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks } = useAppStore(); // [B41] Use hub notif count, not alerts
+  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
@@ -278,6 +278,23 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('NotificationDetail', { notification: notif })}
+                onLongPress={() => {
+                  Alert.alert(
+                    'Delete Notification',
+                    `Remove "${notif.title}" from your feed?`,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Delete', style: 'destructive', onPress: () => {
+                        if (notif.isSponsored) {
+                          // Sponsored ads come from approvedAds, just remove from local view
+                          setNotifications(prev => prev.filter(n => n.id !== notif.id));
+                        } else {
+                          removeHubNotification(notif.id);
+                        }
+                      }},
+                    ]
+                  );
+                }}
               >
                 <View className="p-5 pb-3">
                   {/* Header */}

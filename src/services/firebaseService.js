@@ -157,6 +157,27 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
   return { success: false, notificationId: null, error: 'No Firebase available' };
 }
 
+/**
+ * [B51] Delete a notification from Firestore by ID
+ * @param {string} notifId - Firestore doc ID or local ID
+ */
+export async function deleteNotification(notifId) {
+  logger.log(`[FirebaseService] deleteNotification: ${notifId}`);
+  const db = getDb();
+  if (db) {
+    try {
+      // Try direct doc delete (works if notifId is a Firestore doc ID)
+      await db.collection('notifications').doc(notifId).delete();
+      return { success: true };
+    } catch (error) {
+      // Local-only notification (notif_XXXX format) — no Firestore doc to delete
+      logger.warn('[FirebaseService] deleteNotification — not in Firestore (local only):', error.message);
+      return { success: true }; // Still success — removed from local store
+    }
+  }
+  return { success: true };
+}
+
 // =====================================================
 //  2. HUB LIFECYCLE — Firestore Sync
 // =====================================================
