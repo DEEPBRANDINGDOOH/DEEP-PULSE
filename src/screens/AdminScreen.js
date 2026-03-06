@@ -155,47 +155,8 @@ export default function AdminScreen({ navigation }) {
               logger.warn('[Admin] approveAdCreative call error:', fbErr?.message);
             }
 
-            // If it's a Rich Notification Ad, trigger push notification to hub subscribers
-            if (ad.slotType === 'rich_notif' && ad.hubName) {
-              try {
-                const pushTitle = ad.richTitle || ad.brandName || 'Sponsored';
-                const pushBody = ad.richBody || `New sponsored content from ${ad.brandName || 'brand'}`;
-
-                sendHubNotification(
-                  ad.hubId || ad.hubName,
-                  ad.hubName,
-                  pushTitle,
-                  pushBody,
-                  walletStr,
-                  ad.landingUrl || null
-                ).then(() => {
-                  logger.log(`[Admin] Rich notif push sent for ad ${ad.id} to hub ${ad.hubName}`);
-                }).catch(e => logger.warn('[Admin] Rich notif push failed:', e));
-
-                showLocalNotification(pushTitle, pushBody).catch(() => {});
-
-                // Store notification in Zustand so it appears in HomeScreen feed + bell icon
-                addHubNotification(ad.hubName, {
-                  id: `rich_notif_${Date.now()}`,
-                  title: pushTitle,
-                  hubName: ad.hubName,
-                  hubIcon: 'notifications',
-                  message: pushBody,
-                  fullMessage: pushBody,
-                  link: ad.landingUrl || null,
-                  imageUrl: ad.imageUrl || null,
-                  ctaLabel: ad.richCtaLabel || null,
-                  ctaUrl: ad.landingUrl || null,
-                  isSponsored: true,
-                  timestamp: 'Just now',
-                  reactions: 0,
-                  comments: 0,
-                  isNew: true,
-                });
-              } catch (notifErr) {
-                logger.warn('[Admin] Rich notif handling error:', notifErr?.message);
-              }
-            }
+            // Rich Notification Ads are displayed via approvedAds injection in HomeScreen feed
+            // No hub-specific notification needed (avoids duplicates for hub subscribers)
 
             Alert.alert('Ad Approved', `"${ad.brandName || 'Ad'}" is now live on ${ad.hubName || 'hub'}.${ad.slotType === 'rich_notif' ? '\n\nPush notification sent to subscribers.' : ''}`);
           },

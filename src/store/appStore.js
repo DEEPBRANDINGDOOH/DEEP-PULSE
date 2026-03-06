@@ -351,30 +351,9 @@ export const useAppStore = create(
             approvedAds: [...approvedAds, { ...ad, status: 'approved' }],
           };
 
-          // Rich Notification Ads → inject into ALL users' notification feed as "Sponsored"
+          // Rich Notification Ads: displayed via approvedAds injection in HomeScreen feed
+          // Push notification to all users via global notification
           if (ad.slotType === 'rich_notif') {
-            const sponsoredNotif = {
-              id: `sponsored_${ad.id}`,
-              title: ad.richTitle || ad.brandName || 'Sponsored',
-              body: ad.richBody || '',
-              hubName: ad.hubName || ad.brandName || 'Sponsored',
-              hubLogoUrl: null,
-              imageUrl: ad.imageUrl || null,
-              ctaLabel: ad.richCtaLabel || 'Learn More',
-              ctaUrl: ad.richCtaUrl || ad.landingUrl || null,
-              link: ad.richCtaUrl || ad.landingUrl || null,
-              isSponsored: true,
-              timestamp: new Date().toLocaleString(),
-              read: false,
-            };
-            // Add to "Sponsored" group in hubNotifications (visible to ALL users)
-            const currentSponsored = hubNotifications['Sponsored'] || [];
-            updates.hubNotifications = {
-              ...hubNotifications,
-              Sponsored: [sponsoredNotif, ...currentSponsored],
-            };
-
-            // Also trigger push to all users via global notification
             import('../services/firebaseService').then(fb => {
               const w = get().wallet?.publicKey;
               const walletStr = typeof w === 'string' ? w : (w?.toBase58?.() || w?.toString?.() || 'admin');
@@ -477,7 +456,8 @@ export const useAppStore = create(
       addHubNotification: (hubName, notification) => {
         set((state) => {
           // Enrich notification with hub logoUrl if not already present
-          const hub = state.hubs.find(h => h.name === hubName);
+          const hub = state.hubs.find(h => h.name === hubName)
+                   || state.hubs.find(h => h.id === notification.hubId);
           const enriched = {
             ...notification,
             hubLogoUrl: notification.hubLogoUrl || hub?.logoUrl || null,
@@ -696,6 +676,28 @@ export const useAppStore = create(
           const localOnly = local.filter(n => !fbIds.has(n.id));
           merged[hubName] = [...firebase, ...localOnly];
         }
+        // Deduplicate: remove local notifs that have same title+body as a Firebase one
+        for (const hubName of Object.keys(merged)) {
+          const notifs = merged[hubName];
+          const seen = new Set();
+          merged[hubName] = notifs.filter(n => {
+            const key = `${n.title}|${n.body || n.message}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        }
+        // Enrich logos from hubs state (Firebase notifs may lack hubLogoUrl)
+        const { hubs } = get();
+        for (const hubName of Object.keys(merged)) {
+          const hub = hubs.find(h => h.name === hubName);
+          if (hub?.logoUrl) {
+            merged[hubName] = merged[hubName].map(n => ({
+              ...n,
+              hubLogoUrl: n.hubLogoUrl || hub.logoUrl,
+            }));
+          }
+        }
         set({ hubNotifications: merged });
       },
 
@@ -727,8 +729,11 @@ export const useAppStore = create(
         set({ hubFeedbacks: merged });
       },
       syncPendingAdCreatives: (ads) => {
-        const { pendingAdCreatives: local } = get();
-        set({ pendingAdCreatives: mergeArraysById(local, ads) });
+        const { pendingAdCreatives: local, approvedAds } = get();
+        // [B51] Filter out ads already approved locally (prevents re-appearing in pending)
+        const approvedIds = new Set(approvedAds.map(a => a.id));
+        const filteredAds = (ads || []).filter(a => !approvedIds.has(a.id));
+        set({ pendingAdCreatives: mergeArraysById(local, filteredAds) });
       },
       syncCustomDeals: (deals) => {
         const { customDeals: local } = get();

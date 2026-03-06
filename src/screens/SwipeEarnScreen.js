@@ -93,9 +93,9 @@ export default function SwipeEarnScreen({ navigation }) {
         clickUrl: ad.clickUrl || ad.landingUrl || '',
       }));
 
-      // Store ads first, then mocks as fallback
+      // [B51] Real ads only when available (no mocks mixed in to avoid mock taking over rotation)
       const lockscreenAds = storeLockscreenAds.length > 0
-        ? [...storeLockscreenAds, ...mockLockscreenAds]
+        ? storeLockscreenAds
         : mockLockscreenAds;
 
       if (lockscreenAds.length > 0) {

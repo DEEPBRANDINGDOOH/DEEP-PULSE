@@ -262,8 +262,9 @@ class LockScreenService : Service() {
                 // Parse JSON array of ad objects
                 val jsonArray = org.json.JSONArray(queueJson)
                 val adsToday = prefs.getInt(KEY_ADS_TODAY, 0)
-                if (adsToday < jsonArray.length()) {
-                    val adObj = jsonArray.getJSONObject(adsToday)
+                if (jsonArray.length() > 0) {
+                    val adIndex = adsToday % jsonArray.length()  // Circular rotation
+                    val adObj = jsonArray.getJSONObject(adIndex)
                     return mapOf(
                         "contentUrl" to (adObj.optString("contentUrl", "")),
                         "title" to (adObj.optString("title", "Sponsored Content")),

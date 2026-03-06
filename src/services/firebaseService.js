@@ -93,9 +93,10 @@ function getFunctions() {
  * @param {string} body - Notification body
  * @param {string} walletAddress - Sender's wallet (for ownership verification)
  * @param {string|null} link - Optional link URL to include in notification
+ * @param {string|null} hubLogoUrl - Optional hub logo URL to store with notification
  * @returns {Promise<{success: boolean, notificationId?: string}>}
  */
-export async function sendHubNotification(hubId, hubName, title, body, walletAddress, link = null) {
+export async function sendHubNotification(hubId, hubName, title, body, walletAddress, link = null, hubLogoUrl = null) {
   logger.log(`[FirebaseService] sendHubNotification: ${hubName} → "${title}"`);
 
   // [C-06 FIX] Validate required fields before any write
@@ -139,6 +140,7 @@ export async function sendHubNotification(hubId, hubName, title, body, walletAdd
         title: displayTitle,
         body: safeBody,
         link: link || null,
+        hubLogoUrl: hubLogoUrl || null,
         createdAt: firestore.FieldValue.serverTimestamp(),
         source: 'app_direct',
         walletAddress,
@@ -467,14 +469,13 @@ export async function approveAdCreative(creativeId, walletAddress) {
   if (fnInstance) {
     try {
       const moderate = fnInstance.httpsCallable('moderateAdCreative');
-      const result = await moderate({ creativeId, action: 'approve', walletAddress });
-      return { success: true, data: result.data };
+      await moderate({ creativeId, action: 'approve', walletAddress });
     } catch (error) {
-      logger.error('[FirebaseService] approveAd Cloud Function failed:', error.message);
+      logger.warn('[FirebaseService] approveAd Cloud Function failed:', error.message);
     }
   }
 
-  // Fallback: direct Firestore update
+  // [B51] Always do direct Firestore update as safety net (prevents re-appearing in pending)
   const db = getDb();
   if (db) {
     try {
@@ -1063,27 +1064,36 @@ export async function fetchUserScore(walletAddress) {
  * Fetch leaderboard from userScores collection
  * Returns top 100 users sorted by score descending
  * [B47] New — wires ProfileScreen leaderboard to real Firestore data
+ * [B51] Added fallback for missing Firestore index + client-side sort
  */
 export async function fetchLeaderboard(limit = 100) {
   const db = getDb();
   if (!db) return [];
   try {
-    const snapshot = await db.collection('userScores')
-      .orderBy('score', 'desc')
-      .limit(limit)
-      .get();
-    return snapshot.docs.map((doc, index) => ({
-      rank: index + 1,
-      wallet: doc.id.slice(0, 4) + '...' + doc.id.slice(-3),
-      fullWallet: doc.id,
-      score: doc.data().score || 0,
-      streak: doc.data().streak || 0,
-      boost: doc.data().boost || 0,
-      talent: doc.data().talent || 0,
-      feedback: doc.data().feedback || 0,
-    }));
+    let snapshot;
+    try {
+      snapshot = await db.collection('userScores')
+        .orderBy('score', 'desc')
+        .limit(limit)
+        .get();
+    } catch (indexErr) {
+      // Fallback: missing Firestore index — fetch without orderBy, sort client-side
+      logger.warn('[fetchLeaderboard] orderBy failed (missing index?), falling back:', indexErr.message);
+      snapshot = await db.collection('userScores').limit(200).get();
+    }
+    const entries = snapshot.docs
+      .map(doc => ({
+        wallet: doc.id.slice(0, 4) + '...' + doc.id.slice(-3),
+        fullWallet: doc.id,
+        score: doc.data().score || 0,
+        streak: doc.data().streak || 0,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map((e, i) => ({ ...e, rank: i + 1 }));
+    return entries;
   } catch (error) {
-    logger.warn('[FirebaseService] fetchLeaderboard failed:', error.message);
+    logger.error('[FirebaseService] fetchLeaderboard failed:', error.message);
     return [];
   }
 }

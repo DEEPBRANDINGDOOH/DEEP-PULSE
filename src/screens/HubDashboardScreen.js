@@ -233,6 +233,7 @@ export default function HubDashboardScreen({ navigation, route }) {
                       notifMessage,
                       (typeof wallet.publicKey === 'string' ? wallet.publicKey : (wallet.publicKey?.toBase58?.() || wallet.publicKey?.toString?.() || ADMIN_WALLET)),
                       linkUrl.trim() || null,
+                      hubLogoUrl || null,
                     ).then((res) => {
                       logger.log('[HubDashboard] Push sent:', res);
                     }).catch((err) => {
