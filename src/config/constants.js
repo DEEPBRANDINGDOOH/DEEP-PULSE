@@ -14,7 +14,7 @@
 export const APP_IDENTITY = {
   name: 'Deep Pulse',
   uri: 'https://deep-pulse.web.app',
-  icon: 'favicon.ico',
+  icon: 'https://deep-pulse.web.app/favicon.ico',
 };
 
 // ========================================
