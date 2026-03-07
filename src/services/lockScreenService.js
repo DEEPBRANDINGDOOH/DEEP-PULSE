@@ -152,6 +152,14 @@ const lockScreenService = {
     // Permission granted — start the service
     try {
       await this.start();
+
+      // [B52] Request battery optimization exemption for background survival
+      try {
+        await LockScreenModule.requestBatteryOptimizationExemption();
+      } catch (battErr) {
+        logger.warn('[LockScreen] Battery exemption request failed:', battErr);
+      }
+
       return true;
     } catch (e) {
       Alert.alert('Error', 'Failed to start the Swipe-to-Earn service.');

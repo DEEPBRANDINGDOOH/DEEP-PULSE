@@ -1,5 +1,6 @@
 package com.deeppulse.lockscreen
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -311,10 +312,44 @@ class LockScreenService : Service() {
         manager.notify(NOTIFICATION_ID, notification)
     }
 
+    /**
+     * Called when user swipes the app from recents.
+     * Schedule a restart via AlarmManager so the service survives.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d(TAG, "App removed from recents — scheduling service restart")
+        scheduleRestart()
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
         screenReceiver?.let { unregisterReceiver(it) }
         swipeReceiver?.let { unregisterReceiver(it) }
+
+        // Only schedule restart if the service should be running
+        if (prefs.getBoolean(KEY_ENABLED, false)) {
+            Log.d(TAG, "Service destroyed while enabled — scheduling restart")
+            scheduleRestart()
+        }
+
         Log.d(TAG, "LockScreen Service stopped")
         super.onDestroy()
+    }
+
+    /**
+     * Schedule a service restart via AlarmManager after 1 second.
+     */
+    private fun scheduleRestart() {
+        val restartIntent = Intent(this, LockScreenService::class.java)
+        val pendingIntent = PendingIntent.getService(
+            this, 1, restartIntent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis() + 1000,
+            pendingIntent
+        )
     }
 }

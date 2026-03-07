@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import com.facebook.react.bridge.Arguments
@@ -214,6 +215,29 @@ class LockScreenModule(private val reactContext: ReactApplicationContext) :
             promise.resolve(Settings.canDrawOverlays(reactContext))
         } else {
             promise.resolve(true) // Pre-M doesn't need explicit permission
+        }
+    }
+
+    @ReactMethod
+    fun requestBatteryOptimizationExemption(promise: Promise) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val pm = reactContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+                if (pm.isIgnoringBatteryOptimizations(reactContext.packageName)) {
+                    promise.resolve(true) // Already exempted
+                    return
+                }
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:${reactContext.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                reactContext.startActivity(intent)
+                promise.resolve(false) // User needs to confirm
+            } else {
+                promise.resolve(true) // Not needed pre-M
+            }
+        } catch (e: Exception) {
+            promise.reject("BATTERY_ERROR", e.message, e)
         }
     }
 
