@@ -707,15 +707,25 @@ export async function saveTalentSubmission(submission) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    // [B45] Explicit fields — no blind spread (prevents Firestore undefined crash)
+    // [B52] All fields mapped — screen uses hub/wallet/role, Firestore needs all of them
     const docData = {
       id: String(submission.id),
-      name: String(submission.name || ''),
-      category: String(submission.category || ''),
-      description: String(submission.description || ''),
+      role: String(submission.role || submission.name || ''),
+      name: String(submission.name || submission.role || ''),
+      hub: String(submission.hub || ''),
+      hubId: String(submission.hubId || ''),
+      hubName: String(submission.hub || submission.hubName || ''),
+      category: String(submission.category || submission.role || ''),
+      description: String(submission.description || submission.experience || ''),
+      experience: String(submission.experience || submission.skills || ''),
+      skills: String(submission.skills || submission.experience || ''),
       portfolio: String(submission.portfolio || ''),
-      walletAddress: String(submission.walletAddress || submission.creator || ''),
+      email: String(submission.email || ''),
+      wallet: String(submission.wallet || ''),
+      walletAddress: String(submission.walletAddress || submission.wallet || submission.creator || ''),
+      deposit: Number(submission.deposit) || 0,
       status: String(submission.status || 'pending'),
+      submittedDate: String(submission.submittedDate || ''),
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
     if (submission.depositTx) docData.depositTx = String(submission.depositTx);
@@ -749,19 +759,28 @@ export async function saveDaoProposal(proposal) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    // [B45] Explicit fields
+    // [B52] All fields mapped — screen uses hub/wallet/creator, Firestore needs all
     const docData = {
       id: String(proposal.id),
       title: String(proposal.title || ''),
       description: String(proposal.description || ''),
       category: String(proposal.category || ''),
+      hub: String(proposal.hub || ''),
+      hubId: String(proposal.hubId || ''),
+      hubName: String(proposal.hub || proposal.hubName || ''),
       targetAmount: Number(proposal.targetAmount || 0),
-      walletAddress: String(proposal.walletAddress || proposal.creator || ''),
+      currentAmount: Number(proposal.currentAmount || 0),
+      backers: Number(proposal.backers || 0),
+      wallet: String(proposal.wallet || ''),
+      walletAddress: String(proposal.walletAddress || proposal.wallet || proposal.creator || ''),
+      creator: String(proposal.creator || proposal.wallet || ''),
+      deposit: Number(proposal.deposit || 0),
       status: String(proposal.status || 'pending'),
+      submittedDate: String(proposal.submittedDate || ''),
+      daysLeft: Number(proposal.daysLeft || 30),
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
     if (proposal.depositTx) docData.depositTx = String(proposal.depositTx);
-    if (proposal.hubName) docData.hubName = String(proposal.hubName);
     await db.collection('daoProposals').doc(docData.id).set(docData);
     return { success: true };
   } catch (error) {
