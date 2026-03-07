@@ -55,8 +55,10 @@
 - **Seeker Genesis Token (SGT)** — Automatic on-chain verification of SGT ownership via Token-2022 (Token Extensions). Verified Seeker owners get a "SEEKER VERIFIED" badge and +15% DEEP Score bonus. Uses mint authority `GT2zuHVaZQYZSyQMgJPLzvkmyztfyXg2NJunqFp4p3A4` per [Solana Mobile docs](https://docs.solanamobile.com/marketing/engaging-seeker-users)
 - **Escrow-based deposits** — Tokens locked in PDA escrows until brand moderation resolves
 - **Permissionless cranks** — Anyone can trigger vault completion or ad slot expiry
-- **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap)
+- **Swipe-to-Earn** — Lock screen overlay (WebView HTML5) rewards users for engaging with sponsored content (+0.2/+0.5 pts per action, 3 pts/day cap). Lock screen service survives app closure via AlarmManager restart + battery optimization exemption
 - **DEEP Score v2** — Anti-farming scoring with diminishing returns, daily caps, streak bonuses, time decay, and diversity multipliers
+- **GIF ad support** — Animated GIF creatives render natively in all ad slots (Fresco 3.2.0 aligned)
+- **Full data persistence** — All user-created content (ads, DAO proposals, talent submissions) persists in Firestore with complete field mapping — every user who installs the app sees the same data
 - **Rich Notification Ads** — SPONSORED premium push campaigns via FCM (1,500 $SKR/week), full creation flow with title, body, CTA button, image URL, duration selector, live preview, and volume discounts — Free vs Sponsored comparison UI clearly differentiates from free hub notifications — works on all devices including Seeker
 - **Showcase Talent** — Users propose their skills and services directly to their favorite brands/hubs (50 $SKR deposit). Hub owners review and approve/reject via the Brand Moderation screen. Approved talent is refunded — creating a decentralized talent marketplace where communities connect directly with brands, no intermediary needed
 - **DOOH Worldwide** — Digital Out-Of-Home campaign brief form accessible from HubDashboard, enabling global billboard/screen campaigns
@@ -948,6 +950,9 @@ After repeated actions of the same type, each additional action earns less:
 | Helius RPC endpoints (devnet + mainnet) | ✅ Ready |
 | Firebase Firestore sync (hubs, notifications, ads on startup) | ✅ Ready |
 | Mock data removed (all content from Firebase) | ✅ Ready |
+| GIF ad support (Fresco 3.2.0 animated-gif) | ✅ Ready |
+| Lock screen background survival (AlarmManager + battery exemption) | ✅ Ready |
+| Full Firestore field mapping (ads, DAO, talent persist for all users) | ✅ Ready |
 
 ### Step 1 — Deploy Smart Contract to Mainnet
 
