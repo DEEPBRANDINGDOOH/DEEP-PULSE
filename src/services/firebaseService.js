@@ -867,19 +867,20 @@ export async function saveAdCreative(ad) {
     const docData = {
       id: String(ad.id),
       brandName: String(ad.brandName || ''),
+      brandWallet: String(ad.brandWallet || ad.walletAddress || ad.advertiser || ''),
       slotType: String(ad.slotType || ''),
-      walletAddress: String(ad.walletAddress || ad.advertiser || ''),
+      walletAddress: String(ad.walletAddress || ad.brandWallet || ad.advertiser || ''),
+      hubName: String(ad.hubName || ''),
+      imageUrl: String(ad.imageUrl || ''),
+      landingUrl: String(ad.landingUrl || ''),
       status: 'pending_review',
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
-    if (ad.imageUrl) docData.imageUrl = String(ad.imageUrl);
-    if (ad.landingUrl) docData.landingUrl = String(ad.landingUrl);
     if (ad.title) docData.title = String(ad.title);
     if (ad.richTitle) docData.richTitle = String(ad.richTitle);
     if (ad.richBody) docData.richBody = String(ad.richBody);
     if (ad.richCtaLabel) docData.richCtaLabel = String(ad.richCtaLabel);
     if (ad.richCtaUrl) docData.richCtaUrl = String(ad.richCtaUrl);
-    if (ad.hubName) docData.hubName = String(ad.hubName);
     if (ad.duration != null) docData.duration = Number(ad.duration);
     if (ad.totalCost != null) docData.totalCost = Number(ad.totalCost);
     if (ad.submittedDate) docData.submittedDate = String(ad.submittedDate);
