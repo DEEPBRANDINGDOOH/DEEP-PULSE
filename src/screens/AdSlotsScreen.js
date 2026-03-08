@@ -237,7 +237,7 @@ export default function AdSlotsScreen({ route, navigation }) {
   const [editLandingUrl, setEditLandingUrl] = useState('');
   const [editValidationErrors, setEditValidationErrors] = useState([]);
 
-  // [B53] Derive myAds from store — filtered by CURRENT HUB and current wallet
+  // [B54] Derive myAds from store — filtered by CURRENT HUB and current wallet
   const storeMyAds = React.useMemo(() => {
     const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toString?.() || '');
     const fromStore = [...storePendingAds, ...storeApprovedAds]
@@ -246,7 +246,16 @@ export default function AdSlotsScreen({ route, navigation }) {
         if (a.hubName !== hubName) return false;
         // Filter by wallet ownership (dev mode: show all for testing)
         if (USE_DEVNET) return true;
-        return walletStr && (a.brandWallet === walletStr || a.walletAddress === walletStr);
+        if (!walletStr) return false;
+        // [B54] Match full walletAddress, or legacy truncated brandWallet pattern
+        if (a.walletAddress === walletStr) return true;
+        if (a.brandWallet === walletStr) return true;
+        // Legacy: brandWallet is truncated "XXX...YYY" — match start+end of full wallet
+        if (a.brandWallet && a.brandWallet.includes('...')) {
+          const parts = a.brandWallet.split('...');
+          if (parts.length === 2 && walletStr.startsWith(parts[0]) && walletStr.endsWith(parts[1])) return true;
+        }
+        return false;
       })
       .map(a => ({
         id: a.id,
@@ -512,6 +521,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                 brandWallet: wallet.publicKey
                   ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3)
                   : 'Your Wallet',
+                walletAddress: wallet.publicKey ? wallet.publicKey.toString() : '', // [B54] Full wallet for ownership filter
                 hubName: hubName,
                 slotType: selectedSlot,
                 imageUrl: finalImageUrl,
@@ -1669,6 +1679,7 @@ export default function AdSlotsScreen({ route, navigation }) {
                                 brandWallet: wallet.publicKey
                                   ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3)
                                   : 'Your Wallet',
+                                walletAddress: wallet.publicKey ? wallet.publicKey.toString() : '', // [B54] Full wallet for ownership filter
                                 hubName: hubName,
                                 slotType: 'rich_notif',
                                 imageUrl: cleanRichImageUrl || null, // [B42] Use cleaned URL

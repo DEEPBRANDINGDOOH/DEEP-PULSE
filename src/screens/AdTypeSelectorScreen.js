@@ -87,12 +87,14 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
   const hubId = route.params?.hubId;
   const hubName = route.params?.hubName;
 
-  // BUG #8 FIX: Derive active ads count and slot occupancy from store
-  const allAds = [...pendingAdCreatives, ...approvedAds];
+  // [B54] Derive active ads count and slot occupancy from store — filter by hub + exclude ghosts
+  const allAds = [...pendingAdCreatives, ...approvedAds]
+    .filter(a => a.id && (a.brandName || a.slotType || a.hubName)); // exclude ghost ads
   const myActiveAdsCount = allAds.filter(a => a.hubName === hubName || !hubName).length;
-  const topOccupied = approvedAds.filter(a => a.slotType === 'top').length;
-  const bottomOccupied = approvedAds.filter(a => a.slotType === 'bottom').length;
-  const lockscreenOccupied = approvedAds.filter(a => a.slotType === 'lockscreen').length;
+  const hubApprovedAds = approvedAds.filter(a => a.hubName === hubName);
+  const topOccupied = hubApprovedAds.filter(a => a.slotType === 'top').length;
+  const bottomOccupied = hubApprovedAds.filter(a => a.slotType === 'bottom').length;
+  const lockscreenOccupied = hubApprovedAds.filter(a => a.slotType === 'lockscreen').length;
 
   // Compute occupiedSlots dynamically from real store data (no mock offsets)
   const slotOccupancy = {

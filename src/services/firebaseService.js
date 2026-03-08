@@ -416,19 +416,28 @@ export async function subscribeToHubBackend(hubId, walletAddress) {
   if (!db) return { success: true }; // FCM subscription still works
 
   try {
-    // Add to user's subscriptions
-    await db.collection('subscriptions').doc(`${walletAddress}_${hubId}`).set({
+    // [B54] Check if subscription already exists — prevents double-counting subscribers
+    const subDocRef = db.collection('subscriptions').doc(`${walletAddress}_${hubId}`);
+    const existingDoc = await subDocRef.get().catch(() => null);
+    const alreadySubscribed = existingDoc && existingDoc.exists;
+
+    // Add/overwrite subscription doc
+    await subDocRef.set({
       walletAddress,
       hubId,
       subscribedAt: firestore.FieldValue.serverTimestamp(),
     });
 
-    // Increment hub subscriber count
-    await db.collection('hubs').doc(hubId).update({
-      subscribers: firestore.FieldValue.increment(1),
-    });
+    // Only increment subscriber count if this is a NEW subscription
+    if (!alreadySubscribed) {
+      await db.collection('hubs').doc(hubId).update({
+        subscribers: firestore.FieldValue.increment(1),
+      });
+      logger.log('[FirebaseService] New subscription recorded in Firestore');
+    } else {
+      logger.log('[FirebaseService] Re-subscription (no increment — already counted)');
+    }
 
-    logger.log('[FirebaseService] Subscription recorded in Firestore');
     return { success: true };
   } catch (error) {
     logger.warn('[FirebaseService] subscribe Firestore failed:', error.message);

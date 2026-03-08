@@ -809,10 +809,14 @@ export const useAppStore = create(
         // [B51] Filter out ads already approved locally (prevents re-appearing in pending)
         const approvedIds = new Set(approvedAds.map(a => a.id));
         const filteredAds = (ads || [])
+          .filter(a => !approvedIds.has(a.id));
+        const merged = mergeArraysById(local, filteredAds);
+        // [B54] Clean AFTER merge — removes ghost ads from BOTH local and Firebase
+        // Ghost ads = entries with id but no brandName, no slotType, and no hubName
+        const cleaned = merged
           .filter(a => !approvedIds.has(a.id))
-          // [B53] Filter out ads with no meaningful data (empty brandName + empty slotType)
           .filter(a => a.id && (a.brandName || a.slotType || a.hubName));
-        set({ pendingAdCreatives: mergeArraysById(local, filteredAds) });
+        set({ pendingAdCreatives: cleaned });
       },
       syncCustomDeals: (deals) => {
         const { customDeals: local } = get();
