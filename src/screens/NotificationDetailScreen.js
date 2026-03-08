@@ -48,7 +48,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
     // Build feedback object for store
     const feedbackObj = {
       id: `fb_${Date.now()}`,
-      wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
+      wallet: wallet?.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
       title: `Re: ${notification.title || 'Notification'}`,
       message: feedbackText.trim(),
       deposit: feedbackDepositAmount,

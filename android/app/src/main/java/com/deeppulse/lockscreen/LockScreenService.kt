@@ -317,14 +317,18 @@ class LockScreenService : Service() {
      * Schedule a restart via AlarmManager so the service survives.
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.d(TAG, "App removed from recents — scheduling service restart")
-        scheduleRestart()
+        // [B55] Only restart if user enabled the lockscreen feature
+        if (prefs.getBoolean(KEY_ENABLED, false)) {
+            Log.d(TAG, "App removed from recents — scheduling service restart")
+            scheduleRestart()
+        }
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
-        screenReceiver?.let { unregisterReceiver(it) }
-        swipeReceiver?.let { unregisterReceiver(it) }
+        // [B55] Wrap in try-catch to prevent crash if receiver wasn't registered
+        screenReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) {} }
+        swipeReceiver?.let { try { unregisterReceiver(it) } catch (_: Exception) {} }
 
         // Only schedule restart if the service should be running
         if (prefs.getBoolean(KEY_ENABLED, false)) {

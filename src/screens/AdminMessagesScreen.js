@@ -259,7 +259,7 @@ export default function AdminMessagesScreen({ navigation, route }) {
 
       {/* Input */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View className="px-4 py-3 flex-row items-end border-t border-border">
           <TextInput

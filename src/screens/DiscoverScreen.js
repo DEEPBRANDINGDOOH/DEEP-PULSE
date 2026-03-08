@@ -52,13 +52,18 @@ export default function DiscoverScreen({ navigation }) {
     if (hub.subscribed) {
       if (hub.hubPda) {
         setSubscribing(hubId);
-        const result = await unsubscribeFromHub(hub.hubPda);
-        setSubscribing(null);
-        if (result.success) {
-          setHubs(hubs.map(h =>
-            h.id === hubId ? { ...h, subscribed: false } : h
-          ));
-          unsubscribeFromProject(hubId); // Persist in store
+        try {
+          const result = await unsubscribeFromHub(hub.hubPda);
+          if (result.success) {
+            setHubs(hubs.map(h =>
+              h.id === hubId ? { ...h, subscribed: false } : h
+            ));
+            unsubscribeFromProject(hubId); // Persist in store
+          }
+        } catch (err) {
+          Alert.alert('Error', err.message || 'Unsubscribe failed. Please try again.');
+        } finally {
+          setSubscribing(null); // [B55] Always clear loading state
         }
       } else {
         // Mock mode fallback
@@ -74,13 +79,18 @@ export default function DiscoverScreen({ navigation }) {
     if (hub.hubPda) {
       // Real on-chain subscription
       setSubscribing(hubId);
-      const result = await subscribeToHub(hub.hubPda);
-      setSubscribing(null);
-      if (result.success) {
-        setHubs(hubs.map(h =>
-          h.id === hubId ? { ...h, subscribed: true } : h
-        ));
-        subscribeToProject(hubId); // Persist in store
+      try {
+        const result = await subscribeToHub(hub.hubPda);
+        if (result.success) {
+          setHubs(hubs.map(h =>
+            h.id === hubId ? { ...h, subscribed: true } : h
+          ));
+          subscribeToProject(hubId); // Persist in store
+        }
+      } catch (err) {
+        Alert.alert('Error', err.message || 'Subscribe failed. Please try again.');
+      } finally {
+        setSubscribing(null); // [B55] Always clear loading state
       }
     } else {
       // Mock mode — toggle locally
@@ -159,7 +169,7 @@ export default function DiscoverScreen({ navigation }) {
                 <View className="flex-1 ml-3">
                   <Text className="text-text font-bold text-lg">{hub.name}</Text>
                   <Text className="text-text-secondary text-sm">
-                    {hub.subscribers.toLocaleString()} subscribers
+                    {(hub.subscribers || 0).toLocaleString()} subscribers
                   </Text>
                 </View>
               </View>

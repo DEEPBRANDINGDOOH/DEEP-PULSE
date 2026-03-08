@@ -513,7 +513,7 @@ class MobileWalletAdapterService {
           SystemProgram.transfer({
             fromPubkey: from,
             toPubkey: to,
-            lamports: amount * 1e9,
+            lamports: Math.round(amount * 1e9), // [B55] Avoid floating-point precision errors
           })
         );
 

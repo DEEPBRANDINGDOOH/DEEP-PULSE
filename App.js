@@ -88,7 +88,7 @@ class ErrorBoundary extends React.Component {
               {this.state.error?.toString?.() || 'Unknown error'}
             </Text>
             <Text style={{ color: '#888', fontSize: 11, marginTop: 16, fontFamily: 'monospace' }}>
-              {this.state.error?.stack?.slice(0, 1500) || 'No stack trace'}
+              {__DEV__ ? (this.state.error?.stack?.slice(0, 1500) || 'No stack trace') : 'Restart the app to continue.'}
             </Text>
           </ScrollView>
         </View>
@@ -135,9 +135,13 @@ function handleNotificationNavigation(data, attempt = 0) {
           hubIcon: data.hubIcon || 'notifications',
         });
       } else if (data.screen) {
-        let parsedParams = {};
-        try { parsedParams = data.params ? JSON.parse(data.params) : {}; } catch (_) {}
-        navigationRef.navigate(data.screen, parsedParams);
+        // [B55] Whitelist allowed screens to prevent FCM injection attacks
+        const ALLOWED_SCREENS = ['Notifications', 'HubNotifications', 'NotificationDetail', 'Discover', 'Profile', 'SwipeEarn'];
+        if (ALLOWED_SCREENS.includes(data.screen)) {
+          let parsedParams = {};
+          try { parsedParams = data.params ? JSON.parse(data.params) : {}; } catch (_) {}
+          navigationRef.navigate(data.screen, parsedParams);
+        }
       } else {
         navigationRef.navigate('MainApp', { screen: 'Home' });
       }

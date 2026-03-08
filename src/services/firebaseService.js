@@ -468,15 +468,18 @@ export async function unsubscribeFromHubBackend(hubId, walletAddress) {
   if (!db) return { success: true };
 
   try {
-    await db.collection('subscriptions').doc(`${walletAddress}_${hubId}`).delete();
-    // NOTE: increment(-1) can push subscribers below 0 if the subscription
-    // doc was already missing (e.g. double-tap). Firestore has no atomic
-    // "decrement only if > 0" — a Cloud Function or security rule
-    // `max(resource.data.subscribers - 1, 0)` would be needed to fully fix.
-    await db.collection('hubs').doc(hubId).update({
-      subscribers: firestore.FieldValue.increment(-1),
-    });
-    logger.log('[FirebaseService] Unsubscription recorded in Firestore');
+    // [B55] Only decrement if subscription doc exists — prevents negative subscriber counts
+    const subDocRef = db.collection('subscriptions').doc(`${walletAddress}_${hubId}`);
+    const subDoc = await subDocRef.get().catch(() => null);
+    if (subDoc && subDoc.exists) {
+      await subDocRef.delete();
+      await db.collection('hubs').doc(hubId).update({
+        subscribers: firestore.FieldValue.increment(-1),
+      });
+      logger.log('[FirebaseService] Unsubscription recorded in Firestore');
+    } else {
+      logger.log('[FirebaseService] Subscription doc not found — skipping decrement');
+    }
     return { success: true };
   } catch (error) {
     logger.warn('[FirebaseService] unsubscribe Firestore failed:', error.message);

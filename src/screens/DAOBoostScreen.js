@@ -232,16 +232,16 @@ export default function DAOBoostScreen({ navigation }) {
           <View className="mb-4">
             <View className="flex-row justify-between mb-2">
               <Text className="text-text font-semibold">
-                {proposal.currentAmount.toLocaleString()} $SKR
+                {(proposal.currentAmount || 0).toLocaleString()} $SKR
               </Text>
               <Text className="text-text-secondary">
-                {Math.round((proposal.currentAmount / proposal.targetAmount) * 100)}%
+                {proposal.targetAmount > 0 ? Math.round(((proposal.currentAmount || 0) / proposal.targetAmount) * 100) : 0}%
               </Text>
             </View>
             <View className="bg-background-secondary rounded-full h-2">
               <View
                 className="bg-primary rounded-full h-2"
-                style={{ width: `${(proposal.currentAmount / proposal.targetAmount) * 100}%` }}
+                style={{ width: `${proposal.targetAmount > 0 ? ((proposal.currentAmount || 0) / proposal.targetAmount) * 100 : 0}%` }}
               />
             </View>
           </View>

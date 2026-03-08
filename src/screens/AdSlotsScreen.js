@@ -498,8 +498,10 @@ export default function AdSlotsScreen({ route, navigation }) {
                 [{ text: 'OK', onPress: () => setShowPurchaseModal(false) }]
               );
 
+              // [B55] Use single ID for both local UI and store to avoid duplicates
+              const adId = `ad_${Date.now()}`;
+
               // Add to my ads list (local UI)
-              const adId = `my_ad_${Date.now()}`;
               setMyAds(prev => [...prev, {
                 id: adId,
                 slotType: selectedSlot,
@@ -514,14 +516,14 @@ export default function AdSlotsScreen({ route, navigation }) {
 
               // Wire to Zustand store → Admin sees this in Ad Moderation
               addPendingAdCreative({
-                id: `ad_review_${Date.now()}`,
-                brandName: wallet.publicKey
+                id: adId,
+                brandName: wallet?.publicKey
                   ? wallet.publicKey.toString().slice(0, 7) + '...'
                   : 'You',
-                brandWallet: wallet.publicKey
+                brandWallet: wallet?.publicKey
                   ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3)
                   : 'Your Wallet',
-                walletAddress: wallet.publicKey ? wallet.publicKey.toString() : '', // [B54] Full wallet for ownership filter
+                walletAddress: wallet?.publicKey ? wallet.publicKey.toString() : '', // [B54] Full wallet for ownership filter
                 hubName: hubName,
                 slotType: selectedSlot,
                 imageUrl: finalImageUrl,

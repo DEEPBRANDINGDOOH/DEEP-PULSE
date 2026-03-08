@@ -10,12 +10,12 @@ import GlowCard from '../components/ui/GlowCard';
 import GradientButton from '../components/ui/GradientButton';
 import PulseOrb from '../components/ui/PulseOrb';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
-import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
+import { checkRateLimit, MAX_LENGTHS, safeOpenURL } from '../utils/security';
 
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead } = useAppStore(); // [B41] Use hub notif count, not alerts
+  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead, readHubNotificationIds } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
@@ -31,7 +31,7 @@ export default function HomeScreen({ navigation }) {
       hubIcon: n.hubIcon || 'apps',
       reactions: n.reactions || 0,
       comments: n.comments || 0,
-      isNew: true,
+      isNew: !(readHubNotificationIds || []).includes(n.id), // [B55] Respect read state
     }));
 
   // Inject approved Rich Notification Ads into feed with SPONSORED badge
@@ -104,8 +104,7 @@ export default function HomeScreen({ navigation }) {
     AdRotationManager.trackClick(data);
     // [B45] Open landing URL on ad click
     if (data?.landingUrl) {
-      const { safeOpenURL } = require('../utils/security');
-      safeOpenURL(data.landingUrl, 'ad');
+      safeOpenURL(data.landingUrl, 'ad'); // [B55] Use static import
     }
   };
 
@@ -133,17 +132,24 @@ export default function HomeScreen({ navigation }) {
     // If notification has a hubPda (on-chain hub), do real transaction
     if (selectedNotification?.hubPda) {
       const depositIndex = Date.now() % 1000000; // Simple unique index
-      const result = await submitFeedbackTx(
-        selectedNotification.hubPda,
-        feedbackText,
-        depositIndex
-      );
+      let result;
+      try {
+        result = await submitFeedbackTx(
+          selectedNotification.hubPda,
+          feedbackText,
+          depositIndex
+        );
+      } catch (txErr) {
+        setSubmitting(false);
+        Alert.alert('Transaction Failed', txErr.message || 'Please try again.');
+        return;
+      }
       setSubmitting(false);
       if (result.success) {
         // Store in Zustand for moderation screen
         addHubFeedback(selectedNotification?.hubName, {
           id: `fb_${Date.now()}`,
-          wallet: wallet.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
+          wallet: wallet?.publicKey ? wallet.publicKey.toString().slice(0, 3) + '...' + wallet.publicKey.toString().slice(-3) : '7xK...9Qz',
           title: `Re: ${selectedNotification?.title || 'Notification'}`,
           message: feedbackText.trim(),
           deposit: feedbackDepositAmount,

@@ -47,8 +47,9 @@ function mergeArraysById(localItems, firebaseItems) {
       // Deep merge: for each field, prefer non-empty value
       const mergedItem = { ...localItem };
       for (const [key, value] of Object.entries(fbItem)) {
-        // Firebase value wins if non-empty; local value kept if Firebase is empty
-        if (value !== undefined && value !== null && value !== '') {
+        // [B55] Firebase value wins if non-empty; local value kept if Firebase is empty
+        // Allow boolean false and numeric 0 to come through (they are valid values)
+        if (value !== undefined && value !== null && (typeof value !== 'string' || value !== '')) {
           mergedItem[key] = value;
         }
       }
@@ -65,6 +66,9 @@ function mergeArraysById(localItems, firebaseItems) {
   }
   return merged;
 }
+
+// [B55] Module-level timer — NOT in Zustand state (timers are not serializable)
+let _scoreSyncTimer = null;
 
 export const useAppStore = create(
   persist(
@@ -332,7 +336,7 @@ export const useAppStore = create(
         const now = Date.now();
         let changed = false;
         const updated = hubs.map(h => {
-          if (!h.subscriptionExpiresAt || h.status === 'SUSPENDED' || h.status === 'PENDING') return h;
+          if (!h.subscriptionExpiresAt || ['SUSPENDED', 'PENDING', 'DELETED', 'REJECTED'].includes(h.status)) return h; // [B55]
           const expiresAt = new Date(h.subscriptionExpiresAt).getTime();
           // Guard against corrupted/invalid date values
           if (isNaN(expiresAt)) {
@@ -514,9 +518,9 @@ export const useAppStore = create(
       },
 
       markAllHubNotificationsRead: () => {
-        const { hubNotifications } = get();
+        const { hubNotifications, readHubNotificationIds } = get(); // [B55] Merge, don't replace
         const allIds = Object.values(hubNotifications || {}).flat().map(n => n.id);
-        set({ readHubNotificationIds: allIds });
+        set({ readHubNotificationIds: [...new Set([...readHubNotificationIds, ...allIds])] });
       },
 
       // [B51] Remove a specific notification by ID from hubNotifications
@@ -622,18 +626,17 @@ export const useAppStore = create(
         set((state) => ({
           userScore: (state.userScore || 0) + points,
         }));
-        // [B45] Debounce Firebase sync — wait 2s after last increment
-        if (get()._scoreDebounceTimer) clearTimeout(get()._scoreDebounceTimer);
-        const timer = setTimeout(() => {
+        // [B55] Debounce Firebase sync — timer is module-level (not in Zustand state)
+        if (_scoreSyncTimer) clearTimeout(_scoreSyncTimer);
+        _scoreSyncTimer = setTimeout(() => {
           const { userScore, userStreak, wallet } = get();
           const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
           if (addr) {
             import('../services/firebaseService').then(fb => fb.saveUserScore(addr, userScore, userStreak))
               .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
           }
-          set({ _scoreDebounceTimer: null });
+          _scoreSyncTimer = null;
         }, 2000);
-        set({ _scoreDebounceTimer: timer });
       },
 
       setUserScore: (score) => {
@@ -752,7 +755,7 @@ export const useAppStore = create(
           const notifs = merged[hubName];
           merged[hubName] = notifs.filter(n => {
             const normTitle = normalizeTitle(n.title, hubName);
-            const key = `${normTitle}|${n.body || n.message}`.toLowerCase();
+            const key = `${hubName}|${normTitle}|${n.body || n.message}`.toLowerCase(); // [B55] Include hubName in dedup key
             if (globalSeen.has(key)) return false;
             globalSeen.add(key);
             return true;
@@ -992,7 +995,7 @@ export const useAppStore = create(
             customDeals: [],
             talentSubmissions: [],
             daoProposals: [],
-            adminConversations: null,
+            adminConversations: [], // [B55] Use [] not null — prevents .find()/.map() crashes
             pendingAdCreatives: [],
             approvedAds: [],
             hubFeedbacks: {},

@@ -142,6 +142,11 @@ class NotificationService {
   addForegroundListener(onNotification) {
     if (!messaging) return;
 
+    // [B55] Cleanup previous listener to prevent stacking
+    if (this.unsubscribeOnMessage) {
+      this.unsubscribeOnMessage();
+    }
+
     this.unsubscribeOnMessage = messaging().onMessage(async (remoteMessage) => {
       logger.log('FCM foreground message:', remoteMessage);
 

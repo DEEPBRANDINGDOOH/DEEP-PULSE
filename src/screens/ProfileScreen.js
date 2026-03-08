@@ -492,15 +492,15 @@ export default function ProfileScreen({ navigation }) {
 
             <View className="flex-row justify-between">
               <View className="items-center">
-                <Text className="text-text font-semibold">{entry.boost}</Text>
+                <Text className="text-text font-semibold">{entry.boost ?? 0}</Text>
                 <Text className="text-text-secondary text-xs">DAO</Text>
               </View>
               <View className="items-center">
-                <Text className="text-text font-semibold">{entry.talent}</Text>
+                <Text className="text-text font-semibold">{entry.talent ?? 0}</Text>
                 <Text className="text-text-secondary text-xs">Talent</Text>
               </View>
               <View className="items-center">
-                <Text className="text-text font-semibold">{entry.feedback}</Text>
+                <Text className="text-text font-semibold">{entry.feedback ?? 0}</Text>
                 <Text className="text-text-secondary text-xs">Feedback</Text>
               </View>
               <View className="items-center">

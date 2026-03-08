@@ -49,6 +49,10 @@ class LockScreenModule(private val reactContext: ReactApplicationContext) :
 
     override fun initialize() {
         super.initialize()
+        // [B55] Cleanup previous receiver to prevent double-registration on hot reload
+        swipeReceiver?.let {
+            try { reactContext.unregisterReceiver(it) } catch (_: Exception) {}
+        }
         registerSwipeListener()
     }
 

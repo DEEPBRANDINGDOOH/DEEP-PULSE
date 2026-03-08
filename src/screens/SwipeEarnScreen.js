@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -43,6 +43,10 @@ export default function SwipeEarnScreen({ navigation }) {
     enabled: false,
   });
 
+  // [B55] Use ref to avoid stale closure in swipe listener
+  const statsRef = useRef(stats);
+  useEffect(() => { statsRef.current = stats; }, [stats]);
+
   // Load initial stats
   useEffect(() => {
     loadStats();
@@ -55,7 +59,7 @@ export default function SwipeEarnScreen({ navigation }) {
       if (event.points > 0) {
         // [B45] Use correct scoring coefficient (0.5 for engage) with daily cap
         const SWIPE_DAILY_CAP = 15; // Max swipe points per day
-        const todaySwipePoints = stats.totalPoints || 0;
+        const todaySwipePoints = statsRef.current.totalPoints || 0; // [B55] Use ref for fresh value
         if (todaySwipePoints < SWIPE_DAILY_CAP) {
           incrementScore(1); // 1 DEEP Score point per swipe (capped at 15/day)
         }

@@ -22,6 +22,7 @@ export default function MyHubsScreen({ navigation }) {
   const unsubscribeFromProject = useAppStore((state) => state.unsubscribeFromProject);
   const storeHubs = useAppStore((state) => state.hubs);
   const hubNotifications = useAppStore((state) => state.hubNotifications);
+  const readHubNotificationIds = useAppStore((state) => state.readHubNotificationIds) || []; // [B55]
   const approvedAds = useAppStore((state) => state.approvedAds);
 
   // Build myHubs from the store subscriptions + store hubs (includes mock + user-created)
@@ -34,14 +35,14 @@ export default function MyHubsScreen({ navigation }) {
         const storedNotifs = hubNotifications[hub.name] || [];
         const latestNotif = storedNotifs.length > 0 ? storedNotifs[0] : null;
         const extra = HUB_EXTRA[id] || {
-          unreadCount: storedNotifs.length,
+          unreadCount: storedNotifs.filter(n => !readHubNotificationIds.includes(n.id)).length, // [B55] Real unread count
           lastNotification: latestNotif ? latestNotif.title : 'No notifications yet',
           lastNotificationTime: latestNotif ? latestNotif.timestamp : '',
         };
         return { ...hub, ...extra };
       })
       .filter(Boolean);
-  }, [subscribedProjects, storeHubs, hubNotifications]);
+  }, [subscribedProjects, storeHubs, hubNotifications, readHubNotificationIds]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);

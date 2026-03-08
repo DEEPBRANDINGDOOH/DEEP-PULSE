@@ -100,11 +100,11 @@ export default function HubNotificationsScreen({ navigation, route }) {
               <View className="flex-row items-center mb-3">
                 <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5 mr-3">
                   <Ionicons name="flame" size={14} color="#FF9F66" />
-                  <Text className="text-text font-semibold text-xs ml-1.5">{notif.reactions}</Text>
+                  <Text className="text-text font-semibold text-xs ml-1.5">{notif.reactions ?? 0}</Text>
                 </View>
                 <View className="flex-row items-center bg-background-secondary rounded-lg px-3 py-1.5">
                   <Ionicons name="chatbubble" size={14} color="#9898a0" />
-                  <Text className="text-text font-semibold text-xs ml-1.5">{notif.comments}</Text>
+                  <Text className="text-text font-semibold text-xs ml-1.5">{notif.comments ?? 0}</Text>
                 </View>
               </View>
 

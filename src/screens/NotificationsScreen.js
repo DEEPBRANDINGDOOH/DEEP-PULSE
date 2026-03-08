@@ -75,9 +75,8 @@ export default function NotificationsScreen({ navigation, route }) {
     return allNotifications;
   }, [allNotifications, filter]);
 
-  const unreadCount = getUnreadCount();
-  const unreadHubCount = allNotifications.filter(n => n.category === 'Hub Update' && !n.read).length;
-  const totalUnread = unreadCount + unreadHubCount;
+  // [B55] Fix double-count: use allNotifications (already merged) for total unread
+  const totalUnread = allNotifications.filter(n => !n.read).length;
 
   const onRefresh = async () => {
     setRefreshing(true);
