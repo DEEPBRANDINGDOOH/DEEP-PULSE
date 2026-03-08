@@ -35,11 +35,38 @@ export default function ProfileScreen({ navigation }) {
   const [notifMuted, setNotifMuted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // [B47] Fetch leaderboard from Firestore when user opens the leaderboard view
+  // [B53] Fetch leaderboard — force-save user score to Firestore first to ensure it appears
   const loadLeaderboard = useCallback(async () => {
     setLeaderboardLoading(true);
     try {
+      // Force-save current user score to Firestore before fetching leaderboard
+      const { userScore, userStreak, wallet: w } = useAppStore.getState();
+      const addr = typeof w?.publicKey === 'string' ? w.publicKey : (w?.publicKey?.toString?.() || null);
+      if (addr && userScore > 0) {
+        const { saveUserScore } = require('../services/firebaseService');
+        await saveUserScore(addr, userScore, userStreak).catch(() => {});
+      }
+
       const data = await fetchLeaderboard(100);
+
+      // [B53] Ensure current user appears in leaderboard (even if Firestore save was delayed)
+      if (addr && userScore > 0) {
+        const userInList = data.some(e => e.fullWallet === addr);
+        if (!userInList) {
+          const walletDisplay = addr.slice(0, 4) + '...' + addr.slice(-3);
+          data.push({
+            wallet: walletDisplay,
+            fullWallet: addr,
+            score: userScore,
+            streak: userStreak || 0,
+            rank: 0, // Will be recalculated
+          });
+          // Re-sort and re-rank
+          data.sort((a, b) => b.score - a.score);
+          data.forEach((e, i) => { e.rank = i + 1; });
+        }
+      }
+
       setLeaderboardData(data);
     } catch (_) {
       // Silently fail — empty state will show

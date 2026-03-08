@@ -289,6 +289,14 @@ export default function OnboardingScreen({ navigation }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const scrollViewRef = useRef(null);
   const { setWallet } = useAppStore();
+  const wallet = useAppStore((state) => state.wallet);
+
+  // [B53] Auto-redirect to MainApp if wallet is already connected (prevents onboarding repeat)
+  useEffect(() => {
+    if (wallet?.connected) {
+      navigation.replace('MainApp');
+    }
+  }, [wallet?.connected]);
 
   const handleConnectWallet = async () => {
     setIsConnecting(true);

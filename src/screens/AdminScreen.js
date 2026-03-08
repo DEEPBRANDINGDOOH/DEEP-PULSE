@@ -80,10 +80,17 @@ export default function AdminScreen({ navigation }) {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
-  // [B49] Fetch leaderboard from Firestore when user opens the Top 100 section
+  // [B53] Fetch leaderboard — force-save admin score first to ensure data is fresh
   const loadLeaderboard = useCallback(async () => {
     setLeaderboardLoading(true);
     try {
+      // Force-save current user score before fetch
+      const { userScore, userStreak, wallet: w } = useAppStore.getState();
+      const addr = typeof w?.publicKey === 'string' ? w.publicKey : (w?.publicKey?.toString?.() || null);
+      if (addr && userScore > 0) {
+        const { saveUserScore } = require('../services/firebaseService');
+        await saveUserScore(addr, userScore, userStreak).catch(() => {});
+      }
       const data = await fetchLeaderboard(100);
       setLeaderboardData(data);
     } catch (_) {

@@ -30,14 +30,40 @@ import {
 import { logger } from '../utils/security';
 
 // Helper: merge local + firebase arrays by ID
-// Firebase version wins for existing items; local-only items are preserved
-// This prevents data loss when Firebase writes failed (fire-and-forget)
+// [B53] For items that exist in both: deep-merge fields, preferring non-empty values.
+// Firebase provides the canonical status/timestamps; local provides richer field data
+// (because Firestore explicit field mapping may have empty strings for some fields).
+// Local-only items are preserved; Firebase-only items are preserved.
 function mergeArraysById(localItems, firebaseItems) {
-  if (!localItems || localItems.length === 0) return firebaseItems;
+  if (!localItems || localItems.length === 0) return firebaseItems || [];
   if (!firebaseItems || firebaseItems.length === 0) return localItems;
   const fbMap = new Map(firebaseItems.map(item => [item.id, item]));
-  const localOnly = localItems.filter(item => !fbMap.has(item.id));
-  return [...firebaseItems, ...localOnly];
+  const localMap = new Map(localItems.map(item => [item.id, item]));
+  const merged = [];
+  // Process Firebase items — merge with local if exists
+  for (const fbItem of firebaseItems) {
+    const localItem = localMap.get(fbItem.id);
+    if (localItem) {
+      // Deep merge: for each field, prefer non-empty value
+      const mergedItem = { ...localItem };
+      for (const [key, value] of Object.entries(fbItem)) {
+        // Firebase value wins if non-empty; local value kept if Firebase is empty
+        if (value !== undefined && value !== null && value !== '') {
+          mergedItem[key] = value;
+        }
+      }
+      merged.push(mergedItem);
+    } else {
+      merged.push(fbItem);
+    }
+  }
+  // Add local-only items (not in Firebase)
+  for (const localItem of localItems) {
+    if (!fbMap.has(localItem.id)) {
+      merged.push(localItem);
+    }
+  }
+  return merged;
 }
 
 export const useAppStore = create(
@@ -544,6 +570,11 @@ export const useAppStore = create(
             t.id === submissionId ? { ...t, ...updates } : t
           ),
         }));
+        // [B53] Sync status update to Firebase (prevents reappearing on next sync)
+        if (updates.status) {
+          import('../services/firebaseService').then(fb => fb.updateTalentSubmissionStatus(submissionId, updates.status))
+            .catch(e => logger.warn('[Store] updateTalentSubmission sync failed:', e));
+        }
       },
 
       // ============================================
@@ -644,11 +675,32 @@ export const useAppStore = create(
       },
 
       syncNotificationsFromFirebase: (firebaseNotifs) => {
-        const { hubNotifications: localNotifs } = get();
+        const { hubNotifications: localNotifs, hubs } = get();
+
+        // [B53] Helper: extract real hubName from title if hubName field is missing.
+        // sendHubNotification prefixes: "HubName: Title" — extract hubName from that.
+        const resolveHubName = (n) => {
+          if (n.hubName && n.hubName !== 'General') return n.hubName;
+          // Try to extract from title: "HubName: ActualTitle"
+          if (n.title && n.title.includes(': ')) {
+            const prefix = n.title.split(': ')[0];
+            const matchingHub = hubs.find(h => h.name === prefix);
+            if (matchingHub) return matchingHub.name;
+          }
+          return n.hubName || 'General';
+        };
+
+        // [B53] Helper: normalize title for dedup (strip "HubName: " prefix)
+        const normalizeTitle = (title, hubName) => {
+          if (!title) return '';
+          const prefix = `${hubName}: `;
+          return title.startsWith(prefix) ? title.slice(prefix.length) : title;
+        };
+
         // Group Firebase notifications by hubName
         const grouped = {};
         firebaseNotifs.forEach(n => {
-          const hubName = n.hubName || 'General';
+          const hubName = resolveHubName(n);
           if (!grouped[hubName]) grouped[hubName] = [];
           grouped[hubName].push({
             id: n.id,
@@ -691,19 +743,28 @@ export const useAppStore = create(
           const localOnly = local.filter(n => !fbIds.has(n.id));
           merged[hubName] = [...firebase, ...localOnly];
         }
-        // Deduplicate: remove local notifs that have same title+body as a Firebase one
+
+        // [B53] Cross-group dedup: normalize titles (strip "HubName: " prefix) and dedup globally
+        // This catches the case where local notif is under "MyHub" with title "My Title"
+        // and Firebase notif is under "General" with title "MyHub: My Title"
+        const globalSeen = new Set(); // normalized key → first occurrence tracked
         for (const hubName of Object.keys(merged)) {
           const notifs = merged[hubName];
-          const seen = new Set();
           merged[hubName] = notifs.filter(n => {
-            const key = `${n.title}|${n.body || n.message}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
+            const normTitle = normalizeTitle(n.title, hubName);
+            const key = `${normTitle}|${n.body || n.message}`.toLowerCase();
+            if (globalSeen.has(key)) return false;
+            globalSeen.add(key);
             return true;
           });
         }
+
+        // [B53] Remove empty "General" group if all its notifs were deduped
+        if (merged['General'] && merged['General'].length === 0) {
+          delete merged['General'];
+        }
+
         // Enrich logos from hubs state (Firebase notifs may lack hubLogoUrl)
-        const { hubs } = get();
         for (const hubName of Object.keys(merged)) {
           const hub = hubs.find(h => h.name === hubName);
           if (hub?.logoUrl) {
@@ -747,7 +808,10 @@ export const useAppStore = create(
         const { pendingAdCreatives: local, approvedAds } = get();
         // [B51] Filter out ads already approved locally (prevents re-appearing in pending)
         const approvedIds = new Set(approvedAds.map(a => a.id));
-        const filteredAds = (ads || []).filter(a => !approvedIds.has(a.id));
+        const filteredAds = (ads || [])
+          .filter(a => !approvedIds.has(a.id))
+          // [B53] Filter out ads with no meaningful data (empty brandName + empty slotType)
+          .filter(a => a.id && (a.brandName || a.slotType || a.hubName));
         set({ pendingAdCreatives: mergeArraysById(local, filteredAds) });
       },
       syncCustomDeals: (deals) => {

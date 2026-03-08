@@ -102,32 +102,55 @@ class ErrorBoundary extends React.Component {
  * Navigate to the relevant screen when a notification is tapped.
  * Expects data from FCM remoteMessage.data
  */
-function handleNotificationNavigation(data) {
-  if (!data || !navigationRef.isReady()) return;
+/**
+ * [B53] Navigate to the relevant screen when a notification is tapped.
+ * Uses retry logic because after cold start, the app needs time to
+ * redirect from Onboarding → MainApp before navigation is usable.
+ */
+function handleNotificationNavigation(data, attempt = 0) {
+  if (!data) return;
 
-  // Wait briefly for navigation to be ready
-  setTimeout(() => {
+  const MAX_ATTEMPTS = 5;
+  const RETRY_DELAY = 600; // ms between retries
+
+  const tryNavigate = () => {
+    if (!navigationRef.isReady()) {
+      if (attempt < MAX_ATTEMPTS) {
+        setTimeout(() => handleNotificationNavigation(data, attempt + 1), RETRY_DELAY);
+      }
+      return;
+    }
+
     try {
+      // Check if we're still on Onboarding — wait for redirect to MainApp
+      const currentRoute = navigationRef.getCurrentRoute?.()?.name;
+      if (currentRoute === 'Onboarding' && attempt < MAX_ATTEMPTS) {
+        setTimeout(() => handleNotificationNavigation(data, attempt + 1), RETRY_DELAY);
+        return;
+      }
+
       if (data.hubName) {
-        // Navigate to the hub's notification list
         navigationRef.navigate('HubNotifications', {
           hubName: data.hubName,
           hubIcon: data.hubIcon || 'notifications',
         });
       } else if (data.screen) {
-        // Generic screen navigation from notification payload
-        // [B45] Guard against malformed JSON in notification params
         let parsedParams = {};
         try { parsedParams = data.params ? JSON.parse(data.params) : {}; } catch (_) {}
         navigationRef.navigate(data.screen, parsedParams);
       } else {
-        // Default: go to Home
         navigationRef.navigate('MainApp', { screen: 'Home' });
       }
     } catch (e) {
       logger.warn('[App] Notification navigation failed:', e.message);
+      if (attempt < MAX_ATTEMPTS) {
+        setTimeout(() => handleNotificationNavigation(data, attempt + 1), RETRY_DELAY);
+      }
     }
-  }, 500);
+  };
+
+  // First attempt: wait for navigation + onboarding redirect to settle
+  setTimeout(tryNavigate, attempt === 0 ? 800 : 0);
 }
 
 // Custom Tab Icon with glow dot for active state

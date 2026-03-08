@@ -737,12 +737,48 @@ export async function saveTalentSubmission(submission) {
   }
 }
 
+/**
+ * [B53] Update talent submission status in Firestore
+ * Prevents hired/rejected talents from reappearing on sync.
+ */
+export async function updateTalentSubmissionStatus(submissionId, newStatus) {
+  if (!submissionId) return { success: false };
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('talentSubmissions').doc(submissionId).update({
+      status: newStatus,
+      reviewedAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] updateTalentSubmissionStatus failed:', error.message);
+    return { success: false };
+  }
+}
+
 export async function fetchTalentSubmissions() {
   const db = getDb();
   if (!db) return null;
   try {
-    const snapshot = await db.collection('talentSubmissions').orderBy('createdAt', 'desc').limit(100).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // [B53] Only fetch pending/review submissions — hired/rejected should not reappear
+    let snapshot;
+    try {
+      snapshot = await db.collection('talentSubmissions')
+        .where('status', 'in', ['pending', 'review'])
+        .orderBy('createdAt', 'desc')
+        .limit(100)
+        .get();
+    } catch (indexErr) {
+      // Fallback: missing composite index — fetch all, filter client-side
+      logger.warn('[fetchTalentSubmissions] Composite index missing, falling back:', indexErr.message);
+      snapshot = await db.collection('talentSubmissions').limit(100).get();
+    }
+    const results = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      // [B53] Client-side filter: skip HIRED/REJECTED (fallback safety net)
+      .filter(t => !t.status || t.status === 'pending' || t.status === 'review');
+    return results;
   } catch (error) {
     logger.warn('[FirebaseService] fetchTalentSubmissions failed:', error.message);
     return null;
@@ -852,14 +888,50 @@ export async function saveHubFeedback(hubName, feedback) {
   }
 }
 
+/**
+ * [B53] Update hub feedback status in Firestore (e.g. 'approved', 'rejected')
+ * Called when brand owner approves/rejects feedback in BrandModerationScreen.
+ * Without this, approved feedbacks reappear on next sync because Firestore
+ * still has status='pending'.
+ */
+export async function updateHubFeedbackStatus(feedbackId, newStatus) {
+  if (!feedbackId) return { success: false };
+  const db = getDb();
+  if (!db) return { success: false };
+  try {
+    await db.collection('hubFeedbacks').doc(feedbackId).update({
+      status: newStatus,
+      reviewedAt: firestore.FieldValue.serverTimestamp(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.warn('[FirebaseService] updateHubFeedbackStatus failed:', error.message);
+    return { success: false };
+  }
+}
+
 export async function fetchHubFeedbacks() {
   const db = getDb();
   if (!db) return null;
   try {
-    const snapshot = await db.collection('hubFeedbacks').orderBy('createdAt', 'desc').limit(200).get();
+    // [B53] Only fetch pending feedbacks — approved/rejected ones should not reappear
+    let snapshot;
+    try {
+      snapshot = await db.collection('hubFeedbacks')
+        .where('status', '==', 'pending')
+        .orderBy('createdAt', 'desc')
+        .limit(200)
+        .get();
+    } catch (indexErr) {
+      // Fallback: missing composite index — fetch all, filter client-side
+      logger.warn('[fetchHubFeedbacks] Composite index missing, falling back:', indexErr.message);
+      snapshot = await db.collection('hubFeedbacks').limit(200).get();
+    }
     const grouped = {};
     snapshot.docs.forEach(doc => {
       const data = { id: doc.id, ...doc.data() };
+      // [B53] Client-side filter: skip non-pending feedbacks (fallback safety net)
+      if (data.status && data.status !== 'pending') return;
       const hub = data.hubName || 'General';
       if (!grouped[hub]) grouped[hub] = [];
       grouped[hub].push(data);

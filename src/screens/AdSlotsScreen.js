@@ -237,13 +237,22 @@ export default function AdSlotsScreen({ route, navigation }) {
   const [editLandingUrl, setEditLandingUrl] = useState('');
   const [editValidationErrors, setEditValidationErrors] = useState([]);
 
-  // BUG #15 FIX: Derive myAds from store + keep MOCK_MY_ADS as base
+  // [B53] Derive myAds from store — filtered by CURRENT HUB and current wallet
   const storeMyAds = React.useMemo(() => {
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toString?.() || '');
     const fromStore = [...storePendingAds, ...storeApprovedAds]
-      .filter(a => a.brandWallet === 'Your Wallet' || a.brandName === 'You' || a.brandName?.endsWith('...'))
+      .filter(a => {
+        // Filter by current hub
+        if (a.hubName !== hubName) return false;
+        // Filter by wallet ownership (dev mode: show all for testing)
+        if (USE_DEVNET) return true;
+        return walletStr && (a.brandWallet === walletStr || a.walletAddress === walletStr);
+      })
       .map(a => ({
         id: a.id,
         slotType: a.slotType,
+        hubName: a.hubName,
+        brandName: a.brandName,
         imageUrl: a.imageUrl,
         landingUrl: a.landingUrl,
         status: (a.status === 'PENDING' || a.status === 'pending' || a.status === 'pending_review') ? 'PENDING_REVIEW' : (a.status || '').toUpperCase(),
@@ -255,7 +264,7 @@ export default function AdSlotsScreen({ route, navigation }) {
         richBody: a.richBody,
       }));
     return fromStore;
-  }, [storePendingAds, storeApprovedAds]);
+  }, [storePendingAds, storeApprovedAds, hubName, wallet?.publicKey]);
   const [myAds, setMyAds] = useState(storeMyAds);
 
   // Re-sync myAds when store changes

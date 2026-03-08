@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { approveFeedback, approveTalent, approveDaoProposal, rejectDeposit } from '../services/transactionHelper';
+import { updateHubFeedbackStatus, updateTalentSubmissionStatus } from '../services/firebaseService';
 import { useAppStore } from '../store/appStore';
 import { USE_DEVNET } from '../config/constants';
+import { logger } from '../utils/security';
 
 // Stable empty array reference — prevents infinite re-render loop
 // when hubFeedbacks[hubName] is undefined (new hub with no feedbacks).
@@ -171,11 +173,17 @@ export default function BrandModerationScreen({ navigation, route }) {
                 const updated = { ...submissions };
                 updated[type] = updated[type].filter(s => s.id !== id);
                 setSubmissions(updated);
-                // Persist status update in store (APPROVED/HIRED — NOT removal)
+                // Persist status update in store + Firestore [B53]
                 if (!item.isMock) {
-                  if (type === 'feedback') removeHubFeedback(hubName, id);
+                  if (type === 'feedback') {
+                    removeHubFeedback(hubName, id);
+                    updateHubFeedbackStatus(id, 'approved').catch(e => logger.warn('[Moderation] FB feedback status sync failed:', e));
+                  }
                   else if (type === 'boost') updateDaoProposal(id, { status: 'APPROVED', approvedAt: new Date().toISOString() });
-                  else if (type === 'talent') updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
+                  else if (type === 'talent') {
+                    updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
+                    updateTalentSubmissionStatus(id, 'HIRED').catch(e => logger.warn('[Moderation] FB talent status sync failed:', e));
+                  }
                 }
                 Alert.alert('Approved', `${deposit} $SKR refunded to the user on-chain.`);
               }
@@ -184,11 +192,17 @@ export default function BrandModerationScreen({ navigation, route }) {
               const updated = { ...submissions };
               updated[type] = updated[type].filter(s => s.id !== id);
               setSubmissions(updated);
-              // Persist status update in store (APPROVED/HIRED — NOT removal)
+              // Persist status update in store + Firestore [B53]
               if (!item.isMock) {
-                if (type === 'feedback') removeHubFeedback(hubName, id);
+                if (type === 'feedback') {
+                  removeHubFeedback(hubName, id);
+                  updateHubFeedbackStatus(id, 'approved').catch(e => logger.warn('[Moderation] FB feedback status sync failed:', e));
+                }
                 else if (type === 'boost') updateDaoProposal(id, { status: 'APPROVED', approvedAt: new Date().toISOString() });
-                else if (type === 'talent') updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
+                else if (type === 'talent') {
+                  updateTalentSubmission(id, { status: 'HIRED', approvedAt: new Date().toISOString() });
+                  updateTalentSubmissionStatus(id, 'HIRED').catch(e => logger.warn('[Moderation] FB talent status sync failed:', e));
+                }
               }
               Alert.alert('Approved', `${deposit} $SKR refunded to the user.`);
             }
@@ -216,11 +230,17 @@ export default function BrandModerationScreen({ navigation, route }) {
                 const updated = { ...submissions };
                 updated[type] = updated[type].filter(s => s.id !== id);
                 setSubmissions(updated);
-                // Persist removal in store
+                // Persist removal in store + Firestore [B53]
                 if (!item?.isMock) {
-                  if (type === 'feedback') removeHubFeedback(hubName, id);
+                  if (type === 'feedback') {
+                    removeHubFeedback(hubName, id);
+                    updateHubFeedbackStatus(id, 'rejected').catch(e => logger.warn('[Moderation] FB feedback reject sync failed:', e));
+                  }
                   else if (type === 'boost') removeDaoProposal(id);
-                  else if (type === 'talent') removeTalentSubmission(id);
+                  else if (type === 'talent') {
+                    removeTalentSubmission(id);
+                    updateTalentSubmissionStatus(id, 'REJECTED').catch(e => logger.warn('[Moderation] FB talent reject sync failed:', e));
+                  }
                 }
                 Alert.alert('Rejected', 'Deposit sent to platform treasury.');
               }
@@ -229,11 +249,17 @@ export default function BrandModerationScreen({ navigation, route }) {
               const updated = { ...submissions };
               updated[type] = updated[type].filter(s => s.id !== id);
               setSubmissions(updated);
-              // Persist removal in store
+              // Persist removal in store + Firestore [B53]
               if (!item?.isMock) {
-                if (type === 'feedback') removeHubFeedback(hubName, id);
+                if (type === 'feedback') {
+                  removeHubFeedback(hubName, id);
+                  updateHubFeedbackStatus(id, 'rejected').catch(e => logger.warn('[Moderation] FB feedback reject sync failed:', e));
+                }
                 else if (type === 'boost') removeDaoProposal(id);
-                else if (type === 'talent') removeTalentSubmission(id);
+                else if (type === 'talent') {
+                  removeTalentSubmission(id);
+                  updateTalentSubmissionStatus(id, 'REJECTED').catch(e => logger.warn('[Moderation] FB talent reject sync failed:', e));
+                }
               }
             }
           },
