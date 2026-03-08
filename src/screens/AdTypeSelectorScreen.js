@@ -88,8 +88,13 @@ export default function AdTypeSelectorScreen({ navigation, route }) {
   const hubName = route.params?.hubName;
 
   // [B54] Derive active ads count and slot occupancy from store — filter by hub + exclude ghosts
+  // Filter must match appStore.syncPendingAdCreatives stricter filter
   const allAds = [...pendingAdCreatives, ...approvedAds]
-    .filter(a => a.id && (a.brandName || a.slotType || a.hubName)); // exclude ghost ads
+    .filter(a => {
+      if (!a.id || !a.slotType) return false;
+      if (a.slotType === 'rich_notif') return !!(a.richTitle || a.richBody);
+      return !!(a.imageUrl);
+    });
   const myActiveAdsCount = allAds.filter(a => a.hubName === hubName || !hubName).length;
   const hubApprovedAds = approvedAds.filter(a => a.hubName === hubName);
   const topOccupied = hubApprovedAds.filter(a => a.slotType === 'top').length;
