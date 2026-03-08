@@ -797,10 +797,18 @@ export const useAppStore = create(
         const merged = {};
         for (const hubName of allHubNames) {
           const localFb = (local || {})[hubName] || [];
+          // [B54] Firebase feedbacks are already filtered by status=pending in fetchHubFeedbacks
           const firebaseFb = (feedbacks || {})[hubName] || [];
           const fbIds = new Set(firebaseFb.map(f => f.id));
-          const localOnly = localFb.filter(f => !fbIds.has(f.id));
-          merged[hubName] = [...firebaseFb, ...localOnly];
+          // Only keep local feedbacks that are NOT in Firebase AND still pending
+          const localOnly = localFb.filter(f => {
+            if (fbIds.has(f.id)) return false; // already in Firebase result
+            // Keep local-only if status is pending or unset (not yet synced to Firebase)
+            const status = (f.status || 'pending').toLowerCase();
+            return status === 'pending';
+          });
+          const combined = [...firebaseFb, ...localOnly];
+          if (combined.length > 0) merged[hubName] = combined;
         }
         set({ hubFeedbacks: merged });
       },
@@ -811,11 +819,17 @@ export const useAppStore = create(
         const filteredAds = (ads || [])
           .filter(a => !approvedIds.has(a.id));
         const merged = mergeArraysById(local, filteredAds);
-        // [B54] Clean AFTER merge — removes ghost ads from BOTH local and Firebase
-        // Ghost ads = entries with id but no brandName, no slotType, and no hubName
+        // [B54] Clean AFTER merge — removes ghost/incomplete ads from BOTH local and Firebase
+        // Valid ad must have: id + slotType + (imageUrl OR richTitle for rich_notif ads)
         const cleaned = merged
           .filter(a => !approvedIds.has(a.id))
-          .filter(a => a.id && (a.brandName || a.slotType || a.hubName));
+          .filter(a => {
+            if (!a.id || !a.slotType) return false;
+            // Rich notification ads don't need imageUrl — they have richTitle instead
+            if (a.slotType === 'rich_notif') return !!(a.richTitle || a.richBody);
+            // Banner/lockscreen ads must have an image URL
+            return !!(a.imageUrl);
+          });
         set({ pendingAdCreatives: cleaned });
       },
       syncCustomDeals: (deals) => {

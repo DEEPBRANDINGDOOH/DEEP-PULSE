@@ -939,8 +939,10 @@ export async function fetchHubFeedbacks() {
     const grouped = {};
     snapshot.docs.forEach(doc => {
       const data = { id: doc.id, ...doc.data() };
-      // [B53] Client-side filter: skip non-pending feedbacks (fallback safety net)
-      if (data.status && data.status !== 'pending') return;
+      // [B54] Client-side filter: only include feedbacks that are pending (or have no status field yet)
+      // Skip any feedback that has been approved/rejected/reviewed
+      const status = (data.status || 'pending').toLowerCase();
+      if (status !== 'pending') return;
       const hub = data.hubName || 'General';
       if (!grouped[hub]) grouped[hub] = [];
       grouped[hub].push(data);

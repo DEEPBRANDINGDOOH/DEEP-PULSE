@@ -15,7 +15,7 @@ import { checkRateLimit, MAX_LENGTHS } from '../utils/security';
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification } = useAppStore(); // [B41] Use hub notif count, not alerts
+  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
@@ -277,7 +277,10 @@ export default function HomeScreen({ navigation }) {
             >
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => navigation.navigate('NotificationDetail', { notification: notif })}
+                onPress={() => {
+                  markHubNotificationRead(notif.id); // [B54] Sync read state
+                  navigation.navigate('NotificationDetail', { notification: notif });
+                }}
                 onLongPress={() => {
                   Alert.alert(
                     'Delete Notification',
@@ -360,6 +363,8 @@ export default function HomeScreen({ navigation }) {
                         setNotifications(prev => prev.map(n =>
                           n.id === notif.id ? { ...n, reactions: n.reactions + 1, reacted: true } : n
                         ));
+                        // [B54] Sync read state to store — so "My Hubs" shows as read too
+                        markHubNotificationRead(notif.id);
                       }}
                       activeOpacity={0.7}
                       className="flex-row items-center rounded-lg px-3 py-1.5 mr-3"
@@ -387,7 +392,10 @@ export default function HomeScreen({ navigation }) {
               {/* Action buttons */}
               <View className="flex-row px-5 pb-5">
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('NotificationDetail', { notification: notif })}
+                  onPress={() => {
+                    markHubNotificationRead(notif.id); // [B54] Sync read state
+                    navigation.navigate('NotificationDetail', { notification: notif });
+                  }}
                   className="flex-1 rounded-xl py-2.5 mr-2"
                   style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: '#2a2a30' }}
                   activeOpacity={0.7}
