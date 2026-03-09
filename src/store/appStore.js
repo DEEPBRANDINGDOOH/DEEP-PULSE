@@ -465,11 +465,17 @@ export const useAppStore = create(
       },
 
       removeHubFeedback: (hubName, feedbackId) => {
+        // [B55] Find feedback to get content key before removing
+        const { hubFeedbacks } = get();
+        const fbItem = (hubFeedbacks[hubName] || []).find(fb => fb.id === feedbackId);
+        const contentKey = fbItem ? `${hubName}|${(fbItem.message || fbItem.title || '')}`.toLowerCase() : null;
         set((state) => ({
           hubFeedbacks: {
             ...state.hubFeedbacks,
             [hubName]: (state.hubFeedbacks[hubName] || []).filter(fb => fb.id !== feedbackId),
           },
+          // [B55] Track dismissed feedback so sync never brings it back
+          dismissedFeedbackIds: [...new Set([...state.dismissedFeedbackIds, feedbackId, ...(contentKey ? [contentKey] : [])])],
         }));
       },
 
@@ -509,6 +515,8 @@ export const useAppStore = create(
 
       // Track read hub notification IDs (persisted)
       readHubNotificationIds: [],
+      deletedNotificationIds: [],  // [B55] Persisted — survive Firebase sync
+      dismissedFeedbackIds: [],    // [B55] Persisted — survive Firebase sync
 
       markHubNotificationRead: (notifId) => {
         const { readHubNotificationIds } = get();
@@ -525,15 +533,25 @@ export const useAppStore = create(
 
       // [B51] Remove a specific notification by ID from hubNotifications
       removeHubNotification: (notifId) => {
+        // [B55] Find the notification to get its title+body for content-based matching
+        const { hubNotifications } = get();
+        let deletedNotif = null;
+        for (const notifs of Object.values(hubNotifications || {})) {
+          const found = notifs.find(n => n.id === notifId);
+          if (found) { deletedNotif = found; break; }
+        }
         set((state) => {
           const updated = {};
           for (const [hubName, notifs] of Object.entries(state.hubNotifications || {})) {
             const filtered = notifs.filter(n => n.id !== notifId);
             if (filtered.length > 0) updated[hubName] = filtered;
           }
-          return { hubNotifications: updated };
+          // [B55] Track deleted notification ID + content key so sync never brings it back
+          const contentKey = deletedNotif ? `${(deletedNotif.title || '')}|${(deletedNotif.body || deletedNotif.message || '')}`.toLowerCase() : null;
+          const newDeletedIds = [...new Set([...state.deletedNotificationIds, notifId, ...(contentKey ? [contentKey] : [])])];
+          return { hubNotifications: updated, deletedNotificationIds: newDeletedIds };
         });
-        // Also delete from Firestore
+        // Also try to delete from Firestore (may fail if ID mismatch)
         import('../services/firebaseService').then(fb => fb.deleteNotification(notifId))
           .catch(e => logger.warn('[Store] deleteNotification sync failed:', e));
       },
@@ -737,14 +755,23 @@ export const useAppStore = create(
           });
         });
         // Merge: keep local notifications that aren't in Firebase
+        const { deletedNotificationIds } = get(); // [B55]
+        const deletedSet = new Set(deletedNotificationIds || []);
         const allHubNames = new Set([...Object.keys(localNotifs || {}), ...Object.keys(grouped)]);
         const merged = {};
         for (const hubName of allHubNames) {
           const local = (localNotifs || {})[hubName] || [];
           const firebase = grouped[hubName] || [];
-          const fbIds = new Set(firebase.map(n => n.id));
-          const localOnly = local.filter(n => !fbIds.has(n.id));
-          merged[hubName] = [...firebase, ...localOnly];
+          // [B55] Filter out deleted notifications by ID AND by content key
+          const filteredFirebase = firebase.filter(n => {
+            if (deletedSet.has(n.id)) return false;
+            const contentKey = `${(n.title || '')}|${(n.body || n.message || '')}`.toLowerCase();
+            if (deletedSet.has(contentKey)) return false;
+            return true;
+          });
+          const fbIds = new Set(filteredFirebase.map(n => n.id));
+          const localOnly = local.filter(n => !fbIds.has(n.id) && !deletedSet.has(n.id));
+          merged[hubName] = [...filteredFirebase, ...localOnly];
         }
 
         // [B53] Cross-group dedup: normalize titles (strip "HubName: " prefix) and dedup globally
@@ -794,7 +821,8 @@ export const useAppStore = create(
         set({ daoProposals: mergeArraysById(local, proposals) });
       },
       syncHubFeedbacks: (feedbacks) => {
-        const { hubFeedbacks: local } = get();
+        const { hubFeedbacks: local, dismissedFeedbackIds } = get(); // [B55]
+        const dismissedSet = new Set(dismissedFeedbackIds || []);
         // feedbacks is an object keyed by hubName — merge per hub
         const allHubNames = new Set([...Object.keys(local || {}), ...Object.keys(feedbacks || {})]);
         const merged = {};
@@ -802,15 +830,21 @@ export const useAppStore = create(
           const localFb = (local || {})[hubName] || [];
           // [B54] Firebase feedbacks are already filtered by status=pending in fetchHubFeedbacks
           const firebaseFb = (feedbacks || {})[hubName] || [];
-          const fbIds = new Set(firebaseFb.map(f => f.id));
-          // Only keep local feedbacks that are NOT in Firebase AND still pending
+          // [B55] Filter out dismissed feedbacks by ID AND content key
+          const filteredFirebaseFb = firebaseFb.filter(f => {
+            if (dismissedSet.has(f.id)) return false;
+            const contentKey = `${hubName}|${(f.message || f.title || '')}`.toLowerCase();
+            return !dismissedSet.has(contentKey);
+          });
+          const fbIds = new Set(filteredFirebaseFb.map(f => f.id));
+          // Only keep local feedbacks that are NOT in Firebase AND still pending AND not dismissed
           const localOnly = localFb.filter(f => {
             if (fbIds.has(f.id)) return false; // already in Firebase result
-            // Keep local-only if status is pending or unset (not yet synced to Firebase)
+            if (dismissedSet.has(f.id)) return false; // [B55] dismissed
             const status = (f.status || 'pending').toLowerCase();
             return status === 'pending';
           });
-          const combined = [...firebaseFb, ...localOnly];
+          const combined = [...filteredFirebaseFb, ...localOnly];
           if (combined.length > 0) merged[hubName] = combined;
         }
         set({ hubFeedbacks: merged });
@@ -1040,6 +1074,8 @@ export const useAppStore = create(
         adminConversations: state.adminConversations,
         doohCampaigns: state.doohCampaigns,
         readHubNotificationIds: state.readHubNotificationIds,
+        deletedNotificationIds: state.deletedNotificationIds,     // [B55]
+        dismissedFeedbackIds: state.dismissedFeedbackIds,         // [B55]
         platformPricing: state.platformPricing,
       }),
     }
