@@ -376,10 +376,15 @@ export const useAppStore = create(
         const { pendingAdCreatives, approvedAds, hubNotifications } = get();
         const ad = pendingAdCreatives.find(a => a.id === adId);
         if (ad) {
+          const approvedAd = { ...ad, status: 'approved' };
           const updates = {
             pendingAdCreatives: pendingAdCreatives.filter(a => a.id !== adId),
-            approvedAds: [...approvedAds, { ...ad, status: 'approved' }],
+            approvedAds: [...approvedAds, approvedAd],
           };
+
+          // [B55] Save approved ad to Firestore so it survives cache clear
+          import('../services/firebaseService').then(fb => fb.saveAdCreative(approvedAd))
+            .catch(e => logger.warn('[Store] saveAdCreative (approved) sync failed:', e));
 
           // Rich Notification Ads: displayed via approvedAds injection in HomeScreen feed
           // Push notification to all users via global notification

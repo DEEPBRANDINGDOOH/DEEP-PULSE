@@ -776,8 +776,9 @@ export async function fetchTalentSubmissions() {
     // [B53] Only fetch pending/review submissions — hired/rejected should not reappear
     let snapshot;
     try {
+      // [B55] Include both cases: TalentScreen uses 'REVIEW', normalize in filter below
       snapshot = await db.collection('talentSubmissions')
-        .where('status', 'in', ['pending', 'review'])
+        .where('status', 'in', ['pending', 'review', 'REVIEW', 'PENDING'])
         .orderBy('createdAt', 'desc')
         .limit(100)
         .get();
@@ -789,7 +790,11 @@ export async function fetchTalentSubmissions() {
     const results = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       // [B53] Client-side filter: skip HIRED/REJECTED (fallback safety net)
-      .filter(t => !t.status || t.status === 'pending' || t.status === 'review');
+      // [B55] Case-insensitive filter (TalentScreen uses 'REVIEW')
+      .filter(t => {
+        const s = (t.status || 'pending').toLowerCase();
+        return s === 'pending' || s === 'review';
+      });
     return results;
   } catch (error) {
     logger.warn('[FirebaseService] fetchTalentSubmissions failed:', error.message);
@@ -1002,7 +1007,15 @@ export async function fetchPendingAdCreatives() {
   if (!db) return null;
   try {
     const snapshot = await db.collection('adCreatives').where('status', '==', 'pending_review').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // [B55] Normalize Cloud Function docs: downloadUrl → imageUrl, ensure id field exists
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id, // Always use Firestore doc ID (overrides data.id if present)
+        imageUrl: data.imageUrl || data.downloadUrl || '', // Cloud Function uses downloadUrl
+      };
+    });
   } catch (error) {
     logger.warn('[FirebaseService] fetchPendingAdCreatives failed:', error.message);
     return null;
@@ -1317,7 +1330,15 @@ export async function fetchApprovedAdsFromFirestore() {
       .collection('adCreatives')
       .where('status', '==', 'approved')
       .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // [B55] Normalize: downloadUrl → imageUrl, ensure id field
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id,
+        imageUrl: data.imageUrl || data.downloadUrl || '',
+      };
+    });
   } catch (error) {
     logger.warn('[FirebaseService] fetchApprovedAds failed:', error.message);
     return null;
