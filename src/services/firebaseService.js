@@ -983,7 +983,7 @@ export async function saveAdCreative(ad) {
       hubName: String(ad.hubName || ''),
       imageUrl: String(ad.imageUrl || ''),
       landingUrl: String(ad.landingUrl || ''),
-      status: 'pending_review',
+      status: String(ad.status || 'pending_review'), // [B55] Respect actual status (approved, etc.)
       createdAt: firestore.FieldValue.serverTimestamp(),
     };
     if (ad.title) docData.title = String(ad.title);

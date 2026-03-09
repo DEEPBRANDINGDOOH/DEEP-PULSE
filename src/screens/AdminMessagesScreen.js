@@ -93,6 +93,18 @@ export default function AdminMessagesScreen({ navigation, route }) {
     }));
 
     setMessageText('');
+
+    // [B55] Sync to Firebase so messages survive cache clear
+    const updatedConv = conversations.find(c => c.id === selectedConv.id);
+    if (updatedConv) {
+      updateStoreConversation(selectedConv.id, {
+        ...updatedConv,
+        messages: [...(updatedConv.messages || []), newMessage],
+        lastMessage: messageText.trim(),
+        lastMessageTime: 'Just now',
+        lastMessageFrom: fromWho,
+      });
+    }
   };
 
   // Conversation list view
