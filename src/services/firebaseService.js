@@ -178,6 +178,26 @@ export async function deleteNotification(notifId) {
   return { success: true };
 }
 
+/**
+ * [B56] Update a notification's reaction count in Firestore
+ * @param {string} notifId - Notification doc ID
+ * @param {number} reactions - New reactions count
+ */
+export async function updateNotificationReaction(notifId, reactions) {
+  const db = getDb();
+  if (!db || !notifId) return { success: false };
+  try {
+    await db.collection('notifications').doc(notifId).update({
+      reactions: reactions || 0,
+    });
+    return { success: true };
+  } catch (error) {
+    // Local-only notification — no Firestore doc to update (expected)
+    logger.warn('[FirebaseService] updateNotificationReaction failed (local notif?):', error.message);
+    return { success: false };
+  }
+}
+
 // =====================================================
 //  2. HUB LIFECYCLE — Firestore Sync
 // =====================================================
@@ -972,8 +992,8 @@ export async function saveAdCreative(ad) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    // [B45] Explicit fields — adCreatives has write:false in rules
-    // This write goes to offline cache and syncs when rules allow it
+    // [B45] Explicit fields — adCreatives allows create/update in Firestore rules
+    // [B56] Fixed: rules were already relaxed for hackathon demo
     const docData = {
       id: String(ad.id),
       brandName: String(ad.brandName || ''),

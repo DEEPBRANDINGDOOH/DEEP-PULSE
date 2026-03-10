@@ -523,6 +523,28 @@ export const useAppStore = create(
       deletedNotificationIds: [],  // [B55] Persisted — survive Firebase sync
       dismissedFeedbackIds: [],    // [B55] Persisted — survive Firebase sync
 
+      // [B56] Persist reaction to hub notification (survives app restart + cache clear)
+      reactToHubNotification: (notifId) => {
+        set((state) => {
+          const updated = {};
+          for (const [hubName, notifs] of Object.entries(state.hubNotifications || {})) {
+            updated[hubName] = notifs.map(n =>
+              n.id === notifId ? { ...n, reactions: (n.reactions || 0) + 1, reacted: true } : n
+            );
+          }
+          return { hubNotifications: updated };
+        });
+        // Sync reaction count to Firebase
+        const { hubNotifications } = get();
+        let reactionCount = 0;
+        for (const notifs of Object.values(hubNotifications || {})) {
+          const found = notifs.find(n => n.id === notifId);
+          if (found) { reactionCount = found.reactions || 0; break; }
+        }
+        import('../services/firebaseService').then(fb => fb.updateNotificationReaction(notifId, reactionCount))
+          .catch(e => logger.warn('[Store] updateNotificationReaction sync failed:', e));
+      },
+
       markHubNotificationRead: (notifId) => {
         const { readHubNotificationIds } = get();
         if (!readHubNotificationIds.includes(notifId)) {
@@ -589,6 +611,9 @@ export const useAppStore = create(
         set((state) => ({
           talentSubmissions: state.talentSubmissions.filter(t => t.id !== submissionId),
         }));
+        // [B56] Update status in Firebase to 'dismissed' so it doesn't reappear on next sync
+        import('../services/firebaseService').then(fb => fb.updateTalentSubmissionStatus(submissionId, 'dismissed'))
+          .catch(e => logger.warn('[Store] removeTalentSubmission sync failed:', e));
       },
 
       updateTalentSubmission: (submissionId, updates) => {
@@ -666,6 +691,10 @@ export const useAppStore = create(
         set({ userScore: score });
       },
 
+      setUserStreak: (streak) => {
+        set({ userStreak: streak });
+      },
+
       incrementStreak: () => {
         set((state) => ({
           userStreak: (state.userStreak || 0) + 1,
@@ -737,6 +766,8 @@ export const useAppStore = create(
             hubName,
             hubIcon: n.hubIcon || 'apps',
             hubLogoUrl: n.hubLogoUrl || null,
+            reactions: n.reactions || 0,   // [B56] Carry reactions from Firebase
+            reacted: n.reacted || false,   // [B56] Carry reacted state
             timestamp: (() => {
               try {
                 const d = n.createdAt?.toDate?.() || (n.createdAt ? new Date(n.createdAt) : null);

@@ -15,7 +15,7 @@ import { checkRateLimit, MAX_LENGTHS, safeOpenURL } from '../utils/security';
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
 export default function HomeScreen({ navigation }) {
-  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead, readHubNotificationIds } = useAppStore(); // [B41] Use hub notif count, not alerts
+  const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead, readHubNotificationIds, reactToHubNotification } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
@@ -71,7 +71,7 @@ export default function HomeScreen({ navigation }) {
         hubIcon: n.hubIcon || 'apps',
         reactions: n.reactions || 0,
         comments: n.comments || 0,
-        isNew: true,
+        isNew: !(readHubNotificationIds || []).includes(n.id), // [B56] Respect read state
       }));
     const freshSponsored = (approvedAds || [])
       .filter(ad => ad.slotType === 'rich_notif' && (ad.status === 'approved' || ad.status === 'APPROVED'))
@@ -94,7 +94,7 @@ export default function HomeScreen({ navigation }) {
       }));
     // Sponsored ads appear at top of feed, then regular notifications
     setNotifications([...freshSponsored, ...freshStoreNotifs]);
-  }, [hubNotifications, approvedAds]);
+  }, [hubNotifications, approvedAds, readHubNotificationIds]);
 
   const handleAdImpression = (data) => {
     AdRotationManager.trackImpression(data);
@@ -367,8 +367,10 @@ export default function HomeScreen({ navigation }) {
                       onPress={() => {
                         if (notif.reacted) return; // 1 reaction max per notification
                         setNotifications(prev => prev.map(n =>
-                          n.id === notif.id ? { ...n, reactions: n.reactions + 1, reacted: true } : n
+                          n.id === notif.id ? { ...n, reactions: (n.reactions || 0) + 1, reacted: true } : n
                         ));
+                        // [B56] Persist reaction to store + Firebase (survives cache clear)
+                        reactToHubNotification(notif.id);
                         // [B54] Sync read state to store — so "My Hubs" shows as read too
                         markHubNotificationRead(notif.id);
                       }}

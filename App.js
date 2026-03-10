@@ -402,8 +402,42 @@ const App = () => {
     };
     syncFromFirebase();
 
+    // [B56] Re-sync wallet-dependent data when wallet becomes available
+    // (e.g., after cache clear + wallet reconnection in OnboardingScreen)
+    let prevWalletStr = null;
+    const unsubWalletWatch = useAppStore.subscribe((state) => {
+      const wpk = state.wallet?.publicKey;
+      const currentStr = typeof wpk === 'string' ? wpk : (wpk?.toBase58?.() || wpk?.toString?.() || null);
+      if (currentStr && currentStr !== prevWalletStr) {
+        prevWalletStr = currentStr;
+        // Wallet just became available — re-fetch score + subscriptions from Firebase
+        Promise.all([
+          fetchUserSubscriptions(currentStr),
+          fetchUserScore(currentStr),
+        ]).then(([subs, score]) => {
+          const st = useAppStore.getState();
+          if (subs && subs.length > 0) {
+            const currentSubs = st.subscribedProjects || [];
+            if (currentSubs.length === 0) {
+              st.setSubscribedProjects(subs);
+            }
+          }
+          if (score && score.score != null) {
+            if (score.score > (st.userScore || 0)) {
+              st.setUserScore(score.score);
+            }
+            if (score.streak && score.streak > (st.userStreak || 0)) {
+              st.setUserStreak(score.streak);
+            }
+          }
+          logger.log(`[App] Wallet re-sync: ${subs?.length || 0} subs, score: ${score?.score || 0}`);
+        }).catch(e => logger.warn('[App] Wallet re-sync failed:', e?.message));
+      }
+    });
+
     return () => {
       notificationService.removeForegroundListener();
+      unsubWalletWatch();
     };
   }, []);
 
