@@ -533,10 +533,18 @@ export default function AdSlotsScreen({ route, navigation }) {
                 status: 'pending_review', // [B41] Normalize — Firestore uses 'pending_review'
                 submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
               };
-              // Await Firestore write — ensures data survives cache clear
+              // [B58] Await Firestore write — ensures data survives cache clear
               const syncResult = await addPendingAdCreative(adData);
-              if (!syncResult?.success) {
-                console.warn('[AdSlots] Ad saved locally but Firestore sync failed — may not survive cache clear');
+              if (syncResult?.success) {
+                console.log('[AdSlots] Ad synced to Firestore OK:', adData.id);
+              } else {
+                // Show visible feedback so user knows persistence might fail
+                Alert.alert(
+                  'Sync Warning',
+                  'Your ad was saved locally but could not sync to the server. ' +
+                  'It may not survive if you clear the app cache.',
+                  [{ text: 'OK' }]
+                );
               }
 
               // Slot occupancy now auto-derives from store via useMemo — no manual update needed

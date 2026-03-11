@@ -26,6 +26,22 @@ import {
   suspendHubInFirestore,
   reactivateHubInFirestore,
   deleteHubInFirestore,
+  // [B58] Static imports — fixes dynamic import() bug that silently failed in Metro/RN
+  // ALL Firestore writes from the store were going through import().then() which never executed
+  saveAdCreative,
+  sendGlobalNotification,
+  saveHubFeedback,
+  updateNotificationReaction,
+  deleteNotification,
+  saveTalentSubmission,
+  updateTalentSubmissionStatus,
+  saveDaoProposal,
+  updateDaoProposalInFirestore,
+  saveUserScore,
+  saveCustomDeal,
+  removeCustomDealFromFirestore,
+  saveAdminConversation,
+  saveDoohCampaign,
 } from '../services/firebaseService';
 import { logger } from '../utils/security';
 
@@ -367,9 +383,8 @@ export const useAppStore = create(
           pendingAdCreatives: [ad, ...state.pendingAdCreatives],
         }));
         get().incrementScore(20); // 20 pts per ad creative
-        // [B56] Sync to Firebase — AWAITED by caller for persistence guarantee
-        // Returns a promise so callers can await to ensure data reaches Firestore server
-        return import('../services/firebaseService').then(fb => fb.saveAdCreative(ad))
+        // [B58] Direct static call — fixes dynamic import() bug that silently failed in Metro/RN
+        return saveAdCreative(ad)
           .then(result => {
             if (result?.success) {
               logger.log('[Store] saveAdCreative synced to Firestore:', ad.id);
@@ -394,23 +409,21 @@ export const useAppStore = create(
             approvedAds: [...approvedAds, approvedAd],
           };
 
-          // [B56] Save approved ad to Firestore — MUST succeed for persistence
-          import('../services/firebaseService').then(fb => fb.saveAdCreative(approvedAd))
+          // [B58] Direct static calls — fixes dynamic import() bug
+          saveAdCreative(approvedAd)
             .then(r => { if (r?.success) logger.log('[Store] Approved ad synced:', adId); })
             .catch(e => logger.warn('[Store] saveAdCreative (approved) sync failed:', e));
 
           // Rich Notification Ads: displayed via approvedAds injection in HomeScreen feed
           // Push notification to all users via global notification
           if (ad.slotType === 'rich_notif') {
-            import('../services/firebaseService').then(fb => {
-              const w = get().wallet?.publicKey;
-              const walletStr = typeof w === 'string' ? w : (w?.toBase58?.() || w?.toString?.() || 'admin');
-              fb.sendGlobalNotification(
-                ad.richTitle || 'Sponsored Content',
-                ad.richBody || '',
-                walletStr,
-              );
-            }).catch(e => logger.warn('[Store] Global push for rich_notif failed:', e));
+            const w = get().wallet?.publicKey;
+            const walletStr = typeof w === 'string' ? w : (w?.toBase58?.() || w?.toString?.() || 'admin');
+            sendGlobalNotification(
+              ad.richTitle || 'Sponsored Content',
+              ad.richBody || '',
+              walletStr,
+            ).catch(e => logger.warn('[Store] Global push for rich_notif failed:', e));
           }
 
           set(updates);
@@ -433,8 +446,8 @@ export const useAppStore = create(
             approvedAds: approvedAds.filter(a => a.id !== adId),
             pendingAdCreatives: [updatedAd, ...pendingAdCreatives],
           });
-          // Sync to Firestore (update status back to 'pending_review' so admin sees it)
-          import('../services/firebaseService').then(fb => fb.saveAdCreative(updatedAd))
+          // [B58] Direct static call — Sync to Firestore
+          saveAdCreative(updatedAd)
             .catch(e => logger.warn('[Store] resubmitAdForReview sync failed:', e));
         }
       },
@@ -477,8 +490,8 @@ export const useAppStore = create(
           },
         }));
         get().incrementScore(15); // [W6 FIX] Aligned with SCORING_COEFFICIENTS.SEND_FEEDBACK (15)
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveHubFeedback(hubName, feedback))
+        // [B58] Direct static call — Sync to Firebase
+        saveHubFeedback(hubName, feedback)
           .catch(e => logger.warn('[Store] saveHubFeedback sync failed:', e));
       },
 
@@ -547,14 +560,14 @@ export const useAppStore = create(
           }
           return { hubNotifications: updated };
         });
-        // Sync reaction count to Firebase
+        // [B58] Direct static call — Sync reaction count to Firebase
         const { hubNotifications } = get();
         let reactionCount = 0;
         for (const notifs of Object.values(hubNotifications || {})) {
           const found = notifs.find(n => n.id === notifId);
           if (found) { reactionCount = found.reactions || 0; break; }
         }
-        import('../services/firebaseService').then(fb => fb.updateNotificationReaction(notifId, reactionCount))
+        updateNotificationReaction(notifId, reactionCount)
           .catch(e => logger.warn('[Store] updateNotificationReaction sync failed:', e));
       },
 
@@ -591,8 +604,8 @@ export const useAppStore = create(
           const newDeletedIds = [...new Set([...state.deletedNotificationIds, notifId, ...(contentKey ? [contentKey] : [])])];
           return { hubNotifications: updated, deletedNotificationIds: newDeletedIds };
         });
-        // Also try to delete from Firestore (may fail if ID mismatch)
-        import('../services/firebaseService').then(fb => fb.deleteNotification(notifId))
+        // [B58] Direct static call — Also try to delete from Firestore
+        deleteNotification(notifId)
           .catch(e => logger.warn('[Store] deleteNotification sync failed:', e));
       },
 
@@ -615,8 +628,8 @@ export const useAppStore = create(
           talentSubmissions: [submission, ...state.talentSubmissions],
         }));
         get().incrementScore(25); // [W6 FIX] Aligned with SCORING_COEFFICIENTS.TALENT_SUBMIT (25)
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveTalentSubmission(submission))
+        // [B58] Direct static call — Sync to Firebase
+        saveTalentSubmission(submission)
           .catch(e => logger.warn('[Store] saveTalentSubmission sync failed:', e));
       },
 
@@ -624,8 +637,8 @@ export const useAppStore = create(
         set((state) => ({
           talentSubmissions: state.talentSubmissions.filter(t => t.id !== submissionId),
         }));
-        // [B56] Update status in Firebase to 'dismissed' so it doesn't reappear on next sync
-        import('../services/firebaseService').then(fb => fb.updateTalentSubmissionStatus(submissionId, 'dismissed'))
+        // [B58] Direct static call — Update status in Firebase to 'dismissed'
+        updateTalentSubmissionStatus(submissionId, 'dismissed')
           .catch(e => logger.warn('[Store] removeTalentSubmission sync failed:', e));
       },
 
@@ -635,9 +648,9 @@ export const useAppStore = create(
             t.id === submissionId ? { ...t, ...updates } : t
           ),
         }));
-        // [B53] Sync status update to Firebase (prevents reappearing on next sync)
+        // [B58] Direct static call — Sync status update to Firebase
         if (updates.status) {
-          import('../services/firebaseService').then(fb => fb.updateTalentSubmissionStatus(submissionId, updates.status))
+          updateTalentSubmissionStatus(submissionId, updates.status)
             .catch(e => logger.warn('[Store] updateTalentSubmission sync failed:', e));
         }
       },
@@ -652,8 +665,8 @@ export const useAppStore = create(
           daoProposals: [proposal, ...state.daoProposals],
         }));
         get().incrementScore(50); // 50 pts per DAO proposal
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveDaoProposal(proposal))
+        // [B58] Direct static call — Sync to Firebase
+        saveDaoProposal(proposal)
           .catch(e => logger.warn('[Store] saveDaoProposal sync failed:', e));
       },
 
@@ -663,8 +676,8 @@ export const useAppStore = create(
             p.id === proposalId ? { ...p, ...updates } : p
           ),
         }));
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.updateDaoProposalInFirestore(proposalId, updates))
+        // [B58] Direct static call — Sync to Firebase
+        updateDaoProposalInFirestore(proposalId, updates)
           .catch(e => logger.warn('[Store] updateDaoProposal sync failed:', e));
       },
 
@@ -693,7 +706,8 @@ export const useAppStore = create(
           const { userScore, userStreak, wallet } = get();
           const addr = wallet?.publicKey?.toString?.() || wallet?.publicKey;
           if (addr) {
-            import('../services/firebaseService').then(fb => fb.saveUserScore(addr, userScore, userStreak))
+            // [B58] Direct static call — fixes dynamic import() bug
+            saveUserScore(addr, userScore, userStreak)
               .catch(e => logger.warn('[Store] saveUserScore sync failed:', e));
           }
           _scoreSyncTimer = null;
@@ -931,8 +945,8 @@ export const useAppStore = create(
         set((state) => ({
           customDeals: [...state.customDeals, deal],
         }));
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveCustomDeal(deal))
+        // [B58] Direct static call — Sync to Firebase
+        saveCustomDeal(deal)
           .catch(e => logger.warn('[Store] saveCustomDeal sync failed:', e));
       },
 
@@ -940,8 +954,8 @@ export const useAppStore = create(
         set((state) => ({
           customDeals: state.customDeals.filter(d => d.id !== dealId),
         }));
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.removeCustomDealFromFirestore(dealId))
+        // [B58] Direct static call — Sync to Firebase
+        removeCustomDealFromFirestore(dealId)
           .catch(e => logger.warn('[Store] removeCustomDeal sync failed:', e));
       },
 
@@ -961,10 +975,10 @@ export const useAppStore = create(
             c.id === convId ? { ...c, ...updates } : c
           ),
         }));
-        // Sync full conversation to Firebase
+        // [B58] Direct static call — Sync full conversation to Firebase
         const conv = get().adminConversations.find(c => c.id === convId);
         if (conv) {
-          import('../services/firebaseService').then(fb => fb.saveAdminConversation(conv))
+          saveAdminConversation(conv)
             .catch(e => logger.warn('[Store] saveAdminConversation sync failed:', e));
         }
       },
@@ -978,8 +992,8 @@ export const useAppStore = create(
         set((state) => ({
           doohCampaigns: [campaign, ...state.doohCampaigns],
         }));
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveDoohCampaign(campaign))
+        // [B58] Direct static call — Sync to Firebase
+        saveDoohCampaign(campaign)
           .catch(e => logger.warn('[Store] saveDoohCampaign sync failed:', e));
       },
 
