@@ -170,11 +170,11 @@ service cloud.firestore {
     }
 
     // ── User Scores ──
-    // Read: anyone can view scores (leaderboard)
-    // Write: only via incrementScore Cloud Function (client writes go through Firebase callable)
+    // HACKATHON: Relaxed rules for devnet demo (no Firebase Auth on devnet)
+    // TODO: Re-enable strict auth for mainnet
     match /userScores/{walletAddress} {
       allow read: if true;
-      allow write: if isAuthenticated() && walletAddress == request.auth.uid;
+      allow write: if true;
     }
 
     // ── Deny everything else ──

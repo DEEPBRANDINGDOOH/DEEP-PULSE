@@ -49,22 +49,38 @@ export default function ProfileScreen({ navigation }) {
 
       const data = await fetchLeaderboard(100);
 
+      // [B59] Compute score breakdown from store data for current user
+      const storeState = useAppStore.getState();
+      const boostCount = (storeState.daoProposals || []).length;
+      const talentCount = (storeState.talentSubmissions || []).length;
+      const feedbackCount = Object.values(storeState.hubFeedbacks || {}).flat().length;
+
       // [B53] Ensure current user appears in leaderboard (even if Firestore save was delayed)
       if (addr && userScore > 0) {
-        const userInList = data.some(e => e.fullWallet === addr);
-        if (!userInList) {
+        const existingIdx = data.findIndex(e => e.fullWallet === addr);
+        if (existingIdx >= 0) {
+          // Enrich existing entry with sub-elements
+          data[existingIdx].boost = boostCount;
+          data[existingIdx].talent = talentCount;
+          data[existingIdx].feedback = feedbackCount;
+          // Use local score if higher (Firestore might be stale)
+          if (userScore > data[existingIdx].score) data[existingIdx].score = userScore;
+        } else {
           const walletDisplay = addr.slice(0, 4) + '...' + addr.slice(-3);
           data.push({
             wallet: walletDisplay,
             fullWallet: addr,
             score: userScore,
             streak: userStreak || 0,
-            rank: 0, // Will be recalculated
+            boost: boostCount,
+            talent: talentCount,
+            feedback: feedbackCount,
+            rank: 0,
           });
-          // Re-sort and re-rank
-          data.sort((a, b) => b.score - a.score);
-          data.forEach((e, i) => { e.rank = i + 1; });
         }
+        // Re-sort and re-rank
+        data.sort((a, b) => b.score - a.score);
+        data.forEach((e, i) => { e.rank = i + 1; });
       }
 
       setLeaderboardData(data);

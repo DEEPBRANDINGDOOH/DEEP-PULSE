@@ -244,13 +244,10 @@ export default function AdSlotsScreen({ route, navigation }) {
       .filter(a => {
         // Filter by current hub
         if (a.hubName !== hubName) return false;
-        // Filter by wallet ownership (dev mode: show all for testing)
-        if (USE_DEVNET) return true;
+        // [B59] Filter by wallet ownership — no more devnet bypass (was showing ALL ads as "mine")
         if (!walletStr) return false;
-        // [B54] Match full walletAddress, or legacy truncated brandWallet pattern
         if (a.walletAddress === walletStr) return true;
-        if (a.brandWallet === walletStr) return true;
-        // Legacy: brandWallet is truncated "XXX...YYY" — match start+end of full wallet
+        // Legacy: brandWallet is truncated "XXX...YYY" — match start+end
         if (a.brandWallet && a.brandWallet.includes('...')) {
           const parts = a.brandWallet.split('...');
           if (parts.length === 2 && walletStr.startsWith(parts[0]) && walletStr.endsWith(parts[1])) return true;

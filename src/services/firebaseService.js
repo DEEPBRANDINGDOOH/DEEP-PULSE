@@ -187,8 +187,10 @@ export async function updateNotificationReaction(notifId, reactions) {
   const db = getDb();
   if (!db || !notifId) return { success: false };
   try {
+    // [B59] Also save reacted: true so sync doesn't overwrite local reacted state
     await db.collection('notifications').doc(notifId).update({
       reactions: reactions || 0,
+      reacted: true,
     });
     return { success: true };
   } catch (error) {
@@ -778,10 +780,11 @@ export async function updateTalentSubmissionStatus(submissionId, newStatus) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('talentSubmissions').doc(submissionId).update({
+    // [B59] Use set+merge — doc may not exist if never synced before B58
+    await db.collection('talentSubmissions').doc(submissionId).set({
       status: newStatus,
       reviewedAt: firestore.FieldValue.serverTimestamp(),
-    });
+    }, { merge: true });
     return { success: true };
   } catch (error) {
     logger.warn('[FirebaseService] updateTalentSubmissionStatus failed:', error.message);
@@ -936,10 +939,11 @@ export async function updateHubFeedbackStatus(feedbackId, newStatus) {
   const db = getDb();
   if (!db) return { success: false };
   try {
-    await db.collection('hubFeedbacks').doc(feedbackId).update({
+    // [B59] Use set+merge instead of update — doc may not exist if it was never synced to Firestore
+    await db.collection('hubFeedbacks').doc(feedbackId).set({
       status: newStatus,
       reviewedAt: firestore.FieldValue.serverTimestamp(),
-    });
+    }, { merge: true });
     return { success: true };
   } catch (error) {
     logger.warn('[FirebaseService] updateHubFeedbackStatus failed:', error.message);

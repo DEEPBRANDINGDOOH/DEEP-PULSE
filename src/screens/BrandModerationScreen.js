@@ -177,7 +177,7 @@ export default function BrandModerationScreen({ navigation, route }) {
                 if (!item.isMock) {
                   if (type === 'feedback') {
                     removeHubFeedback(hubName, id);
-                    updateHubFeedbackStatus(id, 'approved').catch(e => logger.warn('[Moderation] FB feedback status sync failed:', e));
+                    updateHubFeedbackStatus(id, 'approved').catch(e => console.warn('[Moderation] FB feedback status sync failed:', e));
                   }
                   else if (type === 'boost') updateDaoProposal(id, { status: 'APPROVED', approvedAt: new Date().toISOString() });
                   else if (type === 'talent') {

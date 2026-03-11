@@ -227,7 +227,8 @@ export const useAppStore = create(
             : [...subscribedProjects, hubId];
           set({
             pendingHubs: pendingHubs.filter((h) => h.id !== hubId),
-            hubs: [...hubs, { ...hub, status: 'ACTIVE', subscribers: (hub.subscribers || 0) + 1, subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }],
+            // [B59] Don't local +1 subscribers — let subscribeToHubBackend handle the atomic increment
+            hubs: [...hubs, { ...hub, status: 'ACTIVE', subscribers: hub.subscribers || 0, subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }],
             subscribedProjects: updatedSubs,
           });
           // 2. Sync with Firestore + subscribe to FCM topic

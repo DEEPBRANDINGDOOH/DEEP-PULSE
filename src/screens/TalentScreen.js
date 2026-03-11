@@ -24,8 +24,13 @@ export default function TalentScreen({ navigation }) {
     .filter(h => h && subscribedProjects.includes(h.id) && h.status === 'ACTIVE')
     .map(h => ({ id: h.id, name: h.name }));
   const activeHubs = filteredHubs.length > 0 ? filteredHubs : [];
-  // Talent submissions from Zustand store (persisted)
-  const mySubmissions = useAppStore((state) => state.talentSubmissions) || [];
+  // [B59] Talent submissions — filtered by current wallet (was showing ALL users' submissions)
+  const allTalentSubmissions = useAppStore((state) => state.talentSubmissions) || [];
+  const mySubmissions = React.useMemo(() => {
+    const walletStr = typeof wallet?.publicKey === 'string' ? wallet.publicKey : (wallet?.publicKey?.toString?.() || '');
+    if (!walletStr) return [];
+    return allTalentSubmissions.filter(t => t.walletAddress === walletStr);
+  }, [allTalentSubmissions, wallet?.publicKey]);
   const addTalentSubmission = useAppStore((state) => state.addTalentSubmission);
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedHub, setSelectedHub] = useState(activeHubs[0] || null);
