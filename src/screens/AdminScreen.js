@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal, ActivityIndicator, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getTierFromScore, PRICING, isAdmin, USE_DEVNET } from '../config/constants';
@@ -707,15 +707,50 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* URLs */}
-            <View className="bg-background-secondary rounded-xl p-3 mb-3">
-              <Text className="text-text-secondary text-xs mb-1">Image URL:</Text>
-              <Text className="text-primary text-xs mb-2" numberOfLines={2}>{ad.imageUrl}</Text>
-              <Text className="text-text-secondary text-xs mb-1">Landing URL:</Text>
-              <TouchableOpacity onPress={() => safeOpenURL(ad.landingUrl, 'ad landing page')}>
-                <Text className="text-primary text-xs underline" numberOfLines={1}>{ad.landingUrl}</Text>
+            {/* [B58] Ad Creative Preview */}
+            {ad.imageUrl ? (
+              <View className="rounded-xl overflow-hidden mb-3 border border-border">
+                <Image
+                  source={{ uri: ad.imageUrl }}
+                  className="w-full"
+                  style={{
+                    height: ad.slotType === 'lockscreen' ? 200 : ad.slotType === 'top' ? 80 : ad.slotType === 'bottom' ? 70 : 120,
+                  }}
+                  resizeMode={ad.slotType === 'lockscreen' ? 'cover' : 'contain'}
+                />
+              </View>
+            ) : ad.slotType === 'rich_notif' ? (
+              <View className="bg-background-secondary rounded-xl p-4 mb-3 border border-primary/30">
+                <View className="flex-row items-center mb-2">
+                  <Ionicons name="notifications" size={16} color="#FF9F66" />
+                  <Text className="text-primary font-bold text-sm ml-2">Rich Notification Preview</Text>
+                </View>
+                <Text className="text-text font-bold text-base">{ad.richTitle || 'Sponsored Content'}</Text>
+                <Text className="text-text-secondary text-sm mt-1">{ad.richBody || '(No body text)'}</Text>
+                {ad.richCtaLabel && (
+                  <View className="bg-primary rounded-lg px-4 py-2 mt-3 self-start">
+                    <Text className="text-background font-bold text-sm">{ad.richCtaLabel}</Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View className="bg-background-secondary rounded-xl p-4 mb-3 items-center">
+                <Ionicons name="image-outline" size={32} color="#666" />
+                <Text className="text-text-secondary text-xs mt-2">No image provided</Text>
+              </View>
+            )}
+
+            {/* Landing URL */}
+            {ad.landingUrl ? (
+              <TouchableOpacity
+                onPress={() => safeOpenURL(ad.landingUrl, 'ad landing page')}
+                className="bg-background-secondary rounded-xl p-3 mb-3 flex-row items-center"
+              >
+                <Ionicons name="open-outline" size={16} color="#FF9F66" />
+                <Text className="text-primary text-xs font-semibold ml-2 flex-1" numberOfLines={1}>{ad.landingUrl}</Text>
+                <Ionicons name="chevron-forward" size={14} color="#FF9F66" />
               </TouchableOpacity>
-            </View>
+            ) : null}
 
             {/* Action Buttons */}
             <View className="flex-row mb-2">
