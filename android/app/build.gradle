@@ -31,7 +31,7 @@ android {
         applicationId "com.deeppulse"
         minSdk 26  // CRITICAL: Solana Mobile minimum requirement
         targetSdk 34
-        versionCode 56
+        versionCode 57
         versionName "2.0.0"
 
         // Solana Mobile Wallet Adapter

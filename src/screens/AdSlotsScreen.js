@@ -514,8 +514,8 @@ export default function AdSlotsScreen({ route, navigation }) {
                 clicks: 0,
               }]);
 
-              // Wire to Zustand store → Admin sees this in Ad Moderation
-              addPendingAdCreative({
+              // [B56] Wire to Zustand store + AWAIT Firestore sync for persistence
+              const adData = {
                 id: adId,
                 brandName: wallet?.publicKey
                   ? wallet.publicKey.toString().slice(0, 7) + '...'
@@ -532,7 +532,12 @@ export default function AdSlotsScreen({ route, navigation }) {
                 totalCost: totalCost,
                 status: 'pending_review', // [B41] Normalize — Firestore uses 'pending_review'
                 submittedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-              });
+              };
+              // Await Firestore write — ensures data survives cache clear
+              const syncResult = await addPendingAdCreative(adData);
+              if (!syncResult?.success) {
+                console.warn('[AdSlots] Ad saved locally but Firestore sync failed — may not survive cache clear');
+              }
 
               // Slot occupancy now auto-derives from store via useMemo — no manual update needed
 

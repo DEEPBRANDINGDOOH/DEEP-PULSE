@@ -367,9 +367,21 @@ export const useAppStore = create(
           pendingAdCreatives: [ad, ...state.pendingAdCreatives],
         }));
         get().incrementScore(20); // 20 pts per ad creative
-        // Sync to Firebase
-        import('../services/firebaseService').then(fb => fb.saveAdCreative(ad))
-          .catch(e => logger.warn('[Store] saveAdCreative sync failed:', e));
+        // [B56] Sync to Firebase — AWAITED by caller for persistence guarantee
+        // Returns a promise so callers can await to ensure data reaches Firestore server
+        return import('../services/firebaseService').then(fb => fb.saveAdCreative(ad))
+          .then(result => {
+            if (result?.success) {
+              logger.log('[Store] saveAdCreative synced to Firestore:', ad.id);
+            } else {
+              logger.warn('[Store] saveAdCreative Firestore write returned false:', ad.id);
+            }
+            return result;
+          })
+          .catch(e => {
+            logger.warn('[Store] saveAdCreative sync failed:', e);
+            return { success: false };
+          });
       },
 
       approveAdCreativeInStore: (adId) => {
@@ -382,8 +394,9 @@ export const useAppStore = create(
             approvedAds: [...approvedAds, approvedAd],
           };
 
-          // [B55] Save approved ad to Firestore so it survives cache clear
+          // [B56] Save approved ad to Firestore — MUST succeed for persistence
           import('../services/firebaseService').then(fb => fb.saveAdCreative(approvedAd))
+            .then(r => { if (r?.success) logger.log('[Store] Approved ad synced:', adId); })
             .catch(e => logger.warn('[Store] saveAdCreative (approved) sync failed:', e));
 
           // Rich Notification Ads: displayed via approvedAds injection in HomeScreen feed
@@ -892,17 +905,12 @@ export const useAppStore = create(
         const filteredAds = (ads || [])
           .filter(a => !approvedIds.has(a.id));
         const merged = mergeArraysById(local, filteredAds);
-        // [B54] Clean AFTER merge — removes ghost/incomplete ads from BOTH local and Firebase
-        // Valid ad must have: id + slotType + (imageUrl OR richTitle for rich_notif ads)
+        // [B56] Relaxed filter — only require id + slotType (imageUrl may be empty if Storage upload failed)
+        // Previous [B54] filter was too aggressive: removed ALL ads without imageUrl,
+        // which broke persistence after cache clear (Firestore stores empty imageUrl)
         const cleaned = merged
           .filter(a => !approvedIds.has(a.id))
-          .filter(a => {
-            if (!a.id || !a.slotType) return false;
-            // Rich notification ads don't need imageUrl — they have richTitle instead
-            if (a.slotType === 'rich_notif') return !!(a.richTitle || a.richBody);
-            // Banner/lockscreen ads must have an image URL
-            return !!(a.imageUrl);
-          });
+          .filter(a => !!(a.id && a.slotType));
         set({ pendingAdCreatives: cleaned });
       },
       syncCustomDeals: (deals) => {
