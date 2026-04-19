@@ -108,7 +108,10 @@ export async function uploadAdCreative(imageAsset, slotType, onProgress = null) 
     const timestamp = Date.now();
     const ext = getExtension(imageAsset.fileName || imageAsset.uri);
     const fileName = `${timestamp}_${slotType}.${ext}`;
-    const storagePath = `ad-creatives/${walletStr}/${fileName}`;
+    // [B59] Changed from 'ad-creatives/' to 'ad-images/' to prevent Cloud Function
+    // onAdCreativeUploaded from creating duplicate ghost docs in Firestore.
+    // The app now writes the Firestore doc directly via saveAdCreative() (static import).
+    const storagePath = `ad-images/${walletStr}/${fileName}`;
 
     // Create reference
     const ref = storage().ref(storagePath);
