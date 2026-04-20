@@ -11,7 +11,14 @@ import { programService } from './programService';
 import { notificationService } from './notificationService';
 import { PRICING, DEPOSITS, MOCK_TRANSACTIONS } from '../config/constants';
 import { logger } from '../utils/security';
-import { showToast } from '../components/ui/Toast';
+import { showToast, getSolscanTxUrl } from '../components/ui/Toast';
+
+// [B61] Helper: build a Solscan action for toasts when signature is real
+function solscanAction(signature) {
+  const url = getSolscanTxUrl(signature);
+  if (!url) return null;
+  return { label: 'View on Solscan', href: url, icon: 'open-outline' };
+}
 
 // ============================================
 // WALLET STATE
@@ -143,8 +150,13 @@ export const subscribeToHub = async (hubPda) => {
     }
     return result;
   }, {
-    onSuccess: () => {
-      showToast({ type: 'success', title: 'Subscribed!', message: 'You will receive notifications from this hub.' });
+    onSuccess: (result) => {
+      showToast({
+        type: 'success',
+        title: 'Subscribed!',
+        message: 'You will receive notifications from this hub.',
+        action: solscanAction(result?.signature),
+      });
     },
   });
 };
@@ -163,8 +175,13 @@ export const unsubscribeFromHub = async (hubPda) => {
     }
     return result;
   }, {
-    onSuccess: () => {
-      showToast({ type: 'info', title: 'Unsubscribed', message: 'You will no longer receive notifications from this hub.' });
+    onSuccess: (result) => {
+      showToast({
+        type: 'info',
+        title: 'Unsubscribed',
+        message: 'You will no longer receive notifications from this hub.',
+        action: solscanAction(result?.signature),
+      });
     },
   });
 };
@@ -178,12 +195,12 @@ export const createHub = async (name, description, category, hubIndex) => {
     const result = await programService.createHub(name, description, category, hubIndex);
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       showToast({
         type: 'success',
         title: 'Hub Created!',
         message: `"${name}" is live. ${PRICING.HUB_CREATION} $SKR charged for the first month.`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });
@@ -208,12 +225,12 @@ export const submitFeedback = async (hubPda, feedbackText, depositIndex) => {
     );
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       showToast({
         type: 'success',
         title: 'Feedback Submitted',
         message: `${DEPOSITS.FEEDBACK} $SKR in escrow — refunded when the brand approves.`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });
@@ -234,12 +251,12 @@ export const submitDaoProposal = async (hubPda, proposalText, depositIndex) => {
     );
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       showToast({
         type: 'success',
         title: 'Proposal Submitted',
         message: `${DEPOSITS.DAO_PROPOSAL} $SKR in escrow — refunded when approved.`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });
@@ -260,12 +277,12 @@ export const submitTalent = async (hubPda, talentText, depositIndex) => {
     );
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       showToast({
         type: 'success',
         title: 'Talent Submitted',
         message: `In review. ${DEPOSITS.TALENT} $SKR in escrow — refunded when the brand approves.`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });
@@ -284,12 +301,12 @@ export const contributeToVault = async (vaultPda, amount) => {
     const result = await programService.contributeToVault(vaultPda, amount);
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       showToast({
         type: 'success',
         title: 'Contribution Successful',
         message: `You contributed ${amount} $SKR. 95% to the brand, 5% to the platform.`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });
@@ -314,13 +331,13 @@ export const purchaseAdSlot = async (hubPda, slotType, slotIndex, imageUrlHash, 
     );
     return result;
   }, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       const price = slotType === 'top' ? PRICING.TOP_AD_SLOT : slotType === 'lockscreen' ? PRICING.LOCKSCREEN_AD : PRICING.BOTTOM_AD_SLOT;
       showToast({
         type: 'success',
         title: 'Ad Slot Purchased',
         message: `${slotType} slot · ${durationWeeks} week(s) · ${price * durationWeeks} $SKR`,
-        duration: 3500,
+        action: solscanAction(result?.signature),
       });
     },
   });

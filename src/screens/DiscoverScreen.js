@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -8,6 +8,9 @@ import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { subscribeToHub, unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 import { SkeletonList } from '../components/ui/Skeleton';
+import { useRefreshFirebase } from '../utils/useRefreshFirebase';
+import BalanceChip from '../components/ui/BalanceChip';
+import RichNotificationPreview from '../components/RichNotificationPreview';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +18,7 @@ export default function DiscoverScreen({ navigation }) {
   const storeHubs = useAppStore((state) => state.hubs);
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hydrated = useAppStore((state) => state.hydrated); // [B60]
+  const { refreshing, onRefresh } = useRefreshFirebase(); // [B61]
   // Show active + overdue hubs (overdue is invisible to users — no badge). Exclude SUSPENDED.
   const [hubs, setHubs] = useState(
     storeHubs
@@ -111,10 +115,23 @@ export default function DiscoverScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF9F66"
+            colors={['#FF9F66']}
+            progressBackgroundColor="#16161a"
+          />
+        }
+      >
         {/* Header */}
         <View className="p-6 pb-4">
-          <Text className="text-text font-black text-3xl mb-2">Discover</Text>
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-text font-black text-3xl">Discover</Text>
+            <BalanceChip onPress={() => navigation.navigate('Profile')} />
+          </View>
           <Text className="text-text-secondary text-base">Subscribe for FREE</Text>
         </View>
 
@@ -147,6 +164,9 @@ export default function DiscoverScreen({ navigation }) {
             onAdClick={handleAdClick}
           />
         </View>
+
+        {/* [B61] Rich Notification Ads showcase — explains the killer ad feature */}
+        <RichNotificationPreview />
 
         {/* Hubs List */}
         <View className="px-6">

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -8,6 +8,8 @@ import { MOCK_ADS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
 import { SkeletonList } from '../components/ui/Skeleton';
+import { useRefreshFirebase } from '../utils/useRefreshFirebase';
+import BalanceChip from '../components/ui/BalanceChip';
 
 // Ad system: merge store ads with mocks
 
@@ -22,6 +24,7 @@ export default function MyHubsScreen({ navigation }) {
   const readHubNotificationIds = useAppStore((state) => state.readHubNotificationIds) || []; // [B55]
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hydrated = useAppStore((state) => state.hydrated); // [B60]
+  const { refreshing, onRefresh } = useRefreshFirebase(); // [B61]
 
   // Build myHubs from the store subscriptions + store hubs (includes mock + user-created)
   const myHubs = useMemo(() => {
@@ -88,10 +91,23 @@ export default function MyHubsScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF9F66"
+            colors={['#FF9F66']}
+            progressBackgroundColor="#16161a"
+          />
+        }
+      >
         {/* Header */}
         <View className="p-6 pb-4">
-          <Text className="text-text font-black text-3xl mb-2">My Hubs</Text>
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-text font-black text-3xl">My Hubs</Text>
+            <BalanceChip onPress={() => navigation.navigate('Profile')} />
+          </View>
           <Text className="text-text-secondary text-base">
             {myHubs.length} subscription{myHubs.length !== 1 ? 's' : ''}
           </Text>

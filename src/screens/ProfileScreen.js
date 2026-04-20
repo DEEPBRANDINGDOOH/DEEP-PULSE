@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Switch, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Switch, Linking, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HubIcon from '../components/HubIcon';
@@ -10,6 +10,9 @@ import { setWalletState, getWalletPublicKey, initUserScore } from '../services/t
 import { programService } from '../services/programService';
 import { fetchLeaderboard } from '../services/firebaseService';
 import { showToast } from '../components/ui/Toast';
+import { useRefreshFirebase } from '../utils/useRefreshFirebase';
+import EscrowTracker from '../components/ui/EscrowTracker';
+import GenesisHero from '../components/ui/GenesisHero';
 
 /**
  * Format a public key for display: "7xKL...9Qz"
@@ -132,9 +135,21 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
+  const { refreshing, onRefresh } = useRefreshFirebase(); // [B61]
 
   const renderProfileView = () => (
-    <ScrollView className="px-6 py-4">
+    <ScrollView
+      className="px-6 py-4"
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#FF9F66"
+          colors={['#FF9F66']}
+          progressBackgroundColor="#16161a"
+        />
+      }
+    >
       {/* Wallet Card */}
       <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">
         <View className="flex-row items-center justify-between mb-4">
@@ -168,6 +183,12 @@ export default function ProfileScreen({ navigation }) {
           </Text>
         </View>
       </View>
+
+      {/* [B61] Genesis Token hero card — only renders if holder */}
+      <GenesisHero />
+
+      {/* [B61] Escrow tracker — only renders if there are locked funds */}
+      <EscrowTracker />
 
       {/* DEEP Score Card */}
       <View className="bg-background-card rounded-2xl p-6 mb-4 border border-border">

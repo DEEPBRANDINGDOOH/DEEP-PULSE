@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -8,11 +8,14 @@ import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import GlowCard from '../components/ui/GlowCard';
 import { SkeletonList } from '../components/ui/Skeleton';
+import BalanceChip from '../components/ui/BalanceChip';
 import GradientButton from '../components/ui/GradientButton';
 import PulseOrb from '../components/ui/PulseOrb';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS, safeOpenURL } from '../utils/security';
 import { showToast } from '../components/ui/Toast';
+import { haptics } from '../utils/haptics';
+import { useRefreshFirebase } from '../utils/useRefreshFirebase';
 
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
@@ -22,6 +25,7 @@ export default function HomeScreen({ navigation }) {
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
   const hydrated = useAppStore((state) => state.hydrated); // [B60] skeleton gating
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
+  const { refreshing, onRefresh } = useRefreshFirebase(); // [B61] pull-to-refresh
   const unreadCount = getUnreadHubNotifCount(); // [B41] Badge shows real hub notification count
 
   // Load notifications from store (synced from Firebase on app start)
@@ -193,7 +197,18 @@ export default function HomeScreen({ navigation }) {
       <PulseOrb color="#FF9F66" size={250} top={-50} left={-80} opacity={0.06} delay={0} />
       <PulseOrb color="#e88b52" size={180} top={300} left={220} opacity={0.04} delay={1500} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF9F66"
+            colors={['#FF9F66']}
+            progressBackgroundColor="#16161a"
+          />
+        }
+      >
         {/* Header */}
         <View className="px-6 pt-4 pb-3 flex-row items-center justify-between">
           <View>
@@ -214,6 +229,8 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
           <View className="flex-row items-center">
+            {/* [B61] $SKR balance chip — persistent token visibility */}
+            <BalanceChip onPress={() => navigation.navigate('Profile')} className="mr-2" />
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Open profile"
@@ -384,6 +401,7 @@ export default function HomeScreen({ navigation }) {
                         setNotifications(prev => prev.map(n =>
                           n.id === notif.id ? { ...n, reactions: (n.reactions || 0) + 1, reacted: true } : n
                         ));
+                        haptics.select(); // [B61] flame tap feedback
                         // [B56] Persist reaction to store + Firebase (survives cache clear)
                         reactToHubNotification(notif.id);
                         // [B54] Sync read state to store — so "My Hubs" shows as read too
