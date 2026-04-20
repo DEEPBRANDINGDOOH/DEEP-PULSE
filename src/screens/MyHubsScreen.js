@@ -7,15 +7,12 @@ import HubIcon from '../components/HubIcon';
 import { MOCK_ADS } from '../config/constants';
 import { unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
+import { SkeletonList } from '../components/ui/Skeleton';
 
 // Ad system: merge store ads with mocks
 
-// Extra hub metadata for legacy mock hubs (display in My Hubs)
-const HUB_EXTRA = {
-  '1': { unreadCount: 3, lastNotification: 'New game launch tomorrow!', lastNotificationTime: '2 hours ago' },
-  '2': { unreadCount: 1, lastNotification: 'Artist spotlight: @solartist', lastNotificationTime: '5 hours ago' },
-  '3': { unreadCount: 0, lastNotification: 'New yield farm launched', lastNotificationTime: '1 day ago' },
-};
+// [B60] Removed stale HUB_EXTRA (hardcoded fake notifications for mock IDs 1/2/3).
+// Notification data now always comes from Firestore via hubNotifications store.
 
 export default function MyHubsScreen({ navigation }) {
   const subscribedProjects = useAppStore((state) => state.subscribedProjects);
@@ -24,6 +21,7 @@ export default function MyHubsScreen({ navigation }) {
   const hubNotifications = useAppStore((state) => state.hubNotifications);
   const readHubNotificationIds = useAppStore((state) => state.readHubNotificationIds) || []; // [B55]
   const approvedAds = useAppStore((state) => state.approvedAds);
+  const hydrated = useAppStore((state) => state.hydrated); // [B60]
 
   // Build myHubs from the store subscriptions + store hubs (includes mock + user-created)
   const myHubs = useMemo(() => {
@@ -31,11 +29,11 @@ export default function MyHubsScreen({ navigation }) {
       .map(id => {
         const hub = storeHubs.find(h => h.id === id);
         if (!hub) return null;
-        // For new hubs, check stored notifications; for legacy mocks, use HUB_EXTRA
+        // [B60] All hub notification metadata now comes from Firestore-synced store
         const storedNotifs = hubNotifications[hub.name] || [];
         const latestNotif = storedNotifs.length > 0 ? storedNotifs[0] : null;
-        const extra = HUB_EXTRA[id] || {
-          unreadCount: storedNotifs.filter(n => !readHubNotificationIds.includes(n.id)).length, // [B55] Real unread count
+        const extra = {
+          unreadCount: storedNotifs.filter(n => !readHubNotificationIds.includes(n.id)).length,
           lastNotification: latestNotif ? latestNotif.title : 'No notifications yet',
           lastNotificationTime: latestNotif ? latestNotif.timestamp : '',
         };
@@ -116,7 +114,9 @@ export default function MyHubsScreen({ navigation }) {
 
         {/* My Hubs List */}
         <View className="px-6">
-          {myHubs.length === 0 ? (
+          {myHubs.length === 0 && !hydrated ? (
+            <SkeletonList count={2} height={120} />
+          ) : myHubs.length === 0 ? (
             <View className="bg-background-card rounded-2xl p-8 items-center border border-border">
               <Ionicons name="apps-outline" size={48} color="#666" />
               <Text className="text-text-secondary text-lg mt-4 text-center">

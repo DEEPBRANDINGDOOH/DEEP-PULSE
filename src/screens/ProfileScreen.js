@@ -9,6 +9,7 @@ import { walletAdapter } from '../services/walletAdapter';
 import { setWalletState, getWalletPublicKey, initUserScore } from '../services/transactionHelper';
 import { programService } from '../services/programService';
 import { fetchLeaderboard } from '../services/firebaseService';
+import { showToast } from '../components/ui/Toast';
 
 /**
  * Format a public key for display: "7xKL...9Qz"
@@ -127,7 +128,7 @@ export default function ProfileScreen({ navigation }) {
 
   const handleCopyWallet = () => {
     try { require('react-native').Clipboard?.setString(fullWalletAddress); } catch (_) {}
-    Alert.alert('Copied!', `Wallet address copied to clipboard.`);
+    showToast({ type: 'info', title: 'Copied!', message: 'Wallet address copied to clipboard.' });
   };
 
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
@@ -149,7 +150,11 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <Text className="text-text font-bold text-lg">{user.wallet}</Text>
           </View>
-          <TouchableOpacity onPress={handleCopyWallet}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Copy wallet address"
+            onPress={handleCopyWallet}
+          >
             <Ionicons name="copy-outline" size={24} color="#FF9F66" />
           </TouchableOpacity>
         </View>
@@ -388,7 +393,7 @@ export default function ProfileScreen({ navigation }) {
                 clearWallet();
                 setWalletState(null, null);
                 try { await walletAdapter.disconnect(authToken); } catch(e) {}
-                Alert.alert('Wallet Disconnected', 'Your wallet has been disconnected successfully.');
+                showToast({ type: 'info', title: 'Wallet Disconnected', message: 'Successfully signed out.' });
               }},
             ]);
           }}

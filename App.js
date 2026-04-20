@@ -32,6 +32,7 @@ import { useAppStore } from './src/store/appStore';
 import { logger } from './src/utils/security';
 import { setWalletState } from './src/services/transactionHelper';
 import { createNavigationContainerRef } from '@react-navigation/native';
+import { ToastHost } from './src/components/ui/Toast';
 
 // Screens
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -398,6 +399,9 @@ const App = () => {
         logger.log(`[App] Firebase sync: ${hubs?.length || 0} hubs, ${notifications?.length || 0} notifs, ${ads?.length || 0} ads, ${talents?.length || 0} talents, ${proposals?.length || 0} proposals, ${deals?.length || 0} deals, ${userSubs?.length || 0} subs`);
       } catch (e) {
         logger.warn('[App] Firebase sync failed, using local data:', e?.message);
+      } finally {
+        // [B60] Mark hydrated — UI can now hide skeleton loaders
+        useAppStore.getState().setHydrated(true);
       }
     };
     syncFromFirebase();
@@ -535,6 +539,8 @@ const App = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      {/* [B60] Global toast host — overlays above all screens */}
+      <ToastHost />
       </ErrorBoundary>
     </GestureHandlerRootView>
   );

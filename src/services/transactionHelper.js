@@ -11,6 +11,7 @@ import { programService } from './programService';
 import { notificationService } from './notificationService';
 import { PRICING, DEPOSITS, MOCK_TRANSACTIONS } from '../config/constants';
 import { logger } from '../utils/security';
+import { showToast } from '../components/ui/Toast';
 
 // ============================================
 // WALLET STATE
@@ -143,7 +144,7 @@ export const subscribeToHub = async (hubPda) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert('Subscribed!', 'You are now subscribed to this hub. You will receive notifications.');
+      showToast({ type: 'success', title: 'Subscribed!', message: 'You will receive notifications from this hub.' });
     },
   });
 };
@@ -163,7 +164,7 @@ export const unsubscribeFromHub = async (hubPda) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert('Unsubscribed', 'You have been unsubscribed from this hub.');
+      showToast({ type: 'info', title: 'Unsubscribed', message: 'You will no longer receive notifications from this hub.' });
     },
   });
 };
@@ -178,10 +179,12 @@ export const createHub = async (name, description, category, hubIndex) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert(
-        'Hub Created!',
-        `Your hub "${name}" has been created. ${PRICING.HUB_CREATION} $SKR charged for the first month.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Hub Created!',
+        message: `"${name}" is live. ${PRICING.HUB_CREATION} $SKR charged for the first month.`,
+        duration: 3500,
+      });
     },
   });
 };
@@ -206,10 +209,12 @@ export const submitFeedback = async (hubPda, feedbackText, depositIndex) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert(
-        'Feedback Submitted',
-        `Your feedback has been submitted. ${DEPOSITS.FEEDBACK} $SKR deposited in escrow — refunded when the brand approves.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Feedback Submitted',
+        message: `${DEPOSITS.FEEDBACK} $SKR in escrow — refunded when the brand approves.`,
+        duration: 3500,
+      });
     },
   });
 };
@@ -230,10 +235,12 @@ export const submitDaoProposal = async (hubPda, proposalText, depositIndex) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert(
-        'Proposal Submitted',
-        `Your DAO Boost proposal has been submitted. ${DEPOSITS.DAO_PROPOSAL} $SKR deposited in escrow — refunded when approved.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Proposal Submitted',
+        message: `${DEPOSITS.DAO_PROPOSAL} $SKR in escrow — refunded when approved.`,
+        duration: 3500,
+      });
     },
   });
 };
@@ -254,10 +261,12 @@ export const submitTalent = async (hubPda, talentText, depositIndex) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert(
-        'Talent Submitted',
-        `Your talent submission is in review. ${DEPOSITS.TALENT} $SKR deposited in escrow — refunded when the brand approves.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Talent Submitted',
+        message: `In review. ${DEPOSITS.TALENT} $SKR in escrow — refunded when the brand approves.`,
+        duration: 3500,
+      });
     },
   });
 };
@@ -276,10 +285,12 @@ export const contributeToVault = async (vaultPda, amount) => {
     return result;
   }, {
     onSuccess: () => {
-      Alert.alert(
-        'Contribution Successful',
-        `You contributed ${amount} $SKR to this DAO Boost. 95% goes to the brand, 5% to the platform.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Contribution Successful',
+        message: `You contributed ${amount} $SKR. 95% to the brand, 5% to the platform.`,
+        duration: 3500,
+      });
     },
   });
 };
@@ -305,10 +316,12 @@ export const purchaseAdSlot = async (hubPda, slotType, slotIndex, imageUrlHash, 
   }, {
     onSuccess: () => {
       const price = slotType === 'top' ? PRICING.TOP_AD_SLOT : slotType === 'lockscreen' ? PRICING.LOCKSCREEN_AD : PRICING.BOTTOM_AD_SLOT;
-      Alert.alert(
-        'Ad Slot Purchased',
-        `Your ${slotType} ad slot has been purchased for ${durationWeeks} week(s) at ${price * durationWeeks} $SKR.`
-      );
+      showToast({
+        type: 'success',
+        title: 'Ad Slot Purchased',
+        message: `${slotType} slot · ${durationWeeks} week(s) · ${price * durationWeeks} $SKR`,
+        duration: 3500,
+      });
     },
   });
 };

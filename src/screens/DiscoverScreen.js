@@ -7,12 +7,14 @@ import HubIcon from '../components/HubIcon';
 import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { subscribeToHub, unsubscribeFromHub } from '../services/transactionHelper';
 import { useAppStore } from '../store/appStore';
+import { SkeletonList } from '../components/ui/Skeleton';
 
 export default function DiscoverScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const storeSubscribed = useAppStore((state) => state.subscribedProjects);
   const storeHubs = useAppStore((state) => state.hubs);
   const approvedAds = useAppStore((state) => state.approvedAds);
+  const hydrated = useAppStore((state) => state.hydrated); // [B60]
   // Show active + overdue hubs (overdue is invisible to users — no badge). Exclude SUSPENDED.
   const [hubs, setHubs] = useState(
     storeHubs
@@ -150,7 +152,10 @@ export default function DiscoverScreen({ navigation }) {
         <View className="px-6">
           <Text className="text-text font-bold text-xl mb-4">Trending Hubs</Text>
 
-          {filteredHubs.length === 0 && (
+          {filteredHubs.length === 0 && !hydrated && (
+            <SkeletonList count={3} height={96} />
+          )}
+          {filteredHubs.length === 0 && hydrated && (
             <View className="items-center justify-center py-16">
               <Ionicons name="search-outline" size={48} color="#555" />
               <Text className="text-text-secondary text-center mt-4 text-base font-bold">No hubs yet</Text>

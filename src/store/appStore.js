@@ -111,6 +111,14 @@ export const useAppStore = create(
       }),
 
       // ============================================
+      // HYDRATION STATE — tracks first Firestore sync completion
+      // ============================================
+      // [B60] false until App.js finishes initial fetch from Firestore.
+      // Screens check this to show skeletons instead of empty states on cold start.
+      hydrated: false,
+      setHydrated: (value) => set({ hydrated: !!value }),
+
+      // ============================================
       // SUBSCRIPTIONS STATE
       // ============================================
       subscribedProjects: [],

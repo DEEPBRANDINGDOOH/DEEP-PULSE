@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AdRotation, { AdRotationManager } from '../components/AdRotation';
@@ -7,10 +7,12 @@ import HubIcon from '../components/HubIcon';
 import { MOCK_ADS, USE_DEVNET } from '../config/constants';
 import { useAppStore } from '../store/appStore';
 import GlowCard from '../components/ui/GlowCard';
+import { SkeletonList } from '../components/ui/Skeleton';
 import GradientButton from '../components/ui/GradientButton';
 import PulseOrb from '../components/ui/PulseOrb';
 import { submitFeedback as submitFeedbackTx } from '../services/transactionHelper';
 import { checkRateLimit, MAX_LENGTHS, safeOpenURL } from '../utils/security';
+import { showToast } from '../components/ui/Toast';
 
 const MOCK_NOTIFICATIONS = [];  // Empty — notifications come from Firebase
 
@@ -18,6 +20,7 @@ export default function HomeScreen({ navigation }) {
   const { wallet, getUnreadHubNotifCount, hubNotifications, addHubFeedback, getHubFeedbacks, removeHubNotification, markHubNotificationRead, readHubNotificationIds, reactToHubNotification } = useAppStore(); // [B41] Use hub notif count, not alerts
   const approvedAds = useAppStore((state) => state.approvedAds);
   const hasGenesisToken = useAppStore((state) => state.hasGenesisToken);
+  const hydrated = useAppStore((state) => state.hydrated); // [B60] skeleton gating
   const feedbackDepositAmount = useAppStore((state) => state.platformPricing?.feedback) || 300;
   const unreadCount = getUnreadHubNotifCount(); // [B41] Badge shows real hub notification count
 
@@ -173,7 +176,12 @@ export default function HomeScreen({ navigation }) {
         notificationId: selectedNotification?.id,
       });
       setSubmitting(false);
-      Alert.alert('Feedback Sent!', `Your feedback for "${selectedNotification?.hubName}" has been submitted.\n\n${feedbackDepositAmount} $SKR deposited in escrow.`);
+      showToast({
+        type: 'success',
+        title: 'Feedback Sent!',
+        message: `${feedbackDepositAmount} $SKR in escrow for ${selectedNotification?.hubName}.`,
+        duration: 3500,
+      });
       setFeedbackText('');
       setFeedbackModalVisible(false);
     }
@@ -207,6 +215,8 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Open profile"
               className="mr-3 w-10 h-10 rounded-full bg-background-card items-center justify-center border border-border"
               onPress={() => navigation.navigate('Profile')}
               style={{
@@ -220,6 +230,8 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="person" size={18} color="#FF9F66" />
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
               className="w-10 h-10 rounded-full bg-background-card items-center justify-center border border-border"
               onPress={() => navigation.navigate('Notifications')}
               style={{
@@ -266,7 +278,10 @@ export default function HomeScreen({ navigation }) {
 
         {/* Notifications Feed */}
         <View className="px-6">
-          {notifications.length === 0 && (
+          {notifications.length === 0 && !hydrated && (
+            <SkeletonList count={3} height={96} />
+          )}
+          {notifications.length === 0 && hydrated && (
             <View className="items-center justify-center py-16">
               <Ionicons name="notifications-off-outline" size={48} color="#555" />
               <Text className="text-text-secondary text-center mt-4 text-base font-bold">No notifications yet</Text>
@@ -466,6 +481,10 @@ export default function HomeScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setFeedbackModalVisible(false)}
       >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
         <View className="flex-1 bg-black/60 justify-end">
           <View
             className="bg-background-card rounded-t-3xl p-6"
@@ -483,6 +502,8 @@ export default function HomeScreen({ navigation }) {
             <View className="flex-row items-center justify-between mb-5">
               <Text className="text-text font-black text-xl" style={{ letterSpacing: -0.3 }}>Send Feedback</Text>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Close feedback modal"
                 onPress={() => setFeedbackModalVisible(false)}
                 className="w-8 h-8 rounded-full bg-background-secondary items-center justify-center"
               >
@@ -521,6 +542,7 @@ export default function HomeScreen({ navigation }) {
             />
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

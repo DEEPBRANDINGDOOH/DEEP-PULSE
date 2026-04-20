@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../store/appStore';
@@ -356,6 +356,11 @@ export default function DAOBoostScreen({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
       {/* Header */}
       <View className="p-6 pb-4">
         <View className="flex-row items-center justify-between mb-2">
@@ -485,6 +490,7 @@ export default function DAOBoostScreen({ navigation }) {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

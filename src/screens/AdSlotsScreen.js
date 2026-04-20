@@ -32,6 +32,8 @@ import {
   Image,
   ActivityIndicator,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -800,7 +802,12 @@ export default function AdSlotsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+      <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View className="p-6 pb-4">
           <TouchableOpacity onPress={() => navigation.goBack()} className="mb-4">
@@ -1916,6 +1923,7 @@ export default function AdSlotsScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
